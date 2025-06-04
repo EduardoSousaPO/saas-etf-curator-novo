@@ -1,6 +1,0 @@
-{
-  "contextFiles": [
-    "PLANO_ENRIQUECIMENTO_ETFS.md"
-  ],
-  "description": "⚠️ Antes de qualquer alteração, automação ou enriquecimento na tabela 'etfs', consulte obrigatoriamente o arquivo PLANO_ENRIQUECIMENTO_ETFS.md para seguir as regras, etapas e boas práticas estabelecidas."
-}
