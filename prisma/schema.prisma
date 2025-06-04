@@ -1,12 +1,16 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
+  previewFeatures = ["multiSchema", "postgresqlExtensions"]
+  binaryTargets   = ["native", "debian-openssl-3.0.x", "windows"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  schemas  = ["auth", "public"]
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  directUrl         = env("DIRECT_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  extensions        = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
+  schemas           = ["auth", "public"]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -319,24 +323,10 @@ model users {
   mfa_factors                 mfa_factors[]
   one_time_tokens             one_time_tokens[]
   sessions                    sessions[]
-  profiles                    profiles?
 
   @@index([instance_id])
   @@index([is_anonymous])
   @@schema("auth")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model affiliates {
-  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id                 String    @db.Uuid
-  ref_code                String    @unique
-  created_at              DateTime? @default(now()) @db.Timestamptz(6)
-  total_referred          Int?      @default(0)
-  total_revenue_generated Decimal?  @default(0) @db.Decimal
-  profiles                profiles  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@schema("public")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -376,50 +366,171 @@ model etfs {
   @@schema("public")
 }
 
+model portfolios {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String    @db.Uuid
+  name        String    @db.VarChar(100)
+  description String?
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@unique([user_id, name], map: "portfolios_user_name_unique")
+  @@index([created_at(sort: Desc)], map: "idx_portfolios_created_at")
+  @@index([user_id], map: "idx_portfolios_user_id")
+  @@schema("public")
+}
+
+model portfolio_holdings {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  portfolio_id  String    @db.Uuid
+  etf_symbol    String    @db.VarChar(10)
+  shares        Decimal   @db.Decimal(15, 4)
+  average_cost  Decimal   @db.Decimal(15, 4)
+  current_price Decimal?  @default(100.00) @db.Decimal(15, 4)
+  purchase_date DateTime? @default(now()) @db.Timestamptz(6)
+  created_at    DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@unique([portfolio_id, etf_symbol, purchase_date], map: "portfolio_holdings_unique")
+  @@index([etf_symbol], map: "idx_portfolio_holdings_etf_symbol")
+  @@index([portfolio_id], map: "idx_portfolio_holdings_portfolio_id")
+  @@index([purchase_date(sort: Desc)], map: "idx_portfolio_holdings_purchase_date")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model lifetime_codes {
+model etf_correlations {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  etf_a_symbol            String    @db.VarChar(10)
+  etf_b_symbol            String    @db.VarChar(10)
+  correlation_coefficient Decimal   @db.Decimal(10, 8)
+  period_days             Int       @default(252)
+  calculation_date        DateTime? @default(dbgenerated("CURRENT_DATE")) @db.Date
+  data_points             Int
+  r_squared               Decimal?  @db.Decimal(10, 8)
+  created_at              DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@unique([etf_a_symbol, etf_b_symbol, period_days, calculation_date], map: "etf_correlations_symbols_unique")
+  @@index([correlation_coefficient], map: "idx_etf_correlations_coefficient")
+  @@index([calculation_date], map: "idx_etf_correlations_date")
+  @@index([etf_a_symbol, etf_b_symbol], map: "idx_etf_correlations_symbols")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model payment_history {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  is_redeemed         Boolean?  @default(false)
-  redeemed_at         DateTime? @db.Timestamptz(6)
-  redeemed_by_user_id String?   @db.Uuid
+  user_id             String    @db.Uuid
+  subscription_id     String?   @db.Uuid
+  plan_id             String    @db.VarChar(50)
+  amount              Decimal   @db.Decimal(10, 2)
+  currency            String?   @default("USD") @db.VarChar(3)
+  status              String    @default("pending") @db.VarChar(20)
+  payment_method      String?   @db.VarChar(50)
+  payment_provider    String?   @db.VarChar(50)
+  external_payment_id String?   @db.VarChar(255)
+  payment_date        DateTime? @db.Timestamptz(6)
   created_at          DateTime? @default(now()) @db.Timestamptz(6)
-  profiles            profiles? @relation(fields: [redeemed_by_user_id], references: [id], onUpdate: NoAction)
 
+  @@index([payment_date], map: "idx_payment_history_payment_date")
+  @@index([status], map: "idx_payment_history_status")
+  @@index([user_id], map: "idx_payment_history_user_id")
   @@schema("public")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model presets {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id    String    @db.Uuid
-  name       String
-  filters    Json
-  created_at DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at DateTime? @default(now()) @db.Timestamptz(6)
-  profiles   profiles  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model portfolio_risk_analysis {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  portfolio_id            String?   @db.Uuid
+  analysis_date           DateTime? @default(dbgenerated("CURRENT_DATE")) @db.Date
+  total_value             Decimal?  @db.Decimal(15, 2)
+  portfolio_return_1m     Decimal?  @db.Decimal(10, 6)
+  portfolio_return_3m     Decimal?  @db.Decimal(10, 6)
+  portfolio_return_12m    Decimal?  @db.Decimal(10, 6)
+  portfolio_volatility    Decimal?  @db.Decimal(10, 6)
+  portfolio_sharpe        Decimal?  @db.Decimal(10, 6)
+  portfolio_beta          Decimal?  @db.Decimal(10, 6)
+  diversification_score   Decimal?  @db.Decimal(5, 2)
+  risk_level              String?   @db.VarChar(20)
+  sector_exposure         Json?
+  geographic_exposure     Json?
+  rebalancing_suggestions Json?
+  created_at              DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime? @default(now()) @db.Timestamptz(6)
 
+  @@unique([portfolio_id, analysis_date], map: "portfolio_risk_analysis_unique")
+  @@index([analysis_date], map: "idx_portfolio_risk_date")
+  @@index([risk_level], map: "idx_portfolio_risk_level")
+  @@index([portfolio_id], map: "idx_portfolio_risk_portfolio_id")
   @@schema("public")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model profiles {
-  id                        String           @id @db.Uuid
-  updated_at                DateTime?        @default(now()) @db.Timestamptz(6)
-  plan                      String?          @default("free")
-  ref_code                  String?          @unique
-  referred_by               String?          @db.Uuid
-  lifetime                  Boolean?         @default(false)
-  stripe_customer_id        String?          @unique
-  stripe_subscription_id    String?          @unique
-  stripe_price_id           String?
-  stripe_current_period_end DateTime?        @db.Timestamptz(6)
-  affiliates                affiliates[]
-  lifetime_codes            lifetime_codes[]
-  presets                   presets[]
-  users                     users            @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  profiles                  profiles?        @relation("profilesToprofiles", fields: [referred_by], references: [id], onUpdate: NoAction)
-  other_profiles            profiles[]       @relation("profilesToprofiles")
+model sector_analysis {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sector_name            String    @db.VarChar(100)
+  analysis_date          DateTime? @default(dbgenerated("CURRENT_DATE")) @db.Date
+  total_etfs             Int?      @default(0)
+  avg_return_1m          Decimal?  @db.Decimal(10, 6)
+  avg_return_3m          Decimal?  @db.Decimal(10, 6)
+  avg_return_6m          Decimal?  @db.Decimal(10, 6)
+  avg_return_12m         Decimal?  @db.Decimal(10, 6)
+  avg_volatility         Decimal?  @db.Decimal(10, 6)
+  avg_sharpe_ratio       Decimal?  @db.Decimal(10, 6)
+  avg_dividend_yield     Decimal?  @db.Decimal(10, 6)
+  total_assets           Decimal?  @db.Decimal(15, 2)
+  best_performer_symbol  String?   @db.VarChar(10)
+  worst_performer_symbol String?   @db.VarChar(10)
+  created_at             DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime? @default(now()) @db.Timestamptz(6)
 
+  @@unique([sector_name, analysis_date], map: "sector_analysis_date_unique")
+  @@index([analysis_date], map: "idx_sector_analysis_date")
+  @@index([avg_return_12m], map: "idx_sector_analysis_return")
+  @@index([sector_name], map: "idx_sector_analysis_sector")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model user_subscriptions {
+  id                       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                  String    @unique(map: "user_subscriptions_user_id_unique") @db.Uuid
+  plan_id                  String    @default("free") @db.VarChar(50)
+  status                   String    @default("active") @db.VarChar(20)
+  current_period_start     DateTime? @default(now()) @db.Timestamptz(6)
+  current_period_end       DateTime? @default(dbgenerated("(now() + '30 days'::interval)")) @db.Timestamptz(6)
+  payment_method           String?   @db.VarChar(50)
+  payment_provider         String?   @db.VarChar(50)
+  external_subscription_id String?   @db.VarChar(255)
+  created_at               DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([current_period_end], map: "idx_user_subscriptions_period_end")
+  @@index([plan_id], map: "idx_user_subscriptions_plan_id")
+  @@index([status], map: "idx_user_subscriptions_status")
+  @@index([user_id], map: "idx_user_subscriptions_user_id")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model user_usage_tracking {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id          String    @db.Uuid
+  date             DateTime? @default(dbgenerated("CURRENT_DATE")) @db.Date
+  ai_queries_count Int?      @default(0)
+  api_calls_count  Int?      @default(0)
+  created_at       DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@unique([user_id, date], map: "user_usage_tracking_unique")
+  @@index([user_id, date], map: "idx_user_usage_tracking_user_date")
   @@schema("public")
 }
 
@@ -462,4 +573,15 @@ enum one_time_token_type {
   phone_change_token
 
   @@schema("auth")
+}
+
+enum alert_type {
+  price_above
+  price_below
+  return_above
+  return_below
+  volume_spike
+  dividend_announcement
+
+  @@schema("public")
 }

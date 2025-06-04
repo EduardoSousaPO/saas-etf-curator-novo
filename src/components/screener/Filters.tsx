@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Define a type for the filters
 interface FilterValues {
@@ -19,6 +20,7 @@ interface FilterValues {
   returns_12m_min?: number;
   sharpe_12m_min?: number;
   dividend_yield_min?: number;
+  onlyComplete: boolean;
 }
 
 interface FiltersProps {
@@ -26,11 +28,12 @@ interface FiltersProps {
 }
 
 export default function Filters({ onFilterChange }: FiltersProps) {
-  const [filters, setFilters] = useState<FilterValues>({});
+  const [filters, setFilters] = useState<FilterValues>({ onlyComplete: false });
   const [categories, setCategories] = useState<string[]>([]);
   const [exchanges, setExchanges] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [debugInfo, setDebugInfo] = useState<string>("");
+  const [onlyComplete, setOnlyComplete] = useState(false);
 
   // Fetch categories and exchanges on component mount
   useEffect(() => {
@@ -91,6 +94,11 @@ export default function Filters({ onFilterChange }: FiltersProps) {
     setFilters((prev) => ({ ...prev, [name]: value[0] }));
   };
 
+  const handleOnlyCompleteChange = (checked: boolean) => {
+    setOnlyComplete(checked);
+    setFilters((prev) => ({ ...prev, onlyComplete: checked }));
+  };
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log("Aplicando filtros:", filters);
@@ -100,9 +108,9 @@ export default function Filters({ onFilterChange }: FiltersProps) {
 
   const clearFilters = () => {
     console.log("Limpando todos os filtros");
-    setFilters({});
+    setFilters({ onlyComplete: false });
     setDebugInfo("Filtros limpos");
-    onFilterChange({});
+    onFilterChange({ onlyComplete: false });
   }
 
   return (
@@ -111,6 +119,18 @@ export default function Filters({ onFilterChange }: FiltersProps) {
         <div className="text-xs bg-blue-100 dark:bg-blue-900 p-2 mb-2 rounded">
           {debugInfo}
         </div>
+      )}
+      {loading && (
+        <div className="flex items-center space-x-2 text-xs text-blue-600 dark:text-blue-300 mb-2">
+          <span className="animate-spin h-4 w-4 border-b-2 border-blue-600 rounded-full"></span>
+          <span>Carregando categorias e exchanges...</span>
+        </div>
+      )}
+      {!loading && categories.length === 0 && (
+        <div className="text-xs text-red-600 dark:text-red-400 mb-2">Nenhuma categoria disponível.</div>
+      )}
+      {!loading && exchanges.length === 0 && (
+        <div className="text-xs text-red-600 dark:text-red-400 mb-2">Nenhuma exchange disponível.</div>
       )}
       
       <div>
@@ -218,6 +238,11 @@ export default function Filters({ onFilterChange }: FiltersProps) {
           onValueChange={(value) => handleSingleSliderChange("dividend_yield_min", value)}
           className="mt-2"
         />
+      </div>
+
+      <div className="flex items-center space-x-2 pt-2">
+        <Checkbox id="onlyComplete" checked={onlyComplete} onCheckedChange={handleOnlyCompleteChange} />
+        <Label htmlFor="onlyComplete" className="dark:text-gray-200">Apenas ETFs com dados completos</Label>
       </div>
 
       {/* Add more filter components here based on etfs schema columns */}

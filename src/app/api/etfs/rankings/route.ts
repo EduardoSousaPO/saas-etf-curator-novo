@@ -1,5 +1,5 @@
 // src/app/api/etfs/rankings/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 interface RankingParams {
@@ -9,7 +9,7 @@ interface RankingParams {
 }
 
 const getRankingsForMetric = async ({ metric, order, limit }: RankingParams) => {
-  let orderBy: any = {};
+  const orderBy: Record<string, "asc" | "desc"> = {};
   // Ensure the metric name matches a valid field in the Etfs model
   // Add more valid metrics as needed based on your schema.prisma
   const validMetrics = [
@@ -38,8 +38,10 @@ const getRankingsForMetric = async ({ metric, order, limit }: RankingParams) => 
   });
 };
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
+    console.log("🔗 Conectando ao banco Supabase para buscar rankings...");
+
     const rankings = {
       top_returns_12m: await getRankingsForMetric({ metric: "returns_12m", order: "desc", limit: 10 }),
       top_sharpe_12m: await getRankingsForMetric({ metric: "sharpe_12m", order: "desc", limit: 10 }),
@@ -50,12 +52,25 @@ export async function GET(request: NextRequest) {
       lowest_volatility_12m: await getRankingsForMetric({ metric: "volatility_12m", order: "asc", limit: 10 }), // Lower is better
     };
 
-    return NextResponse.json(rankings);
+    console.log("✅ Rankings carregados com sucesso do banco Supabase");
+    
+    return NextResponse.json({
+      ...rankings,
+      _source: "supabase_database",
+      _message: "Dados reais do banco Supabase",
+      _timestamp: new Date().toISOString()
+    });
 
   } catch (error) {
-    console.error("Error in ETF rankings API:", error);
+    console.error("❌ Erro ao conectar com banco Supabase:", error);
+    console.error("💡 Verifique se o arquivo .env.local está configurado com DATABASE_URL");
+    
     return NextResponse.json(
-      { error: (error as Error).message || "An error occurred while fetching ETF rankings" },
+      { 
+        error: "Falha na conexão com banco de dados", 
+        details: (error as Error).message,
+        help: "Configure DATABASE_URL no arquivo .env.local"
+      },
       { status: 500 }
     );
   }

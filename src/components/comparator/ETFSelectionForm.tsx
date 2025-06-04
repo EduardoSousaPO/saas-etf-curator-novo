@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"; // Not directly used in com
 
 interface ETFSelectionFormProps {
   availableETFs: ETF[];
-  onSelectionChange: (selectedETFs: ETF[]) => void;
+  onSelectionChange: (symbols: string[]) => void;
   maxSelection: number;
 }
 
@@ -59,7 +59,7 @@ export default function ETFSelectionForm({ availableETFs, onSelectionChange, max
   React.useEffect(() => {
     const newlySelectedETFs = availableETFs.filter(etf => 
       etf.symbol && selectedValues.includes(etf.symbol));
-    onSelectionChange(newlySelectedETFs);
+    onSelectionChange(newlySelectedETFs.map(etf => etf.symbol));
   }, [selectedValues, availableETFs, onSelectionChange]);
 
   return (

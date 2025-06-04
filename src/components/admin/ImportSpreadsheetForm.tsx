@@ -1,4 +1,4 @@
-"'use client
+'use client';
 
 import { useState, ChangeEvent, FormEvent } from 'react';
 
@@ -50,9 +50,9 @@ export default function ImportSpreadsheetForm() {
         fileInput.value = '';
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Upload error:", err);
-      setError(err.message || "An unexpected error occurred during file upload.");
+      setError((err as Error).message || "An unexpected error occurred during file upload.");
     } finally {
       setIsLoading(false);
     }

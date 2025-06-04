@@ -83,7 +83,7 @@ export default function ETFTable({
       
       // Formatação específica para valores percentuais
       if (key === "returns_12m" || key === "dividend_yield") {
-        return value.toFixed(2) + "%";
+        return (value * 100).toFixed(2) + "%";
       }
       
       return value.toFixed(2);
@@ -98,12 +98,16 @@ export default function ETFTable({
 
   return (
     <div ref={tableRef} className="space-y-4">
-      <div className="overflow-x-auto border rounded-lg">
-        <Table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <div className="overflow-x-auto border rounded-lg w-full" style={{ maxWidth: '100%' }}>
+        <Table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 table-fixed" style={{ minWidth: '800px' }}>
           <TableHeader className="bg-gray-50 dark:bg-gray-800">
             <TableRow>
               {columns.map((col) => (
-                <TableHead key={col.key} className={`px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider ${col.numeric ? "text-right" : ""}`}>
+                <TableHead 
+                  key={col.key} 
+                  className={`px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider ${col.numeric ? "text-right" : ""}`}
+                  style={{ minWidth: col.key === 'name' ? '200px' : col.key === 'symbol' ? '80px' : '120px' }}
+                >
                   {col.label}
                 </TableHead>
               ))}
@@ -113,7 +117,11 @@ export default function ETFTable({
             {etfs.map((etf) => (
               <TableRow key={etf.id || etf.symbol} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                 {columns.map((col) => (
-                  <TableCell key={`${etf.id || etf.symbol}-${String(col.key)}`} className={`px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 ${col.numeric ? "text-right" : ""}`}>
+                  <TableCell 
+                    key={`${etf.id || etf.symbol}-${String(col.key)}`} 
+                    className={`px-4 py-3 text-sm text-gray-700 dark:text-gray-300 ${col.numeric ? "text-right" : ""}`}
+                    style={{ maxWidth: col.key === 'name' ? '200px' : 'auto', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                  >
                     {formatValue(etf[col.key], col.numeric, col.key)}
                   </TableCell>
                 ))}

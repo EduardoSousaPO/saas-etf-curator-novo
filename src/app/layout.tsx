@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { Toaster } from "react-hot-toast";
 import GlobalAppLogic from "@/components/layout/GlobalAppLogic"; // Import GlobalAppLogic
+import Navbar from "@/components/layout/Navbar";
+import AIChat from "@/components/assistant/AIChat";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -12,27 +14,41 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ETFCurator - Seu Curador Inteligente de ETFs",
-  description: "Descubra, analise e compare ETFs de forma inteligente com o ETFCurator.",
+  title: "ETF Curator - Curadoria Inteligente de ETFs",
+  description: "Análise avançada de ETFs com dados em tempo real",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased bg-white dark:bg-[#181A1B] text-[#1A1A1A] dark:text-gray-200`}>
+    <html lang="pt-BR" suppressHydrationWarning className="">
+      <body className={`${inter.variable} font-sans antialiased min-h-screen`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
+          forcedTheme="light"
         >
-          <GlobalAppLogic /> {/* Add GlobalAppLogic here */}
-          {children}
-          <Toaster position="bottom-right" />
+          <div className="min-h-screen bg-white text-gray-900">
+            <GlobalAppLogic />
+            <Navbar />
+            {children}
+            <AIChat />
+          </div>
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#333',
+                color: '#fff',
+              },
+            }}
+          />
         </ThemeProvider>
       </body>
     </html>

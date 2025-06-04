@@ -167,3 +167,109 @@ Lembre-se de que a transição para o Prisma foi feita com um schema provisório
 
 Se encontrar qualquer problema durante a configuração, revise os passos e as mensagens de erro no terminal. Boa sorte!
 
+# Documentação de Portfólios no ETFCurator
+
+## Tabela portfolio_holdings
+
+A tabela `portfolio_holdings` foi populada com dados de exemplo para os 50 ETFs disponíveis na aplicação. Esta tabela armazena as participações (holdings) de ETFs nos portfólios dos usuários e é fundamental para a funcionalidade de gestão de portfólios da plataforma.
+
+### Estrutura da Tabela
+
+A tabela `portfolio_holdings` contém as seguintes colunas:
+- `id`: UUID, identificador único da participação
+- `portfolio_id`: UUID, referência ao portfólio ao qual a participação pertence
+- `etf_symbol`: String, símbolo do ETF
+- `shares`: Decimal, quantidade de cotas
+- `average_cost`: Decimal, custo médio de aquisição
+- `current_price`: Decimal, preço atual do ETF
+- `purchase_date`: Data de compra
+- `created_at`: Data de criação do registro
+- `updated_at`: Data de atualização do registro
+
+### População da Tabela
+
+Foi criado um script (`scripts/populate-portfolio-holdings.js`) que:
+1. Busca usuários existentes no banco de dados
+2. Para cada usuário, cria de 1 a 3 portfólios
+3. Para cada portfólio, adiciona de 5 a 10 ETFs aleatórios
+4. Cada ETF é adicionado com:
+   - Quantidade aleatória entre 1 e 20 cotas
+   - Preço médio de compra aleatório entre 50 e 500
+   - Preço atual com variação de ±20% do preço de compra
+   - Data de compra aleatória nos últimos 2 anos
+
+## Uso na Aplicação
+
+As informações da tabela `portfolio_holdings` são utilizadas nas seguintes funcionalidades:
+
+### 1. Dashboard do Usuário
+
+No componente `PortfolioOverviewWidget` da página de dashboard (`src/app/dashboard/page.tsx`), os dados dos portfólios são utilizados para exibir:
+- Performance total do portfólio
+- Retorno percentual
+- ETF com melhor desempenho
+- Nível de risco do portfólio
+
+### 2. API de Portfólios
+
+A API de portfólios (`src/app/api/portfolios/route.ts`) fornece endpoints para:
+- Buscar todos os portfólios de um usuário com estatísticas de performance
+- Buscar um portfólio específico com todas as suas participações
+- Adicionar novas participações a um portfólio
+- Excluir participações ou portfólios inteiros
+
+### 3. Simulação e Análise
+
+Os dados dos portfólios também são utilizados para:
+- Calcular pesos percentuais de cada ETF no portfólio
+- Estimar retorno total e percentual
+- Analisar a diversificação e risco do portfólio
+- Fornecer recomendações personalizadas baseadas na composição atual
+
+## Como Utilizar a Funcionalidade
+
+A funcionalidade de portfólios permite que os usuários:
+1. Criem múltiplos portfólios
+2. Adicionem ETFs aos seus portfólios com informações de quantidade e preço de compra
+3. Visualizem estatísticas de performance
+4. Comparem diferentes portfólios
+5. Recebam recomendações personalizadas para otimização
+
+Estas funcionalidades são centrais para a proposta de valor do ETFCurator, permitindo que os usuários não apenas explorem e comparem ETFs, mas também gerenciem seus investimentos de forma integrada na plataforma.
+
+## Scripts de População do Banco de Dados
+
+O ETFCurator requer dados iniciais no banco de dados para seu funcionamento completo. Para facilitar este processo, foram criados os seguintes scripts:
+
+### Scripts Individuais
+
+1. **import-all-etfs.js** - Importa todos os símbolos de ETFs do arquivo `symbols_etfs_eua.xlsx` para a tabela `etfs`.
+2. **enrich-etfs.js** - Enriquece os ETFs com métricas adicionais como retornos, volatilidade, etc.
+3. **calculate-etf-correlations.js** - Calcula e armazena as correlações entre pares de ETFs.
+4. **populate-all-holdings.js** - Cria portfólios e adiciona ETFs a eles para demonstração.
+5. **generate-portfolio-risk-analysis.js** - Gera análises de risco para os portfólios existentes.
+
+### Script Unificado
+
+Para facilitar o processo completo, use o script unificado:
+
+```bash
+node scripts/populate-all-database.js
+```
+
+Este script executará todos os scripts individuais na ordem correta.
+
+### Dependências Necessárias
+
+Certifique-se de instalar as dependências necessárias:
+
+```bash
+npm install @prisma/client dotenv xlsx axios --legacy-peer-deps
+```
+
+### Notas Importantes
+
+- A execução completa pode levar vários minutos devido ao grande volume de dados.
+- Se você tiver uma chave API para o Financial Modeling Prep (FMP), adicione-a ao arquivo `.env` como `FMP_API_KEY=sua_chave_aqui` para obter dados reais.
+- Sem a chave API, o sistema usará dados simulados.
+

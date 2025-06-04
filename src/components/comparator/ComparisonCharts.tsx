@@ -93,19 +93,18 @@ export default function ComparisonCharts({ etfs }: ComparisonChartsProps) {
       .filter(etf => etf.symbol)
       .map(etf => ({
         name: etf.symbol,
-        "12m Return": etf.returns_12m || 0,
-        "Dividend Yield": etf.dividend_yield || 0,
+        "12m Return": (etf.returns_12m || 0) * 100,
+        "Dividend Yield": (etf.dividend_yield || 0) * 100,
         "12m Sharpe": etf.sharpe_12m || 0,
       }));
 
     // For Radar chart, select a few key metrics and normalize if necessary
-    // For simplicity, using direct values. Normalization might be needed for better comparison.
     const radarChartMetrics = [
-      { subject: "12m Return", key: "returns_12m", fullMark: 50 }, // Assuming max 50% return for scale
-      { subject: "Volatility", key: "volatility_12m", fullMark: 40 }, // Lower is better, invert for chart or show as is
-      { subject: "Sharpe Ratio", key: "sharpe_12m", fullMark: 3 },
-      { subject: "Div. Yield", key: "dividend_yield", fullMark: 10 },
-      { subject: "Max Drawdown", key: "max_drawdown", fullMark: -50 }, // More negative is worse
+      { subject: "12m Return", key: "returns_12m", fullMark: 50, isPercentage: true }, 
+      { subject: "Volatility", key: "volatility_12m", fullMark: 40, isPercentage: true }, 
+      { subject: "Sharpe Ratio", key: "sharpe_12m", fullMark: 3, isPercentage: false },
+      { subject: "Div. Yield", key: "dividend_yield", fullMark: 10, isPercentage: true },
+      { subject: "Max Drawdown", key: "max_drawdown", fullMark: -50, isPercentage: true }, 
     ];
 
     const radarData = radarChartMetrics.map(metric => {
@@ -113,11 +112,10 @@ export default function ComparisonCharts({ etfs }: ComparisonChartsProps) {
       etfs.forEach((etf, index) => {
         if (!etf.symbol) return;
         
-        // Handle cases where metric might be undefined or null
         let value = etf[metric.key as keyof ETF] as number | undefined | null;
         if (value === undefined || value === null) value = 0;
         
-        entry[etf.symbol] = value;
+        entry[etf.symbol] = metric.isPercentage ? value * 100 : value;
       });
       return entry;
     });
