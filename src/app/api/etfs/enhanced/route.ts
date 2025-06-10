@@ -61,94 +61,50 @@ export async function GET(request: NextRequest) {
     const minSharpe = searchParams.get('min_sharpe') ? parseFloat(searchParams.get('min_sharpe') || '0') : null;
     const minDividendYield = searchParams.get('min_dividend_yield') ? parseFloat(searchParams.get('min_dividend_yield') || '0') : null;
 
-    // Construir condições de filtro
-    let whereCondition: any = {};
-    
-    if (symbol) {
-      whereCondition.symbol = symbol.toUpperCase();
-    }
-    
-    if (category) {
-      whereCondition.category = {
-        contains: category,
-      };
-    }
-    
-    if (minReturns !== null) {
-      whereCondition.returns_12m = {
-        gte: minReturns,
-      };
-    }
-    
-    if (maxVolatility !== null) {
-      whereCondition.volatility_12m = {
-        lte: maxVolatility,
-      };
-    }
-    
-    if (minSharpe !== null) {
-      whereCondition.sharpe_12m = {
-        gte: minSharpe,
-      };
-    }
-    
-    if (minDividendYield !== null) {
-      whereCondition.dividend_yield = {
-        gte: minDividendYield,
-      };
-    }
-
-    // Buscar ETFs no banco de dados
-    const etfs = await prisma.etfs.findMany({
-      where: whereCondition,
-      orderBy: {
-        updated_at: 'desc',
-      },
-      take: limit > 100 ? 100 : limit, // Limitar a 100 resultados
+    // Construir condições de filtro para etf_list
+    let etfListWhere: any = {};
+    if (symbol) etfListWhere.symbol = symbol.toUpperCase();
+    if (category) etfListWhere.category = { contains: category };
+    // Buscar símbolos que batem com os filtros cadastrais
+    const etfList = await prisma.etf_list.findMany({
+      where: etfListWhere,
+      select: { symbol: true }
     });
-    
-    // Transformar os resultados
-    const enhancedETFs: ETFEnhanced[] = etfs.map((etf) => {
-      // Extrair dados FMP da description
-      const fmpData = extractFMPData(etf.description);
-      
-      // Converter para os tipos corretos
+    const symbols = etfList.map(e => e.symbol);
+    if (symbols.length === 0) {
+      return NextResponse.json({ success: false, etfs: [], message: "ETF não encontrado." }, { status: 404 });
+    }
+    // Construir condições de filtro para calculated_metrics
+    let metricsWhere: any = { symbol: { in: symbols } };
+    if (minReturns !== null) metricsWhere.returns_12m = { gte: minReturns };
+    if (maxVolatility !== null) metricsWhere.volatility_12m = { lte: maxVolatility };
+    if (minSharpe !== null) metricsWhere.sharpe_12m = { gte: minSharpe };
+    if (minDividendYield !== null) metricsWhere.dividends_12m = { gte: minDividendYield };
+    // Buscar métricas filtradas
+    const metrics = await prisma.calculated_metrics.findMany({
+      where: metricsWhere,
+      orderBy: { symbol: 'asc' },
+      take: limit > 100 ? 100 : limit
+    });
+    const metricsSymbols = metrics.map(m => m.symbol);
+    // Buscar dados cadastrais completos dos símbolos filtrados
+    const etfListFull = await prisma.etf_list.findMany({
+      where: { symbol: { in: metricsSymbols } }
+    });
+    // Merge dos dados
+    const enhancedETFs: ETFEnhanced[] = metrics.map(m => {
+      const etf = etfListFull.find(e => e.symbol === m.symbol);
+      const fmpData = extractFMPData(etf?.description || null);
       return {
-        id: etf.id,
-        symbol: etf.symbol,
-        name: etf.name,
-        description: etf.description ? (etf.description.includes('FMP_DATA:') 
-          ? etf.description.substring(0, etf.description.indexOf('FMP_DATA:'))
-          : etf.description) : null,
-        category: etf.category,
-        exchange: etf.exchange,
-        inception_date: etf.inception_date,
-        total_assets: etf.total_assets ? Number(etf.total_assets) : null,
-        volume: etf.volume ? Number(etf.volume) : null,
-        returns_12m: etf.returns_12m ? Number(etf.returns_12m) : null,
-        returns_24m: etf.returns_24m ? Number(etf.returns_24m) : null,
-        returns_36m: etf.returns_36m ? Number(etf.returns_36m) : null,
-        volatility_12m: etf.volatility_12m ? Number(etf.volatility_12m) : null,
-        volatility_24m: etf.volatility_24m ? Number(etf.volatility_24m) : null,
-        volatility_36m: etf.volatility_36m ? Number(etf.volatility_36m) : null,
-        sharpe_12m: etf.sharpe_12m ? Number(etf.sharpe_12m) : null,
-        sharpe_24m: etf.sharpe_24m ? Number(etf.sharpe_24m) : null,
-        sharpe_36m: etf.sharpe_36m ? Number(etf.sharpe_36m) : null,
-        dividend_yield: etf.dividend_yield ? Number(etf.dividend_yield) : null,
-        max_drawdown: etf.max_drawdown ? Number(etf.max_drawdown) : null,
-        updated_at: etf.updated_at,
+        ...etf,
+        ...m,
+        description: cleanDescription(etf?.description || null),
         fmp_data: fmpData,
       };
     });
-
     if (enhancedETFs.length === 0) {
-      return NextResponse.json({
-        success: false,
-        etfs: [],
-        message: "ETF não encontrado."
-      }, { status: 404 });
+      return NextResponse.json({ success: false, etfs: [], message: "ETF não encontrado." }, { status: 404 });
     }
-
     return NextResponse.json({
       success: true,
       etfs: enhancedETFs,

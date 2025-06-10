@@ -329,43 +329,6 @@ model users {
   @@schema("auth")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model etfs {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  symbol              String    @unique
-  name                String?
-  description         String?
-  category            String?
-  exchange            String?
-  inception_date      DateTime? @db.Date
-  total_assets        Decimal?  @db.Decimal
-  volume              Decimal?  @db.Decimal
-  ten_year_return     Decimal?  @db.Decimal
-  returns_12m         Decimal?  @db.Decimal
-  returns_24m         Decimal?  @db.Decimal
-  returns_36m         Decimal?  @db.Decimal
-  volatility_12m      Decimal?  @db.Decimal
-  volatility_24m      Decimal?  @db.Decimal
-  volatility_36m      Decimal?  @db.Decimal
-  ten_year_volatility Decimal?  @db.Decimal
-  sharpe_12m          Decimal?  @db.Decimal
-  sharpe_24m          Decimal?  @db.Decimal
-  sharpe_36m          Decimal?  @db.Decimal
-  ten_year_sharpe     Decimal?  @db.Decimal
-  max_drawdown        Decimal?  @db.Decimal
-  dividends_12m       Decimal?  @db.Decimal
-  dividends_24m       Decimal?  @db.Decimal
-  dividends_36m       Decimal?  @db.Decimal
-  dividends_all_time  Decimal?  @db.Decimal
-  dividend_yield      Decimal?  @db.Decimal
-  start_date          DateTime? @db.Date
-  end_date            DateTime? @db.Date
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-
-  @@index([symbol], map: "idx_etfs_symbol")
-  @@schema("public")
-}
-
 model portfolios {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id     String    @db.Uuid
@@ -531,6 +494,96 @@ model user_usage_tracking {
 
   @@unique([user_id, date], map: "user_usage_tracking_unique")
   @@index([user_id, date], map: "idx_user_usage_tracking_user_date")
+  @@schema("public")
+}
+
+model calculated_metrics {
+  symbol              String   @id
+  returns_12m         Decimal? @db.Decimal
+  returns_24m         Decimal? @db.Decimal
+  returns_36m         Decimal? @db.Decimal
+  returns_5y          Decimal? @db.Decimal
+  ten_year_return     Decimal? @db.Decimal
+  volatility_12m      Decimal? @db.Decimal
+  volatility_24m      Decimal? @db.Decimal
+  volatility_36m      Decimal? @db.Decimal
+  ten_year_volatility Decimal? @db.Decimal
+  sharpe_12m          Decimal? @db.Decimal
+  sharpe_24m          Decimal? @db.Decimal
+  sharpe_36m          Decimal? @db.Decimal
+  ten_year_sharpe     Decimal? @db.Decimal
+  max_drawdown        Decimal? @db.Decimal
+  dividends_12m       Decimal? @db.Decimal
+  dividends_24m       Decimal? @db.Decimal
+  dividends_36m       Decimal? @db.Decimal
+  dividends_all_time  Decimal? @db.Decimal
+
+  @@schema("public")
+}
+
+model etf_dividends {
+  symbol       String
+  date         DateTime @db.Date
+  dividend     Decimal? @db.Decimal
+  adj_dividend Decimal? @db.Decimal
+  label        String?
+
+  @@id([symbol, date])
+  @@schema("public")
+}
+
+model etf_holdings {
+  symbol         String
+  holding_symbol String
+  holding_name   String?
+  weight         Decimal? @db.Decimal
+  shares         Decimal? @db.Decimal
+  market_value   Decimal? @db.Decimal
+
+  @@id([symbol, holding_symbol])
+  @@index([symbol], map: "idx_etf_holdings_symbol")
+  @@schema("public")
+}
+
+model etf_list {
+  symbol                String    @id
+  name                  String?
+  description           String?
+  isin                  String?
+  assetclass            String?
+  securitycusip         String?
+  domicile              String?
+  website               String?
+  etfcompany            String?
+  expenseratio          Decimal?  @db.Decimal
+  assetsundermanagement Decimal?  @db.Decimal
+  avgvolume             Decimal?  @db.Decimal
+  inceptiondate         DateTime? @db.Date
+  nav                   Decimal?  @db.Decimal
+  navcurrency           String?
+  holdingscount         Int?
+  updatedat             DateTime? @db.Timestamp(6)
+  sectorslist           Json?
+
+  @@schema("public")
+}
+
+model etf_prices {
+  symbol    String
+  date      DateTime @db.Date
+  open      Decimal? @db.Decimal
+  high      Decimal? @db.Decimal
+  low       Decimal? @db.Decimal
+  close     Decimal? @db.Decimal
+  volume    Decimal? @db.Decimal
+  nav       Decimal? @db.Decimal
+  return_1m Decimal? @db.Decimal
+  return_3m Decimal? @db.Decimal
+  return_1y Decimal? @db.Decimal
+  adj_close Decimal? @db.Decimal
+
+  @@id([symbol, date])
+  @@index([symbol, date], map: "idx_etf_prices_symbol_date")
   @@schema("public")
 }
 

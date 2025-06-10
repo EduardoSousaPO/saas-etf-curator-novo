@@ -124,8 +124,8 @@ class InsightsEngine {
           'ETFs defensivos historicamente performam melhor em volatilidade'
         ],
         relatedETFs: marketData.filter(etf => 
-          etf.category?.includes('Bond') || 
-          etf.category?.includes('Dividend')
+                etf.assetclass?.includes('Bond') ||
+      etf.assetclass?.includes('Dividend')
         ).slice(0, 3)
       });
     }
@@ -229,7 +229,7 @@ class InsightsEngine {
   // Métodos auxiliares
   private getTopPerformers(etfs: ETF[], categories: string[]): ETF[] {
     return etfs
-      .filter(etf => categories.some(cat => etf.category?.includes(cat)))
+      .filter(etf => categories.some(cat => etf.assetclass?.includes(cat)))
       .filter(etf => etf.returns_12m && etf.returns_12m > 15)
       .sort((a, b) => (b.returns_12m || 0) - (a.returns_12m || 0))
       .slice(0, 5);

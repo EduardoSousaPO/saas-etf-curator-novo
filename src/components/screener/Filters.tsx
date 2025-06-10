@@ -12,8 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 // Define a type for the filters
 interface FilterValues {
   searchTerm?: string;
-  category?: string;
-  exchange?: string;
+  assetclass?: string;
+  // exchange?: string; // Removido - coluna não existe no banco
   totalAssetsMin?: number;
   totalAssetsMax?: number;
   // Add more filters as needed based on the etfs schema
@@ -29,49 +29,43 @@ interface FiltersProps {
 
 export default function Filters({ onFilterChange }: FiltersProps) {
   const [filters, setFilters] = useState<FilterValues>({ onlyComplete: false });
-  const [categories, setCategories] = useState<string[]>([]);
-  const [exchanges, setExchanges] = useState<string[]>([]);
+  const [assetClasses, setAssetClasses] = useState<string[]>([]);
+  // const [exchanges, setExchanges] = useState<string[]>([]); // Removido - coluna não existe
   const [loading, setLoading] = useState(true);
   const [debugInfo, setDebugInfo] = useState<string>("");
   const [onlyComplete, setOnlyComplete] = useState(false);
 
-  // Fetch categories and exchanges on component mount
+  // Fetch asset classes on component mount
   useEffect(() => {
-    const fetchCategoriesAndExchanges = async () => {
+    const fetchAssetClasses = async () => {
       try {
         // Usamos a API para buscar dados iniciais de ETFs
-        console.log("Buscando categorias e exchanges...");
+        console.log("Buscando asset classes...");
         const response = await fetch("/api/etfs/screener?page=1&limit=100");
         const data = await response.json();
         
         console.log("Dados recebidos:", data);
         
         if (data.etfs && Array.isArray(data.etfs)) {
-          // Extraímos categorias e exchanges únicas
-          const uniqueCategories = Array.from(
-            new Set(data.etfs.map((etf: any) => etf.category).filter(Boolean))
+          // Extraímos asset classes únicas
+          const uniqueAssetClasses = Array.from(
+            new Set(data.etfs.map((etf: any) => etf.assetclass).filter(Boolean))
           ) as string[];
           
-          const uniqueExchanges = Array.from(
-            new Set(data.etfs.map((etf: any) => etf.exchange).filter(Boolean))
-          ) as string[];
+          console.log("Asset classes encontradas:", uniqueAssetClasses);
           
-          console.log("Categorias encontradas:", uniqueCategories);
-          console.log("Exchanges encontradas:", uniqueExchanges);
-          
-          setCategories(uniqueCategories.sort());
-          setExchanges(uniqueExchanges.sort());
-          setDebugInfo(`Carregadas ${uniqueCategories.length} categorias e ${uniqueExchanges.length} exchanges`);
+          setAssetClasses(uniqueAssetClasses.sort());
+          setDebugInfo(`Carregadas ${uniqueAssetClasses.length} asset classes`);
         }
       } catch (error) {
-        console.error("Erro ao buscar categorias e exchanges:", error);
+        console.error("Erro ao buscar asset classes:", error);
         setDebugInfo(`Erro: ${error}`);
       } finally {
         setLoading(false);
       }
     };
     
-    fetchCategoriesAndExchanges();
+    fetchAssetClasses();
   }, []);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,15 +117,13 @@ export default function Filters({ onFilterChange }: FiltersProps) {
       {loading && (
         <div className="flex items-center space-x-2 text-xs text-blue-600 dark:text-blue-300 mb-2">
           <span className="animate-spin h-4 w-4 border-b-2 border-blue-600 rounded-full"></span>
-          <span>Carregando categorias e exchanges...</span>
+          <span>Carregando asset classes...</span>
         </div>
       )}
-      {!loading && categories.length === 0 && (
-        <div className="text-xs text-red-600 dark:text-red-400 mb-2">Nenhuma categoria disponível.</div>
+      {!loading && assetClasses.length === 0 && (
+        <div className="text-xs text-red-600 dark:text-red-400 mb-2">Nenhuma asset class disponível.</div>
       )}
-      {!loading && exchanges.length === 0 && (
-        <div className="text-xs text-red-600 dark:text-red-400 mb-2">Nenhuma exchange disponível.</div>
-      )}
+      {/* Exchanges removidas - coluna não existe no banco */}
       
       <div>
         <Label htmlFor="searchTerm" className="dark:text-gray-200">Search Symbol/Name</Label>
@@ -147,42 +139,25 @@ export default function Filters({ onFilterChange }: FiltersProps) {
       </div>
 
       <div>
-        <Label htmlFor="category" className="dark:text-gray-200">Category</Label>
-        <Select onValueChange={(value) => handleSelectChange("category", value)} value={filters.category}>
+        <Label htmlFor="assetclass" className="dark:text-gray-200">Asset Class</Label>
+        <Select onValueChange={(value) => handleSelectChange("assetclass", value)} value={filters.assetclass}>
           <SelectTrigger className="w-full mt-1 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600">
-            <SelectValue placeholder="Select Category" />
+            <SelectValue placeholder="Select Asset Class" />
           </SelectTrigger>
           <SelectContent className="dark:bg-gray-700 dark:text-gray-200">
-            <SelectItem value="all" className="dark:hover:bg-gray-600">All Categories</SelectItem>
+            <SelectItem value="all" className="dark:hover:bg-gray-600">All Asset Classes</SelectItem>
             {loading ? (
               <SelectItem value="loading" disabled>Carregando...</SelectItem>
             ) : (
-              categories.map((cat) => (
-                <SelectItem key={cat} value={cat} className="dark:hover:bg-gray-600">{cat}</SelectItem>
+              assetClasses.map((assetClass) => (
+                <SelectItem key={assetClass} value={assetClass} className="dark:hover:bg-gray-600">{assetClass}</SelectItem>
               ))
             )}
           </SelectContent>
         </Select>
       </div>
 
-      <div>
-        <Label htmlFor="exchange" className="dark:text-gray-200">Exchange</Label>
-        <Select onValueChange={(value) => handleSelectChange("exchange", value)} value={filters.exchange}>
-          <SelectTrigger className="w-full mt-1 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600">
-            <SelectValue placeholder="Select Exchange" />
-          </SelectTrigger>
-          <SelectContent className="dark:bg-gray-700 dark:text-gray-200">
-            <SelectItem value="all" className="dark:hover:bg-gray-600">All Exchanges</SelectItem>
-            {loading ? (
-              <SelectItem value="loading" disabled>Carregando...</SelectItem>
-            ) : (
-              exchanges.map((ex) => (
-                <SelectItem key={ex} value={ex} className="dark:hover:bg-gray-600">{ex}</SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Exchange filter removido - coluna não existe no banco */}
       
       <div>
         <Label htmlFor="totalAssets" className="dark:text-gray-200">Total Assets (Min: {filters.totalAssetsMin || 0} - Max: {filters.totalAssetsMax || 1000} Bn)</Label>

@@ -147,14 +147,21 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar ETFs do banco
-    const etfs = await prisma.etfs.findMany({
+    const etfList = await prisma.etf_list.findMany({
       where: {
         symbol: { in: symbols },
       },
-      orderBy: {
-        total_assets: 'desc'
-      }
     });
+    const metrics = await prisma.calculated_metrics.findMany({
+      where: {
+        symbol: { in: symbols },
+      },
+    });
+    // Merge dos dados
+    const etfs = etfList.map(etf => ({
+      ...etf,
+      ...metrics.find(m => m.symbol === etf.symbol)
+    }));
 
     if (etfs.length === 0) {
       return NextResponse.json(

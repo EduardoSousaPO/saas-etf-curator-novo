@@ -4,108 +4,72 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    console.log('🔍 Iniciando screener API...');
     
-    // Parse filters (ajustado para nomes do front-end)
-    const searchTerm = searchParams.get("search_term");
-    const category = searchParams.get("category_filter");
-    const exchange = searchParams.get("exchange_filter");
-    const minAssets = searchParams.get("assets_min");
-    const maxAssets = searchParams.get("assets_max");
-    const minReturn12m = searchParams.get("return_12m_min");
-    const minSharpe12m = searchParams.get("sharpe_12m_min");
-    const minDividendYield = searchParams.get("dividend_yield_min");
-    const onlyComplete = searchParams.get("only_complete") === "true";
-    const sortBy = searchParams.get("sort_by") || "returns_12m";
-    const sortOrder = searchParams.get("sort_order") || "desc";
-    const limit = parseInt(searchParams.get("limit") || "5000");
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get("limit") || "50");
     const page = parseInt(searchParams.get("page") || "1");
     const itemsPerPage = parseInt(searchParams.get("itemsPerPage") || "50");
+    const searchTerm = searchParams.get("search_term");
+    const assetclass = searchParams.get("assetclass_filter");
+    const onlyComplete = searchParams.get("only_complete") === "true";
+    
+    console.log('📊 Parâmetros:', { limit, page, searchTerm, assetclass, onlyComplete });
 
-    // Enhanced filters
-    const maxVolatility = searchParams.get("max_volatility");
-    const maxExpenseRatio = searchParams.get("max_expense_ratio");
-    const maxDrawdown = searchParams.get("max_drawdown");
-
-    console.log("🔗 Conectando ao banco Supabase para screening de ETFs...");
-
-    // Build where conditions com nomes do front-end
-    const where: any = {};
-
-    if (minAssets) {
-      where.total_assets = { ...(where.total_assets || {}), gte: parseFloat(minAssets) };
-    }
-    if (maxAssets) {
-      where.total_assets = { ...(where.total_assets || {}), lte: parseFloat(maxAssets) };
-    }
-    if (minReturn12m) {
-      where.returns_12m = { ...(where.returns_12m || {}), gte: parseFloat(minReturn12m) };
-    }
-    if (minSharpe12m) {
-      where.sharpe_12m = { ...(where.sharpe_12m || {}), gte: parseFloat(minSharpe12m) };
-    }
-    if (minDividendYield) {
-      where.dividend_yield = { ...(where.dividend_yield || {}), gte: parseFloat(minDividendYield) };
-    }
-    if (category && category !== "all") {
-      where.category = { contains: category };
-    }
-    if (exchange && exchange !== "all") {
-      where.exchange = { contains: exchange };
-    }
-    if (searchTerm) {
-      where.OR = [
-        { symbol: { contains: searchTerm, mode: 'insensitive' } },
-        { name: { contains: searchTerm, mode: 'insensitive' } },
-        { description: { contains: searchTerm, mode: 'insensitive' } }
-      ];
-    }
-    if (onlyComplete) {
-      where.name = { not: null };
-      where.description = { not: null };
-      where.category = { not: null };
-      where.exchange = { not: null };
-      where.inception_date = { not: null };
-      where.total_assets = { not: null };
-      where.returns_12m = { not: null };
-      where.sharpe_12m = { not: null };
-      where.dividend_yield = { not: null };
-    }
-
-    // Calculate actual offset for pagination
-    const actualOffset = page > 1 ? (page - 1) * itemsPerPage : offset;
+    // Calcular paginação
+    const actualOffset = page > 1 ? (page - 1) * itemsPerPage : 0;
     const actualLimit = page > 1 ? itemsPerPage : limit;
 
-    // Set up sorting with more options
-    const orderBy: any = {};
-    const validSortFields = [
-      'returns_12m', 'returns_24m', 'returns_36m', 'sharpe_12m', 'sharpe_24m', 'sharpe_36m',
-      'dividend_yield', 'total_assets', 'volume', 'volatility_12m', 'volatility_24m', 'volatility_36m',
-      'max_drawdown', 'symbol', 'name', 'category', 'inception_date'
-    ];
-
-    if (validSortFields.includes(sortBy)) {
-      orderBy[sortBy] = sortOrder;
-    } else {
-      orderBy.returns_12m = 'desc';
+    // Filtros para etf_list
+    let etfListWhere: any = {};
+    
+    if (searchTerm) {
+      etfListWhere.OR = [
+        { symbol: { contains: searchTerm, mode: 'insensitive' } },
+        { name: { contains: searchTerm, mode: 'insensitive' } }
+      ];
+    }
+    
+    if (assetclass && assetclass !== "all") {
+      etfListWhere.assetclass = { contains: assetclass, mode: 'insensitive' };
+    }
+    
+    if (onlyComplete) {
+      etfListWhere.name = { not: null };
+      etfListWhere.assetclass = { not: null };
+      etfListWhere.inceptiondate = { not: null };
     }
 
-    const etfs = await prisma.etfs.findMany({
-      where,
-      orderBy,
-      take: actualLimit,
+    console.log('🔍 Buscando ETFs...');
+    
+    // Buscar ETFs
+    const etfs = await prisma.etf_list.findMany({
+      where: etfListWhere,
       skip: actualOffset,
+      take: actualLimit,
+      orderBy: { symbol: 'asc' },
       select: {
-        id: true,
         symbol: true,
         name: true,
         description: true,
-        category: true,
-        exchange: true,
-        inception_date: true,
-        total_assets: true,
-        volume: true,
+        assetclass: true,
+        etfcompany: true,
+        expenseratio: true,
+        avgvolume: true,
+        nav: true,
+        holdingscount: true,
+        inceptiondate: true
+      }
+    });
+
+    console.log(`✅ Encontrados ${etfs.length} ETFs`);
+
+    // Buscar métricas para os símbolos encontrados
+    const symbols = etfs.map(e => e.symbol);
+    const metrics = await prisma.calculated_metrics.findMany({
+      where: { symbol: { in: symbols } },
+      select: {
+        symbol: true,
         returns_12m: true,
         returns_24m: true,
         returns_36m: true,
@@ -113,61 +77,106 @@ export async function GET(request: NextRequest) {
         volatility_12m: true,
         volatility_24m: true,
         volatility_36m: true,
-        ten_year_volatility: true,
         sharpe_12m: true,
         sharpe_24m: true,
         sharpe_36m: true,
-        ten_year_sharpe: true,
         max_drawdown: true,
-        dividend_yield: true,
         dividends_12m: true,
         dividends_24m: true,
-        dividends_36m: true,
-        dividends_all_time: true
+        dividends_36m: true
       }
     });
 
-    const total = await prisma.etfs.count({ where });
+    console.log(`✅ Encontradas ${metrics.length} métricas`);
+
+    // Função para formatar valores numéricos
+    const formatNumeric = (value: any, decimals: number = 2): number | null => {
+      if (value === null || value === undefined) return null;
+      const num = typeof value === 'string' ? parseFloat(value) : Number(value);
+      return isNaN(num) ? null : parseFloat(num.toFixed(decimals));
+    };
+
+    // Merge e formatação dos dados
+    const result = etfs.map(etf => {
+      const metric = metrics.find(m => m.symbol === etf.symbol);
+      
+      // Calcular dividend yield se possível
+      const nav = formatNumeric(etf.nav);
+      const dividends12m = formatNumeric(metric?.dividends_12m, 4);
+      const dividendYield = (nav && dividends12m && nav > 0) 
+        ? formatNumeric((dividends12m / nav) * 100, 2) 
+        : null;
+
+      return {
+        id: etf.symbol,
+        symbol: etf.symbol,
+        name: etf.name,
+        description: etf.description,
+        assetclass: etf.assetclass,
+        etfcompany: etf.etfcompany,
+        
+        // Dados financeiros básicos - formatados
+        expense_ratio: formatNumeric(etf.expenseratio, 4),
+        volume: formatNumeric(etf.avgvolume, 0),
+        nav: formatNumeric(etf.nav),
+        holdings_count: etf.holdingscount,
+        inception_date: etf.inceptiondate,
+        
+        // Métricas calculadas - formatadas em %
+        returns_12m: metric?.returns_12m ? formatNumeric(Number(metric.returns_12m) * 100) : null,
+        returns_24m: metric?.returns_24m ? formatNumeric(Number(metric.returns_24m) * 100) : null,
+        returns_36m: metric?.returns_36m ? formatNumeric(Number(metric.returns_36m) * 100) : null,
+        ten_year_return: metric?.ten_year_return ? formatNumeric(Number(metric.ten_year_return) * 100) : null,
+        
+        volatility_12m: metric?.volatility_12m ? formatNumeric(Number(metric.volatility_12m) * 100) : null,
+        volatility_24m: metric?.volatility_24m ? formatNumeric(Number(metric.volatility_24m) * 100) : null,
+        volatility_36m: metric?.volatility_36m ? formatNumeric(Number(metric.volatility_36m) * 100) : null,
+        
+        sharpe_12m: formatNumeric(metric?.sharpe_12m),
+        sharpe_24m: formatNumeric(metric?.sharpe_24m),
+        sharpe_36m: formatNumeric(metric?.sharpe_36m),
+        
+        max_drawdown: metric?.max_drawdown ? formatNumeric(Number(metric.max_drawdown) * 100) : null,
+        dividends_12m: dividends12m,
+        dividends_24m: formatNumeric(metric?.dividends_24m, 4),
+        dividends_36m: formatNumeric(metric?.dividends_36m, 4),
+        
+        // Campos calculados
+        dividend_yield: dividendYield,
+        total_assets: formatNumeric(etf.nav) // Usar NAV como Total Assets conforme sugerido
+      };
+    });
+
+    // Contar total para paginação
+    const total = await prisma.etf_list.count({ where: etfListWhere });
     const totalPages = Math.ceil(total / itemsPerPage);
 
-    console.log(`✅ ${etfs.length} ETFs encontrados no screening do banco Supabase (${total} total)`);
+    console.log('✅ Processamento concluído');
 
     return NextResponse.json({
-      etfs,
+      etfs: result,
       total,
       page,
       totalPages,
-      itemsPerPage,
-      limit: actualLimit,
-      offset: actualOffset,
+      itemsPerPage: actualLimit,
       hasMore: actualOffset + actualLimit < total,
       filters: {
         searchTerm,
-        category,
-        exchange,
-        minAssets,
-        maxAssets,
-        minReturn12m,
-        minSharpe12m,
-        minDividendYield,
-        onlyComplete,
-        sortBy,
-        sortOrder
+        assetclass,
+        onlyComplete
       },
       _source: "supabase_database",
-      _message: "Screening realizado no banco Supabase com filtros avançados",
+      _message: "Screening realizado com sucesso no banco Supabase",
       _timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error("❌ Erro ao conectar com banco Supabase:", error);
-    console.error("💡 Verifique se o arquivo .env.local está configurado com DATABASE_URL");
-    
+    console.error("❌ Erro na API screener:", error);
     return NextResponse.json(
       { 
-        error: "Falha na conexão com banco de dados", 
+        error: "Erro na API screener", 
         details: (error as Error).message,
-        help: "Configure DATABASE_URL no arquivo .env.local"
+        stack: (error as Error).stack
       },
       { status: 500 }
     );

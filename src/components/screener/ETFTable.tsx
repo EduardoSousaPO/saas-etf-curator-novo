@@ -17,8 +17,8 @@ interface ETF {
   id: string;
   symbol: string;
   name?: string;
-  category?: string;
-  exchange?: string;
+  assetclass?: string;
+  // exchange?: string; // Removido - coluna não existe no banco
   total_assets?: number;
   returns_12m?: number;
   sharpe_12m?: number;
@@ -56,12 +56,12 @@ export default function ETFTable({
   const columns: { key: keyof ETF; label: string; numeric?: boolean }[] = [
     { key: "symbol", label: "Símbolo" },
     { key: "name", label: "Nome" },
-    { key: "category", label: "Categoria" },
-    { key: "exchange", label: "Bolsa" },
-    { key: "total_assets", label: "Ativos Totais", numeric: true },
-    { key: "returns_12m", label: "Retorno 12m %", numeric: true },
+    { key: "assetclass", label: "Asset Class" },
+    // { key: "exchange", label: "Bolsa" }, // Removido - coluna não existe no banco
+    { key: "total_assets", label: "Total Assets (M)", numeric: true },
+    { key: "returns_12m", label: "Retorno 12m", numeric: true },
     { key: "sharpe_12m", label: "Sharpe 12m", numeric: true },
-    { key: "dividend_yield", label: "Div. Rendimento %", numeric: true },
+    { key: "dividend_yield", label: "Dividendos 12m", numeric: true },
   ];
 
   // Função para formatar valores
@@ -81,9 +81,9 @@ export default function ETFTable({
         return value.toFixed(2);
       }
       
-      // Formatação específica para valores percentuais
+      // Formatação específica para valores percentuais - CORRIGIDO: não multiplicar por 100 novamente
       if (key === "returns_12m" || key === "dividend_yield") {
-        return (value * 100).toFixed(2) + "%";
+        return value.toFixed(2) + "%";
       }
       
       return value.toFixed(2);

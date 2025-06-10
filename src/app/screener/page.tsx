@@ -12,15 +12,15 @@ interface ETF {
   id?: string;
   symbol: string;
   name?: string | null;
-  category?: string | null;
-  exchange?: string | null;
+  assetclass?: string | null;
+  // exchange?: string | null; // Removido - coluna não existe no banco
   [key: string]: any;
 }
 
 interface FilterValues {
   searchTerm?: string;
-  category?: string;
-  exchange?: string;
+  assetclass?: string;
+  // exchange?: string; // Removido - coluna não existe no banco
   totalAssetsMin?: number;
   totalAssetsMax?: number;
   returns_12m_min?: number;
@@ -63,13 +63,13 @@ export default function ScreenerPage() {
         url += `&search_term=${encodeURIComponent(filters.searchTerm)}`;
       }
       
-      if (filters.category && filters.category !== "all") {
-        url += `&category_filter=${encodeURIComponent(filters.category)}`;
+      if (filters.assetclass && filters.assetclass !== "all") {
+        url += `&assetclass_filter=${encodeURIComponent(filters.assetclass)}`;
       }
       
-      if (filters.exchange && filters.exchange !== "all") {
-        url += `&exchange_filter=${encodeURIComponent(filters.exchange)}`;
-      }
+      // if (filters.exchange && filters.exchange !== "all") {
+      //   url += `&exchange_filter=${encodeURIComponent(filters.exchange)}`;
+      // } // Removido - coluna não existe no banco
       
       // Adicionar outros filtros conforme necessário
       if (filters.totalAssetsMin) {
@@ -308,11 +308,11 @@ export default function ScreenerPage() {
                         <tr className="bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
                           <th className="py-4 px-6 text-left text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[120px]">Símbolo</th>
                           <th className="py-4 px-6 text-left text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[320px]">Nome</th>
-                          <th className="py-4 px-6 text-left text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[180px]">Categoria</th>
+                          <th className="py-4 px-6 text-left text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[180px]">Asset Class</th>
                           <th className="py-4 px-6 text-right text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[140px]">Retorno 12m</th>
                           <th className="py-4 px-6 text-right text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[140px]">Sharpe 12m</th>
                           <th className="py-4 px-6 text-right text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[160px]">Dividendos 12m</th>
-                          <th className="py-4 px-6 text-right text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[140px]">Total Assets (B)</th>
+                          <th className="py-4 px-6 text-right text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[140px]">Total Assets (M)</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -328,20 +328,29 @@ export default function ScreenerPage() {
                               >
                                 <td className="py-4 px-6 font-medium text-gray-900 dark:text-white break-words whitespace-normal">{etf.symbol}</td>
                                 <td className="py-4 px-6 text-gray-600 dark:text-gray-400 font-light break-words whitespace-normal">{etf.name || "N/A"}</td>
-                                <td className="py-4 px-6 text-gray-600 dark:text-gray-400 font-light break-words whitespace-normal">{etf.category || "N/A"}</td>
-                              <td className="py-4 px-6 text-right text-gray-600 dark:text-gray-400 font-light">{etf.returns_12m !== null && etf.returns_12m !== undefined ? `${(Number(etf.returns_12m) * 100).toFixed(2)}%` : "N/A"}</td>
-                              <td className="py-4 px-6 text-right text-gray-600 dark:text-gray-400 font-light">{etf.sharpe_12m !== null && etf.sharpe_12m !== undefined ? Number(etf.sharpe_12m).toFixed(2) : "N/A"}</td>
-                              <td className="py-4 px-6 text-right text-gray-600 dark:text-gray-400 font-light">{etf.dividends_12m !== null && etf.dividends_12m !== undefined ? `$${Number(etf.dividends_12m).toLocaleString(undefined, { maximumFractionDigits: 2 })}` : "N/A"}</td>
-                              <td className="py-4 px-6 text-right text-gray-600 dark:text-gray-400 font-light">{etf.total_assets !== null && etf.total_assets !== undefined ? `${(Number(etf.total_assets) / 1_000_000_000).toFixed(2)}` : "N/A"}</td>
+                                <td className="py-4 px-6 text-gray-600 dark:text-gray-400 font-light break-words whitespace-normal">{etf.assetclass || "N/A"}</td>
+                              <td className="py-4 px-6 text-right text-gray-600 dark:text-gray-400 font-light">
+                                {etf.returns_12m !== null && etf.returns_12m !== undefined ? `${Number(etf.returns_12m).toFixed(2)}%` : "N/A"}
+                              </td>
+                              <td className="py-4 px-6 text-right text-gray-600 dark:text-gray-400 font-light">
+                                {etf.sharpe_12m !== null && etf.sharpe_12m !== undefined ? Number(etf.sharpe_12m).toFixed(2) : "N/A"}
+                              </td>
+                              <td className="py-4 px-6 text-right text-gray-600 dark:text-gray-400 font-light">
+                                {etf.dividends_12m !== null && etf.dividends_12m !== undefined ? `$${Number(etf.dividends_12m).toFixed(2)}` : "N/A"}
+                              </td>
+                              <td className="py-4 px-6 text-right text-gray-600 dark:text-gray-400 font-light">
+                                {etf.total_assets !== null && etf.total_assets !== undefined ? `$${(Number(etf.total_assets) / 1_000_000).toFixed(1)}M` : "N/A"}
+                              </td>
                             </tr>
                               {expandedETF === etf.symbol && (
                                 <tr>
                                   <td colSpan={7} className="p-0">
-                                    <ETFDetailCard
-                                      etf={etf}
-                                      isExpanded={true}
-                                      onToggle={() => setExpandedETF(null)}
-                                    />
+                                    <div className="p-6">
+                                      <ETFDetailCard
+                                        details={etf}
+                                        onClose={() => setExpandedETF(null)}
+                                      />
+                                    </div>
                                   </td>
                                 </tr>
                               )}

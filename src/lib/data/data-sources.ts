@@ -31,47 +31,16 @@ export class DatabaseDataSource implements DataSource {
     try {
       const { PrismaClient } = await import('@prisma/client');
       const prisma = new PrismaClient();
-      
-      const etf = await prisma.etfs.findUnique({
-        where: { symbol }
-      });
-      
+      const etf = await prisma.etf_list.findUnique({ where: { symbol } });
+      const metrics = await prisma.calculated_metrics.findUnique({ where: { symbol } });
       await prisma.$disconnect();
-      
       if (!etf) return null;
-      
       return {
-        symbol: etf.symbol,
-        name: etf.name || undefined,
-        description: etf.description || undefined,
-        category: etf.category || undefined,
-        exchange: etf.exchange || undefined,
-        inception_date: etf.inception_date ? etf.inception_date.toISOString() : undefined,
-        total_assets: etf.total_assets ? Number(etf.total_assets) : undefined,
-        volume: etf.volume ? Number(etf.volume) : undefined,
-        returns_12m: etf.returns_12m ? Number(etf.returns_12m) : undefined,
-        returns_24m: etf.returns_24m ? Number(etf.returns_24m) : undefined,
-        returns_36m: etf.returns_36m ? Number(etf.returns_36m) : undefined,
-        ten_year_return: etf.ten_year_return ? Number(etf.ten_year_return) : undefined,
-        volatility_12m: etf.volatility_12m ? Number(etf.volatility_12m) : undefined,
-        volatility_24m: etf.volatility_24m ? Number(etf.volatility_24m) : undefined,
-        volatility_36m: etf.volatility_36m ? Number(etf.volatility_36m) : undefined,
-        ten_year_volatility: etf.ten_year_volatility ? Number(etf.ten_year_volatility) : undefined,
-        max_drawdown: etf.max_drawdown ? Number(etf.max_drawdown) : undefined,
-        sharpe_12m: etf.sharpe_12m ? Number(etf.sharpe_12m) : undefined,
-        sharpe_24m: etf.sharpe_24m ? Number(etf.sharpe_24m) : undefined,
-        sharpe_36m: etf.sharpe_36m ? Number(etf.sharpe_36m) : undefined,
-        ten_year_sharpe: etf.ten_year_sharpe ? Number(etf.ten_year_sharpe) : undefined,
-        dividends_12m: etf.dividends_12m ? Number(etf.dividends_12m) : undefined,
-        dividends_24m: etf.dividends_24m ? Number(etf.dividends_24m) : undefined,
-        dividends_36m: etf.dividends_36m ? Number(etf.dividends_36m) : undefined,
-        dividends_all_time: etf.dividends_all_time ? Number(etf.dividends_all_time) : undefined,
-        dividend_yield: etf.dividend_yield ? Number(etf.dividend_yield) : undefined,
-        start_date: etf.start_date ? etf.start_date.toISOString() : undefined,
-        end_date: etf.end_date ? etf.end_date.toISOString() : undefined,
+        ...etf,
+        ...metrics,
         data_source: 'database',
         last_updated: new Date(),
-        quality_score: this.calculateQualityScore(etf)
+        quality_score: this.calculateQualityScore({ ...etf, ...metrics })
       };
     } catch (error) {
       console.error('Database data source error:', error);
@@ -83,34 +52,20 @@ export class DatabaseDataSource implements DataSource {
     try {
       const { PrismaClient } = await import('@prisma/client');
       const prisma = new PrismaClient();
-      
-      const etfs = await prisma.etfs.findMany({
-        where: { symbol: { in: symbols } }
-      });
-      
+      const etfList = await prisma.etf_list.findMany({ where: { symbol: { in: symbols } } });
+      const metricsList = await prisma.calculated_metrics.findMany({ where: { symbol: { in: symbols } } });
       await prisma.$disconnect();
-      
       const result: Record<string, any> = {};
-      
-      etfs.forEach(etf => {
+      etfList.forEach(etf => {
+        const metrics = metricsList.find(m => m.symbol === etf.symbol);
         result[etf.symbol] = {
-          symbol: etf.symbol,
-          name: etf.name || undefined,
-          description: etf.description || undefined,
-          category: etf.category || undefined,
-          exchange: etf.exchange || undefined,
-          inception_date: etf.inception_date ? etf.inception_date.toISOString() : undefined,
-          total_assets: etf.total_assets ? Number(etf.total_assets) : undefined,
-          volume: etf.volume ? Number(etf.volume) : undefined,
-          returns_12m: etf.returns_12m ? Number(etf.returns_12m) : undefined,
-          volatility_12m: etf.volatility_12m ? Number(etf.volatility_12m) : undefined,
-          dividend_yield: etf.dividend_yield ? Number(etf.dividend_yield) : undefined,
+          ...etf,
+          ...metrics,
           data_source: 'database',
           last_updated: new Date(),
-          quality_score: this.calculateQualityScore(etf)
+          quality_score: this.calculateQualityScore({ ...etf, ...metrics })
         };
       });
-      
       return result;
     } catch (error) {
       console.error('Database bulk data source error:', error);
@@ -122,14 +77,12 @@ export class DatabaseDataSource implements DataSource {
     try {
       const { PrismaClient } = await import('@prisma/client');
       const prisma = new PrismaClient();
-      
-      const result = await prisma.etfs.findFirst({
-        orderBy: { updated_at: 'desc' },
-        select: { updated_at: true }
+      const result = await prisma.etf_list.findFirst({
+        orderBy: { updatedat: 'desc' },
+        select: { updatedat: true }
       });
-      
       await prisma.$disconnect();
-      return result?.updated_at || null;
+      return result?.updatedat || null;
     } catch {
       return null;
     }
@@ -140,7 +93,7 @@ export class DatabaseDataSource implements DataSource {
     
     // Penaliza campos nulos importantes
     if (!etf.name) score -= 20;
-    if (!etf.category) score -= 10;
+    if (!etf.assetclass) score -= 10;
     if (!etf.total_assets) score -= 15;
     if (!etf.volume) score -= 10;
     if (!etf.returns_12m) score -= 15;

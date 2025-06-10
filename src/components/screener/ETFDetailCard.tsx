@@ -1,347 +1,287 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { 
-  ChevronDown, 
-  ChevronUp, 
-  TrendingUp, 
-  Shield, 
-  DollarSign, 
-  BarChart3,
-  Info,
-  Calendar,
-  Briefcase,
-  AlertTriangle
-} from 'lucide-react';
-import { GlossaryTooltip } from '@/components/ui/GlossaryTooltip';
-
-interface ETFDetailCardProps {
-  etf: any;
-  isExpanded: boolean;
-  onToggle: () => void;
-}
+import React from 'react';
+import { TrendingUp, TrendingDown, Calendar, Building2, DollarSign, BarChart3, Shield, Percent } from 'lucide-react';
 
 interface ETFDetails {
   symbol: string;
-  name: string;
-  description?: string;
-  category?: string;
-  exchange?: string;
-  inception_date?: string;
-  // Retornos em diferentes prazos
-  returns_12m?: number;
-  returns_24m?: number;
-  returns_36m?: number;
-  returns_5y?: number;
-  ten_year_return?: number;
-  // Volatilidade em diferentes prazos
-  volatility_12m?: number;
-  volatility_24m?: number;
-  volatility_36m?: number;
-  ten_year_volatility?: number;
-  // Sharpe em diferentes prazos
-  sharpe_12m?: number;
-  sharpe_24m?: number;
-  sharpe_36m?: number;
-  ten_year_sharpe?: number;
-  // Outras métricas
-  max_drawdown?: number;
-  dividend_yield?: number;
-  dividends_12m?: number;
-  dividends_24m?: number;
-  dividends_36m?: number;
-  dividends_all_time?: number;
-  expense_ratio?: number;
-  total_assets?: number;
-  volume?: number;
-  beta?: number;
-  pe_ratio?: number;
-  pb_ratio?: number;
-  // Holdings (se disponível)
-  holdings?: Array<{
-    symbol: string;
-    name: string;
-    weight: number;
-  }>;
+  name?: string | null;
+  description?: string | null;
+  assetclass?: string | null;
+  etfcompany?: string | null;
+  expense_ratio?: number | null;
+  volume?: number | null;
+  inception_date?: string | null;
+  nav?: number | null;
+  holdings_count?: number | null;
+  returns_12m?: number | null;
+  returns_24m?: number | null;
+  returns_36m?: number | null;
+  ten_year_return?: number | null;
+  volatility_12m?: number | null;
+  volatility_24m?: number | null;
+  volatility_36m?: number | null;
+  sharpe_12m?: number | null;
+  sharpe_24m?: number | null;
+  sharpe_36m?: number | null;
+  max_drawdown?: number | null;
+  dividends_12m?: number | null;
+  dividend_yield?: number | null;
 }
 
-export default function ETFDetailCard({ etf, isExpanded, onToggle }: ETFDetailCardProps) {
-  const [details, setDetails] = useState<ETFDetails | null>(null);
-  const [loading, setLoading] = useState(false);
+interface ETFDetailCardProps {
+  details: ETFDetails;
+  onClose: () => void;
+}
 
-  useEffect(() => {
-    if (isExpanded && !details) {
-      fetchETFDetails();
-    }
-  }, [isExpanded]);
+// Função para formatar valores monetários
+const formatCurrency = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || isNaN(value)) return 'N/A';
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
+};
 
-  const fetchETFDetails = async () => {
-    setLoading(true);
-    try {
-      // Buscar dados detalhados do ETF
-      const response = await fetch(`/api/etfs/enhanced?symbol=${etf.symbol}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.etfs && data.etfs.length > 0) {
-          setDetails(data.etfs[0]);
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao buscar detalhes do ETF:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+// Função para formatar valores grandes (volume, etc.)
+const formatLargeNumber = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || isNaN(value)) return 'N/A';
+  
+  if (value >= 1000000000) {
+    return `${(value / 1000000000).toFixed(1)}B`;
+  } else if (value >= 1000000) {
+    return `${(value / 1000000).toFixed(1)}M`;
+  } else if (value >= 1000) {
+    return `${(value / 1000).toFixed(1)}K`;
+  }
+  return value.toLocaleString('pt-BR');
+};
 
-  const formatValue = (value: any, type: 'percent' | 'currency' | 'number' = 'percent') => {
-    if (value === null || value === undefined) return 'N/A';
-    
-    switch (type) {
-      case 'percent':
-        // Os valores estão padronizados como decimais no banco (0.10 = 10%)
-        // Então precisamos multiplicar por 100 para exibir
-        return `${(Number(value) * 100).toFixed(2)}%`;
-      case 'currency':
-        if (Number(value) >= 1_000_000_000) {
-          return `$${(Number(value) / 1_000_000_000).toFixed(2)}B`;
-        }
-        return `$${Number(value).toLocaleString()}`;
-      case 'number':
-        return Number(value).toFixed(2);
-      default:
-        return value;
-    }
-  };
+// Função para formatar percentuais
+const formatPercentage = (value: number | null | undefined, decimals: number = 2): string => {
+  if (value === null || value === undefined || isNaN(value)) return 'N/A';
+  return `${value.toFixed(decimals)}%`;
+};
 
-  const getReturnColor = (value: number) => {
-    if (value > 0) return 'text-green-600';
-    if (value < 0) return 'text-red-600';
-    return 'text-gray-600';
-  };
+// Função para formatar números simples
+const formatNumber = (value: number | null | undefined, decimals: number = 2): string => {
+  if (value === null || value === undefined || isNaN(value)) return 'N/A';
+  return value.toFixed(decimals);
+};
 
+// Função para obter cor baseada no retorno
+const getReturnColor = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || isNaN(value)) return 'text-gray-500';
+  return value >= 0 ? 'text-green-600' : 'text-red-600';
+};
+
+// Função para formatar data
+const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return 'N/A';
+  try {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  } catch {
+    return 'N/A';
+  }
+};
+
+export default function ETFDetailCard({ details, onClose }: ETFDetailCardProps) {
   return (
-    <div className="border-l-4 border-blue-500 bg-gray-50 dark:bg-gray-950 px-6 py-6">
-      {loading ? (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <span className="text-gray-600 dark:text-gray-400">Carregando detalhes...</span>
+    <div className="w-full max-w-4xl mx-auto bg-white rounded-xl border shadow-sm">
+      <div className="p-6 pb-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {details.symbol}
+            </h2>
+            <p className="text-lg text-gray-600 mt-1">
+              {details.name || 'Nome não disponível'}
+            </p>
+            <div className="flex gap-2 mt-2">
+              {details.assetclass && (
+                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
+                  {details.assetclass}
+                </span>
+              )}
+              {details.etfcompany && (
+                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold text-foreground border-border">
+                  {details.etfcompany}
+                </span>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+          >
+            ×
+          </button>
         </div>
-      ) : details ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Coluna 1: Informações Básicas e Descrição */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                <Info className="w-4 h-4 mr-2" />
-                Informações Gerais
-              </h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Categoria:</span>
-                  <span className="font-medium">{details.category || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Bolsa:</span>
-                  <span className="font-medium">{details.exchange || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Início:</span>
-                  <span className="font-medium">
-                    {details.inception_date ? new Date(details.inception_date).toLocaleDateString('pt-BR') : 'N/A'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <GlossaryTooltip termKey="expense_ratio" showIcon={false}>
-                      Taxa Admin.:
-                    </GlossaryTooltip>
-                  </span>
-                  <span className="font-medium">{formatValue(details.expense_ratio)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <GlossaryTooltip termKey="aum" showIcon={false}>
-                      AUM:
-                    </GlossaryTooltip>
-                  </span>
-                  <span className="font-medium">{formatValue(details.total_assets, 'currency')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <GlossaryTooltip termKey="volume" showIcon={false}>
-                      Volume:
-                    </GlossaryTooltip>
-                  </span>
-                  <span className="font-medium">
-                    {details.volume ? `${(details.volume / 1_000_000).toFixed(1)}M` : 'N/A'}
-                  </span>
-                </div>
-              </div>
-            </div>
-            {details.description && (
-              <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Descrição</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-line max-w-2xl break-words" style={{ marginBottom: '1rem' }}>
-                  {details.description}
-                </p>
-              </div>
-            )}
-          </div>
+      </div>
 
-          {/* Coluna 2: Performance */}
-          <div className="space-y-4">
+      <div className="p-6 space-y-6">
+        {/* Informações Gerais */}
+        <div>
+          <h3 className="flex items-center text-lg font-semibold text-gray-900 mb-3">
+            <Building2 className="w-5 h-5 mr-2" />
+            Informações Gerais
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Performance
-              </h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Retorno 12m:</span>
-                  <span className={`font-medium ${getReturnColor(details.returns_12m || 0)}`}>
-                    {formatValue(details.returns_12m, 'percent')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Retorno 24m:</span>
-                  <span className={`font-medium ${getReturnColor(details.returns_24m || 0)}`}>
-                    {formatValue(details.returns_24m, 'percent')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Retorno 36m:</span>
-                  <span className={`font-medium ${getReturnColor(details.returns_36m || 0)}`}>
-                    {formatValue(details.returns_36m, 'percent')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Retorno 5 Anos:</span>
-                  <span className={`font-medium ${getReturnColor(details.returns_5y || 0)}`}>
-                    {formatValue(details.returns_5y, 'percent')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Retorno 10 Anos:</span>
-                  <span className={`font-medium ${getReturnColor(details.ten_year_return || 0)}`}>
-                    {formatValue(details.ten_year_return, 'percent')}
-                  </span>
-                </div>
-              </div>
+              <p className="text-sm text-gray-500">Asset Class</p>
+              <p className="font-medium">{details.assetclass || 'N/A'}</p>
             </div>
-
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                <DollarSign className="w-4 h-4 mr-2" />
-                Dividendos
-              </h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Dividend Yield:</span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {formatValue(details.dividend_yield, 'percent')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Dividendos (12m):</span>
-                   <span className="font-medium text-gray-700 dark:text-gray-300">
-                     {formatValue(details.dividends_12m, 'currency')}
-                   </span>
-                </div>
-              </div>
+              <p className="text-sm text-gray-500">Gestora</p>
+              <p className="font-medium">{details.etfcompany || 'N/A'}</p>
             </div>
-          </div>
-
-          {/* Coluna 3: Risco e Sharpe */}
-          <div className="space-y-4">
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                <Shield className="w-4 h-4 mr-2" />
-                Risco
-              </h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Volatilidade 12m:</span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {formatValue(details.volatility_12m, 'percent')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Sharpe 12m:</span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {formatValue(details.sharpe_12m, 'number')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <GlossaryTooltip termKey="max_drawdown" showIcon={false}>
-                      Max Drawdown:
-                    </GlossaryTooltip>
-                  </span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {formatValue(details.max_drawdown, 'percent')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                     <GlossaryTooltip termKey="beta" showIcon={false}>
-                        Beta:
-                     </GlossaryTooltip>
-                  </span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {formatValue(details.beta, 'number')} 
-                  </span>
-                </div>
-              </div>
+              <p className="text-sm text-gray-500">Início</p>
+              <p className="font-medium">{formatDate(details.inception_date)}</p>
             </div>
-
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Múltiplos
-              </h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <GlossaryTooltip termKey="price_to_earnings_ratio" showIcon={false}>
-                      P/L:
-                    </GlossaryTooltip>
-                  </span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {formatValue(details.pe_ratio, 'number')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <GlossaryTooltip termKey="price_to_book_ratio" showIcon={false}>
-                      P/VP:
-                    </GlossaryTooltip>
-                  </span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {formatValue(details.pb_ratio, 'number')}
-                  </span>
-                </div>
-              </div>
+              <p className="text-sm text-gray-500">Taxa Admin.</p>
+              <p className="font-medium">{formatPercentage(details.expense_ratio)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Volume Médio</p>
+              <p className="font-medium">{formatLargeNumber(details.volume)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">NAV</p>
+              <p className="font-medium">{formatCurrency(details.nav)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Holdings</p>
+              <p className="font-medium">{details.holdings_count || 'N/A'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Total Assets</p>
+              <p className="font-medium">{formatCurrency(details.nav)}</p>
             </div>
           </div>
         </div>
-      ) : (
-        <div className="text-center py-8 text-gray-600 dark:text-gray-400">Não foi possível carregar os detalhes do ETF.</div>
-      )}
 
-      {/* Botões de Ação */}
-      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800 flex justify-end space-x-4">
-        <button
-          onClick={() => window.open(`/comparator?symbols=${etf.symbol}`, '_blank')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-        >
-          Comparar ETF
-        </button>
-        <button
-          onClick={() => window.open(`/analytics?symbols=${etf.symbol}`, '_blank')}
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
-        >
-          Análise Avançada
-        </button>
+        <div className="h-[1px] w-full bg-border"></div>
+
+        {/* Performance */}
+        <div>
+          <h3 className="flex items-center text-lg font-semibold text-gray-900 mb-3">
+            <TrendingUp className="w-5 h-5 mr-2" />
+            Performance
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">Retorno 12m</p>
+              <p className={`font-medium ${getReturnColor(details.returns_12m)}`}>
+                {formatPercentage(details.returns_12m)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Retorno 24m</p>
+              <p className={`font-medium ${getReturnColor(details.returns_24m)}`}>
+                {formatPercentage(details.returns_24m)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Retorno 36m</p>
+              <p className={`font-medium ${getReturnColor(details.returns_36m)}`}>
+                {formatPercentage(details.returns_36m)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Retorno 10 Anos</p>
+              <p className={`font-medium ${getReturnColor(details.ten_year_return)}`}>
+                {formatPercentage(details.ten_year_return)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-[1px] w-full bg-border"></div>
+
+        {/* Risco */}
+        <div>
+          <h3 className="flex items-center text-lg font-semibold text-gray-900 mb-3">
+            <Shield className="w-5 h-5 mr-2" />
+            Risco
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">Volatilidade 12m</p>
+              <p className="font-medium">{formatPercentage(details.volatility_12m)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Sharpe 12m</p>
+              <p className="font-medium">{formatNumber(details.sharpe_12m)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Max Drawdown</p>
+              <p className={`font-medium ${getReturnColor(details.max_drawdown)}`}>
+                {formatPercentage(details.max_drawdown)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Beta</p>
+              <p className="font-medium">N/A</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-[1px] w-full bg-border"></div>
+
+        {/* Múltiplos */}
+        <div>
+          <h3 className="flex items-center text-lg font-semibold text-gray-900 mb-3">
+            <BarChart3 className="w-5 h-5 mr-2" />
+            Múltiplos
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">P/L</p>
+              <p className="font-medium">N/A</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">P/VP</p>
+              <p className="font-medium">N/A</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-[1px] w-full bg-border"></div>
+
+        {/* Dividendos */}
+        <div>
+          <h3 className="flex items-center text-lg font-semibold text-gray-900 mb-3">
+            <DollarSign className="w-5 h-5 mr-2" />
+            Dividendos
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">Dividend Yield</p>
+              <p className="font-medium">{formatPercentage(details.dividend_yield)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Dividendos (12m)</p>
+              <p className="font-medium">{formatCurrency(details.dividends_12m)}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Descrição */}
+        {details.description && (
+          <>
+            <div className="h-[1px] w-full bg-border"></div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Descrição</h3>
+              <p className="text-gray-600 leading-relaxed">
+                {details.description}
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
