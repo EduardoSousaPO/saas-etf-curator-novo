@@ -8,7 +8,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       service: 'yfinance-api'
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { 
         status: 'unhealthy',

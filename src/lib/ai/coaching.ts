@@ -89,8 +89,8 @@ class CoachingEngine {
   // Gerar caminho de aprendizado personalizado
   generatePersonalizedPath(
     profile: InvestorProfile,
-    currentKnowledge?: any,
-    goals?: string[]
+    _currentKnowledge?: any,
+    _goals?: string[]
   ): PersonalizedPath {
     const topics: CoachingTopic[] = [];
     const reasoning: string[] = [];

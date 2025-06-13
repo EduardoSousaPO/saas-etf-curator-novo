@@ -47,6 +47,13 @@ const nextConfig: NextConfig = {
         tls: false,
       };
     }
+    
+    // Ignorar arquivos da pasta mobile (React Native)
+    config.module.rules.push({
+      test: /\.tsx?$/,
+      exclude: /mobile/,
+    });
+    
     return config;
   },
 

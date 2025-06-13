@@ -16,6 +16,7 @@ export interface ETF {
   expense_ratio?: number | null;        // expenseratio
   total_assets?: number | null;         // assetsundermanagement
   volume?: number | null;               // avgvolume
+  avgvolume?: number | null;            // avgvolume (campo adicional)
   inception_date?: string | null;       // inceptiondate
   nav?: number | null;                  // nav
   holdings_count?: number | null;       // holdingscount

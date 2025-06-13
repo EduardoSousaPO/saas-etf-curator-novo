@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { TrendingUp, TrendingDown, Calendar, Building2, DollarSign, BarChart3, Shield, Percent } from 'lucide-react';
+import { TrendingUp, Building2, DollarSign, BarChart3, Shield } from 'lucide-react';
 
 interface ETFDetails {
   symbol: string;

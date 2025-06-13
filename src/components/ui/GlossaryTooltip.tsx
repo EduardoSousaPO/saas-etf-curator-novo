@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { HelpCircle, BookOpen } from "lucide-react";
-import { getTermDefinition, GlossaryTerm } from "@/lib/glossary/terms";
+import { getTermDefinition } from "@/lib/glossary/terms";
 
 interface GlossaryTooltipProps {
   termKey: string;

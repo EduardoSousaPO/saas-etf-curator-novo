@@ -136,51 +136,20 @@ async function main() {
         symbol: fmpData.symbol.toUpperCase(), // Garantir consistência
         name: fmpData.name || excelSymbol.name, // Priorizar nome da FMP, fallback para Excel
         description: fmpData.description,
-        category: fmpData.category || fmpData.assetClass, // Usar category ou assetClass da FMP
-        exchange: fmpData.exchange,
-        inception_date: parseDate(fmpData.inceptionDate),
-        total_assets: fmpData.totalAssets,
-        volume: fmpData.avgVolume, // FMP usa avgVolume
-        expense_ratio: fmpData.expenseRatio,
-        pe_ratio: fmpData.priceToEarningsRatio,
-        price_to_book: fmpData.priceToBookRatio,
-        dividend_yield: fmpData.dividendYield, // FMP pode retornar como 0.05 para 5%
-        beta_3y: fmpData.beta, // Assumindo que o beta da FMP é o de 3 anos
-        number_of_holdings: fmpData.holdingsCount,
-        market_cap: fmpData.marketCap,
-        // Métricas que não vêm diretamente do /profile, preencher com null ou calcular em etapa futura
-        returns_12m: null,
-        returns_24m: null,
-        returns_36m: null,
-        returns_5y: null,
-        ten_year_return: null,
-        volatility_12m: null,
-        volatility_24m: null,
-        volatility_36m: null,
-        ten_year_volatility: null,
-        max_drawdown: null,
-        sharpe_12m: null,
-        sharpe_24m: null,
-        sharpe_36m: null,
-        ten_year_sharpe: null,
-        dividends_12m: fmpData.lastDiv, // A FMP /profile pode ter `lastDiv`, mas não `dividends_12m` agregado.
-        dividends_24m: null,
-        dividends_36m: null,
-        dividends_all_time: null,
-        start_date: null, // Precisaria de dados históricos
-        end_date: null,   // Precisaria de dados históricos
-        price: null, // Preço atual viria de outro endpoint (ex: quote)
-        change: null,
-        change_percentage: null,
-        day_low: null,
-        day_high: null,
-        avg_volume: fmpData.avgVolume, // Já mapeado para 'volume'
-
-        fmp_data: fmpData as any, // Armazena o objeto FMP completo
-        updated_at: new Date(), // Definir explicitamente para upsert
+        assetclass: fmpData.category || fmpData.assetClass, // Usar category ou assetClass da FMP
+        etfcompany: fmpData.etfCompany,
+        inceptiondate: parseDate(fmpData.inceptionDate),
+        assetsundermanagement: fmpData.totalAssets,
+        avgvolume: fmpData.avgVolume, // FMP usa avgVolume
+        expenseratio: fmpData.expenseRatio,
+        holdingscount: fmpData.holdingsCount,
+        nav: null, // Preço atual viria de outro endpoint (ex: quote)
+        navcurrency: 'USD', // Assumindo USD para ETFs americanos
+        updatedat: new Date(), // Definir explicitamente para upsert
+        sectorslist: undefined, // Seria preenchido com dados de holdings
       };
 
-      await prisma.eTF.upsert({
+      await prisma.etf_list.upsert({
         where: { symbol: excelSymbol.symbol },
         update: dataToUpsert,
         create: dataToUpsert,

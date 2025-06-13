@@ -1,0 +1,6 @@
+mobile/
+mobile/**/*
+*.native.ts
+*.native.tsx
+*.native.js
+*.native.jsx 

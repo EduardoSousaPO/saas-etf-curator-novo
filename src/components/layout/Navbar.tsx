@@ -3,47 +3,32 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "./ThemeToggle";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabaseClient"; // For user session
-import React, { useEffect, useState } from "react";
-import { User } from "@supabase/supabase-js";
-import { Menu, X } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import React, { useState } from "react";
+import { Menu, X, LogOut, Settings } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/comparador", label: "Comparador" },
+  { href: "/simulador", label: "Simulador" },
   { href: "/rankings", label: "Rankings" },
   { href: "/screener", label: "Screener" },
-  { href: "/comparator", label: "Comparar" },
-  { href: "/analytics", label: "Analytics" },
+  { href: "/onboarding", label: "Perfil" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setLoading(false);
-    };
-    getSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const { user, profile, signOut, loading } = useAuth();
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setIsMenuOpen(false);
+    try {
+      await signOut();
+      setIsUserMenuOpen(false);
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
   };
 
   return (
@@ -77,36 +62,80 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <ThemeToggle />
-            {!loading && (
-              user ? (
-                <Button 
-                  variant="outline" 
-                  onClick={handleSignOut} 
-                  className="border-gray-900 dark:border-white text-gray-900 dark:text-white hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black rounded-none font-medium"
+            {loading ? (
+              <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
+            ) : user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
-                  Sair
-                </Button>
-              ) : (
-                <Button 
-                  asChild 
-                  className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 rounded-none font-medium px-6"
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      {profile?.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {profile?.name || user.email?.split('@')[0]}
+                  </span>
+                </button>
+
+                {/* User Dropdown */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1">
+                    <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {profile?.name || 'Usuário'}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {user.email}
+                      </p>
+                    </div>
+                    
+                    <Link
+                      href="/onboarding"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Configurações
+                    </Link>
+                    
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sair
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center space-x-3">
+                <Link
+                  href="/auth/login"
+                  className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
-                  <Link href="/auth">Entrar</Link>
-                </Button>
-              )
+                  Entrar
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Cadastrar
+                </Link>
+              </div>
             )}
           </div>
 
           {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
+          <button
+            className="md:hidden p-2"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          </button>
         </div>
 
         {/* Mobile Navigation */}
@@ -128,27 +157,51 @@ export default function Navbar() {
                 </Link>
               ))}
               
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200/20 dark:border-gray-800/20">
-                <ThemeToggle />
-                {!loading && (
-                  user ? (
-                    <Button 
-                      variant="outline" 
-                      onClick={handleSignOut} 
-                      size="sm"
-                      className="border-gray-900 dark:border-white text-gray-900 dark:text-white"
+              {/* Mobile Auth */}
+              <div className="pt-4 border-t border-gray-200/20 dark:border-gray-800/20">
+                {user ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">
+                          {profile?.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {profile?.name || 'Usuário'}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center text-red-600 dark:text-red-400 text-sm font-medium"
                     >
+                      <LogOut className="w-4 h-4 mr-2" />
                       Sair
-                    </Button>
-                  ) : (
-                    <Button 
-                      asChild 
-                      size="sm"
-                      className="bg-black dark:bg-white text-white dark:text-black rounded-none"
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <Link
+                      href="/auth/login"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block text-base font-medium text-gray-600 dark:text-gray-400"
                     >
-                      <Link href="/auth">Entrar</Link>
-                    </Button>
-                  )
+                      Entrar
+                    </Link>
+                    <Link
+                      href="/auth/register"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors text-center"
+                    >
+                      Cadastrar
+                    </Link>
+                  </div>
                 )}
               </div>
             </div>

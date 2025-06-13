@@ -136,8 +136,8 @@ export default function ScreenerPage() {
     setItemsPerPage(Number(e.target.value));
   };
 
-  // Função para gerar botões de paginação
-  const renderPaginationButtons = (): ReactNode[] => {
+  // Função para gerar botões de paginação (não utilizada atualmente)
+  const _renderPaginationButtons = (): ReactNode[] => {
     const { currentPage, totalPages } = pagination;
     const buttons: ReactNode[] = [];
     
