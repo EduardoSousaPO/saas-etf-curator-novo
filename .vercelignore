@@ -8,6 +8,9 @@
 *.db
 DB_sqlite/
 
+# Prisma seed file (only for development)
+prisma/seed.ts
+
 # Mobile app
 mobile/
 
