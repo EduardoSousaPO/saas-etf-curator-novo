@@ -61,8 +61,8 @@ const formatLargeNumber = (value: number | null | undefined): string => {
 
 // Função para formatar percentuais
 const formatPercentage = (value: number | null | undefined, decimals: number = 2): string => {
-  if (value === null || value === undefined || isNaN(value)) return 'N/A';
-  return `${value.toFixed(decimals)}%`;
+  if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
+  return `${(Number(value) * 100).toFixed(decimals)}%`;
 };
 
 // Função para formatar números simples

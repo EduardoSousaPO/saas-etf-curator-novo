@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
         assetclass: true,
         etfcompany: true,
         expenseratio: true,
+        totalasset: true,
         avgvolume: true,
         nav: true,
         holdingscount: true,
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
 
     // Buscar métricas para os símbolos encontrados
     const symbols = etfs.map(e => e.symbol);
-    const metrics = await prisma.calculated_metrics.findMany({
+    const metrics = await prisma.calculated_metrics_teste.findMany({
       where: { symbol: { in: symbols } },
       select: {
         symbol: true,
@@ -122,28 +123,28 @@ export async function GET(request: NextRequest) {
         holdings_count: etf.holdingscount,
         inception_date: etf.inceptiondate,
         
-        // Métricas calculadas - formatadas em %
-        returns_12m: metric?.returns_12m ? formatNumeric(Number(metric.returns_12m) * 100) : null,
-        returns_24m: metric?.returns_24m ? formatNumeric(Number(metric.returns_24m) * 100) : null,
-        returns_36m: metric?.returns_36m ? formatNumeric(Number(metric.returns_36m) * 100) : null,
-        ten_year_return: metric?.ten_year_return ? formatNumeric(Number(metric.ten_year_return) * 100) : null,
+        // Métricas calculadas - já em formato percentual no banco, apenas converter para number
+        returns_12m: metric?.returns_12m ? formatNumeric(Number(metric.returns_12m)) : null,
+        returns_24m: metric?.returns_24m ? formatNumeric(Number(metric.returns_24m)) : null,
+        returns_36m: metric?.returns_36m ? formatNumeric(Number(metric.returns_36m)) : null,
+        ten_year_return: metric?.ten_year_return ? formatNumeric(Number(metric.ten_year_return)) : null,
         
-        volatility_12m: metric?.volatility_12m ? formatNumeric(Number(metric.volatility_12m) * 100) : null,
-        volatility_24m: metric?.volatility_24m ? formatNumeric(Number(metric.volatility_24m) * 100) : null,
-        volatility_36m: metric?.volatility_36m ? formatNumeric(Number(metric.volatility_36m) * 100) : null,
+        volatility_12m: metric?.volatility_12m ? formatNumeric(Number(metric.volatility_12m)) : null,
+        volatility_24m: metric?.volatility_24m ? formatNumeric(Number(metric.volatility_24m)) : null,
+        volatility_36m: metric?.volatility_36m ? formatNumeric(Number(metric.volatility_36m)) : null,
         
         sharpe_12m: formatNumeric(metric?.sharpe_12m),
         sharpe_24m: formatNumeric(metric?.sharpe_24m),
         sharpe_36m: formatNumeric(metric?.sharpe_36m),
         
-        max_drawdown: metric?.max_drawdown ? formatNumeric(Number(metric.max_drawdown) * 100) : null,
+        max_drawdown: metric?.max_drawdown ? formatNumeric(Number(metric.max_drawdown)) : null,
         dividends_12m: dividends12m,
         dividends_24m: formatNumeric(metric?.dividends_24m, 4),
         dividends_36m: formatNumeric(metric?.dividends_36m, 4),
         
         // Campos calculados
         dividend_yield: dividendYield,
-        total_assets: formatNumeric(etf.nav) // Usar NAV como Total Assets conforme sugerido
+        total_assets: formatNumeric(etf.totalasset) // Patrimônio líquido sob gestão
       };
     });
 

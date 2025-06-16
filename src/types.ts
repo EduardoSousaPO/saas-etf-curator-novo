@@ -14,33 +14,33 @@ export interface ETF {
   
   // Dados financeiros básicos (tabela etf_list)
   expense_ratio?: number | null;        // expenseratio
-  total_assets?: number | null;         // assetsundermanagement
+  total_assets?: number | null;         // totalasset
   volume?: number | null;               // avgvolume
   avgvolume?: number | null;            // avgvolume (campo adicional)
   inception_date?: string | null;       // inceptiondate
   nav?: number | null;                  // nav
   holdings_count?: number | null;       // holdingscount
   
-  // Métricas de retorno (tabela calculated_metrics)
+  // Métricas de retorno (tabela calculated_metrics_teste)
   returns_12m?: number | null;
   returns_24m?: number | null;
   returns_36m?: number | null;
   returns_5y?: number | null;
   ten_year_return?: number | null;
   
-  // Métricas de volatilidade (tabela calculated_metrics)
+  // Métricas de volatilidade (tabela calculated_metrics_teste)
   volatility_12m?: number | null;
   volatility_24m?: number | null;
   volatility_36m?: number | null;
   ten_year_volatility?: number | null;
   
-  // Métricas de Sharpe (tabela calculated_metrics)
+  // Métricas de Sharpe (tabela calculated_metrics_teste)
   sharpe_12m?: number | null;
   sharpe_24m?: number | null;
   sharpe_36m?: number | null;
   ten_year_sharpe?: number | null;
   
-  // Outras métricas (tabela calculated_metrics)
+  // Outras métricas (tabela calculated_metrics_teste)
   max_drawdown?: number | null;
   dividends_12m?: number | null;
   dividends_24m?: number | null;

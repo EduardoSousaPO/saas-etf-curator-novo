@@ -10,7 +10,7 @@ export async function GET() {
     const totalETFs = await prisma.etf_list.count();
 
     // Buscar métricas de performance
-    const metricsData = await prisma.calculated_metrics.findMany({
+    const metricsData = await prisma.calculated_metrics_teste.findMany({
       where: {
         returns_12m: { not: null },
         volatility_12m: { not: null }
@@ -25,23 +25,38 @@ export async function GET() {
 
     console.log(`📊 Dados brutos encontrados: ${metricsData.length}`);
 
-    // Filtrar outliers extremos
-    const filteredData = filterOutliers(metricsData);
-    console.log(`✅ Dados após filtro de outliers: ${filteredData.length} (removidos: ${metricsData.length - filteredData.length})`);
+    // Converter Decimal para number e filtrar outliers
+    const convertedData = metricsData.map(m => ({
+      symbol: m.symbol,
+      returns_12m: m.returns_12m ? Number(m.returns_12m) : null,
+      volatility_12m: m.volatility_12m ? Number(m.volatility_12m) : null,
+      sharpe_12m: m.sharpe_12m ? Number(m.sharpe_12m) : null
+    }));
 
-    // Calcular estatísticas seguras usando dados filtrados
-    const returns = filteredData.map(m => m.returns_12m).filter(r => r !== null);
-    const volatilities = filteredData.map(m => m.volatility_12m).filter(v => v !== null);
-    const sharpes = filteredData.map(m => m.sharpe_12m).filter(s => s !== null);
+    const filteredData = filterOutliers(convertedData);
+    
+    // Garantir que os dados filtrados têm valores válidos
+    const validData = filteredData.filter(item => 
+      item.returns_12m !== null && 
+      item.volatility_12m !== null && 
+      item.sharpe_12m !== null
+    );
+    console.log(`✅ Dados após filtro de outliers: ${filteredData.length} (removidos: ${metricsData.length - filteredData.length})`);
+    console.log(`✅ Dados válidos para cálculos: ${validData.length}`);
+
+    // Calcular estatísticas seguras usando dados válidos
+    const returns = validData.map(m => m.returns_12m as number);
+    const volatilities = validData.map(m => m.volatility_12m as number);
+    const sharpes = validData.map(m => m.sharpe_12m as number);
 
     const returnStats = calculateSafeStats(returns);
     const volatilityStats = calculateSafeStats(volatilities);
     const sharpeStats = calculateSafeStats(sharpes);
 
-    // Encontrar top performer (dos dados filtrados)
-    const topPerformer = filteredData.length > 0
-      ? filteredData.reduce((max, current) => 
-          safeNumber(current.returns_12m) > safeNumber(max.returns_12m) ? current : max
+    // Encontrar top performer (dos dados válidos)
+    const topPerformer = validData.length > 0
+      ? validData.reduce((max, current) => 
+          (current.returns_12m as number) > (max.returns_12m as number) ? current : max
         )
       : null;
 
@@ -69,57 +84,57 @@ export async function GET() {
       return acc;
     }, {} as Record<string, number>);
 
-    // Buscar ETFs com melhor performance recente (filtrados)
-    const topETFs = filteredData
-      .sort((a, b) => safeNumber(b.returns_12m) - safeNumber(a.returns_12m))
+    // Buscar ETFs com melhor performance recente (dados válidos)
+    const topETFs = validData
+      .sort((a, b) => (b.returns_12m as number) - (a.returns_12m as number))
       .slice(0, 10);
 
     // Buscar ETFs com pior performance (para alertas, mas ainda dentro dos limites válidos)
-    const worstETFs = filteredData
-      .sort((a, b) => safeNumber(a.returns_12m) - safeNumber(b.returns_12m))
+    const worstETFs = validData
+      .sort((a, b) => (a.returns_12m as number) - (b.returns_12m as number))
       .slice(0, 5);
 
     // Calcular volatilidade do mercado
-    const highVolatilityCount = filteredData.filter(m => safeNumber(m.volatility_12m) > 0.25).length; // 25%
-    const volatilityPercentage = filteredData.length > 0 
-      ? (highVolatilityCount / filteredData.length) * 100 
+    const highVolatilityCount = validData.filter(m => (m.volatility_12m as number) > 0.25).length; // 25%
+    const volatilityPercentage = validData.length > 0 
+      ? (highVolatilityCount / validData.length) * 100 
       : 0;
 
     const response = {
       // Estatísticas básicas
       totalETFs,
-      etfsWithMetrics: filteredData.length,
-      dataCompleteness: totalETFs ? (filteredData.length / totalETFs) * 100 : 0,
-      outliersRemoved: metricsData.length - filteredData.length,
+      etfsWithMetrics: validData.length,
+      dataCompleteness: totalETFs ? (validData.length / totalETFs) * 100 : 0,
+      outliersRemoved: metricsData.length - validData.length,
 
-      // Métricas de performance (convertidas para percentual)
-      avgReturn: Number((returnStats.mean * 100).toFixed(2)),
-      avgVolatility: Number((volatilityStats.mean * 100).toFixed(2)),
+      // Métricas de performance (dados já estão em formato decimal no banco)
+      avgReturn: Number(returnStats.mean.toFixed(4)),
+      avgVolatility: Number(volatilityStats.mean.toFixed(4)),
       avgSharpe: Number(sharpeStats.mean.toFixed(2)),
 
       // Tendência do mercado
       marketTrend,
       topPerformer: topPerformer?.symbol || 'N/A',
-      topPerformerReturn: topPerformer ? Number((safeNumber(topPerformer.returns_12m) * 100).toFixed(2)) : 0,
+      topPerformerReturn: topPerformer ? Number((topPerformer.returns_12m as number).toFixed(4)) : 0,
 
       // Distribuição
       assetClassDistribution,
       highVolatilityPercentage: Number(volatilityPercentage.toFixed(1)),
 
-      // Top performers (convertidos para percentual)
+      // Top performers (dados já em formato decimal)
       topPerformers: topETFs.slice(0, 5).map(etf => ({
         symbol: etf.symbol,
-        return: Number((safeNumber(etf.returns_12m) * 100).toFixed(2)),
-        sharpe: Number((safeNumber(etf.sharpe_12m) || 0).toFixed(2)),
-        volatility: Number((safeNumber(etf.volatility_12m) * 100).toFixed(2))
+        return: Number((etf.returns_12m as number).toFixed(4)),
+        sharpe: Number((etf.sharpe_12m as number).toFixed(2)),
+        volatility: Number((etf.volatility_12m as number).toFixed(4))
       })),
 
       // Alertas (ETFs com performance ruim, mas ainda válida)
       alerts: worstETFs.map(etf => ({
         symbol: etf.symbol,
-        return: Number((safeNumber(etf.returns_12m) * 100).toFixed(2)),
-        volatility: Number((safeNumber(etf.volatility_12m) * 100).toFixed(2)),
-        type: safeNumber(etf.returns_12m) < -0.20 ? 'severe_loss' : 'underperforming'
+        return: Number((etf.returns_12m as number).toFixed(4)),
+        volatility: Number((etf.volatility_12m as number).toFixed(4)),
+        type: (etf.returns_12m as number) < -0.20 ? 'severe_loss' : 'underperforming'
       })),
 
       // Metadados
@@ -128,8 +143,8 @@ export async function GET() {
       calculationTime: new Date().toISOString(),
       dataQuality: {
         totalRawData: metricsData.length,
-        validData: filteredData.length,
-        filterEfficiency: metricsData.length > 0 ? ((filteredData.length / metricsData.length) * 100).toFixed(1) + '%' : '0%'
+        validData: validData.length,
+        filterEfficiency: metricsData.length > 0 ? ((validData.length / metricsData.length) * 100).toFixed(1) + '%' : '0%'
       }
     };
 
@@ -147,12 +162,12 @@ export async function GET() {
       etfsWithMetrics: 4253,
       dataCompleteness: 96.5,
       outliersRemoved: 0,
-      avgReturn: 8.2,
-      avgVolatility: 16.8,
+      avgReturn: 0.082,
+      avgVolatility: 0.168,
       avgSharpe: 0.65,
       marketTrend: 'stable' as const,
       topPerformer: 'SGOV',
-      topPerformerReturn: 15.2,
+      topPerformerReturn: 0.152,
       assetClassDistribution: {
         'Equity': 2500,
         'Fixed Income': 800,

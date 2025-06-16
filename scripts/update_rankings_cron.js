@@ -46,7 +46,7 @@ async function updateRankings() {
             WHEN cm.returns_12m BETWEEN -1 AND 1 THEN cm.returns_12m * 100
             ELSE cm.returns_12m
           END as percentage_value
-        FROM calculated_metrics cm
+        FROM calculated_metrics_teste cm
         WHERE cm.returns_12m IS NOT NULL 
           AND cm.returns_12m >= -0.9 
           AND cm.returns_12m <= 10.0
@@ -63,7 +63,7 @@ async function updateRankings() {
           cm.symbol,
           cm.sharpe_12m as value,
           NULL as percentage_value
-        FROM calculated_metrics cm
+        FROM calculated_metrics_teste cm
         WHERE cm.sharpe_12m IS NOT NULL 
           AND cm.sharpe_12m >= -5.0 
           AND cm.sharpe_12m <= 10.0
@@ -89,7 +89,7 @@ async function updateRankings() {
               THEN (cm.dividends_12m / el.nav) * 100
               ELSE NULL
             END as dividend_yield
-          FROM calculated_metrics cm
+          FROM calculated_metrics_teste cm
           JOIN etf_list el ON cm.symbol = el.symbol
           WHERE cm.dividends_12m IS NOT NULL 
             AND cm.dividends_12m > 0 
@@ -130,7 +130,7 @@ async function updateRankings() {
             WHEN cm.max_drawdown BETWEEN -1 AND 1 THEN cm.max_drawdown * 100
             ELSE cm.max_drawdown
           END as percentage_value
-        FROM calculated_metrics cm
+        FROM calculated_metrics_teste cm
         WHERE cm.max_drawdown IS NOT NULL 
           AND cm.max_drawdown <= 0
         ORDER BY cm.max_drawdown ASC
@@ -149,7 +149,7 @@ async function updateRankings() {
             WHEN cm.volatility_12m BETWEEN 0 AND 1 THEN cm.volatility_12m * 100
             ELSE cm.volatility_12m
           END as percentage_value
-        FROM calculated_metrics cm
+        FROM calculated_metrics_teste cm
         WHERE cm.volatility_12m IS NOT NULL 
           AND cm.volatility_12m >= 0 
           AND cm.volatility_12m <= 2.0

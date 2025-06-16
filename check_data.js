@@ -2,10 +2,10 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function checkData() {
-  console.log('🔍 Verificando dados de calculated_metrics...');
+  console.log('🔍 Verificando dados de calculated_metrics_teste...');
   
   // Verificar alguns valores de retorno
-  const returns = await prisma.calculated_metrics.findMany({
+  const returns = await prisma.calculated_metrics_teste.findMany({
     where: { returns_12m: { not: null } },
     select: { symbol: true, returns_12m: true },
     orderBy: { returns_12m: 'desc' },
@@ -16,7 +16,7 @@ async function checkData() {
   returns.forEach(r => console.log(`${r.symbol}: ${r.returns_12m} (raw value)`));
   
   // Verificar valores normais de retorno
-  const normalReturns = await prisma.calculated_metrics.findMany({
+  const normalReturns = await prisma.calculated_metrics_teste.findMany({
     where: { 
       returns_12m: { 
         not: null,
@@ -34,20 +34,20 @@ async function checkData() {
   
   // Verificar patrimônio em etf_list
   const assetsCount = await prisma.etf_list.count({
-    where: { assetsundermanagement: { not: null } }
+    where: { totalasset: { not: null } }
   });
   
   console.log(`💰 Total de ETFs com patrimônio: ${assetsCount}`);
   
   const assets = await prisma.etf_list.findMany({
-    where: { assetsundermanagement: { not: null } },
-    select: { symbol: true, assetsundermanagement: true },
-    orderBy: { assetsundermanagement: 'desc' },
+    where: { totalasset: { not: null } },
+    select: { symbol: true, totalasset: true },
+    orderBy: { totalasset: 'desc' },
     take: 5
   });
   
   console.log('💰 Top 5 patrimônios:');
-  assets.forEach(a => console.log(`${a.symbol}: $${a.assetsundermanagement}`));
+  assets.forEach(a => console.log(`${a.symbol}: $${a.totalasset}`));
   
   // Verificar se há dados de volume
   const volumeCount = await prisma.etf_list.count({
@@ -57,7 +57,7 @@ async function checkData() {
   console.log(`📈 Total de ETFs com volume: ${volumeCount}`);
   
   // Verificar dividendos
-  const dividends = await prisma.calculated_metrics.findMany({
+  const dividends = await prisma.calculated_metrics_teste.findMany({
     where: { dividends_12m: { not: null } },
     select: { symbol: true, dividends_12m: true },
     orderBy: { dividends_12m: 'desc' },

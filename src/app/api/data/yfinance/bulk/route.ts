@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     // Buscar métricas calculadas
     console.log('📈 Buscando métricas...');
     const { data: metricsData, error: metricsError } = await supabase
-      .from('calculated_metrics')
+      .from('calculated_metrics_teste')
       .select('*')
       .in('symbol', symbolsUpper);
 

@@ -139,7 +139,7 @@ async function main() {
         assetclass: fmpData.category || fmpData.assetClass, // Usar category ou assetClass da FMP
         etfcompany: fmpData.etfCompany,
         inceptiondate: parseDate(fmpData.inceptionDate),
-        assetsundermanagement: fmpData.totalAssets,
+        totalasset: fmpData.totalAssets,
         avgvolume: fmpData.avgVolume, // FMP usa avgVolume
         expenseratio: fmpData.expenseRatio,
         holdingscount: fmpData.holdingsCount,

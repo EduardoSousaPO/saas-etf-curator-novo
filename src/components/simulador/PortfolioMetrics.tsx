@@ -18,7 +18,8 @@ interface PortfolioMetricsProps {
 
 export default function PortfolioMetrics({ metrics, investmentAmount }: PortfolioMetricsProps) {
   const formatPercentage = (value: number): string => {
-    return `${value.toFixed(2)}%`;
+    if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
+    return `${(Number(value) * 100).toFixed(2)}%`;
   };
 
   const formatCurrency = (value: number): string => {

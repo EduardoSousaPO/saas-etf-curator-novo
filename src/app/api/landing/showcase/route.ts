@@ -6,8 +6,8 @@ export async function GET() {
   try {
     console.log('🔍 Carregando ETFs de destaque para showcase...');
 
-    // Verificar se há dados na tabela calculated_metrics
-    const metricsCount = await prisma.calculated_metrics.count();
+    // Verificar se há dados na tabela calculated_metrics_teste
+    const metricsCount = await prisma.calculated_metrics_teste.count();
     console.log(`📊 Total de métricas na tabela: ${metricsCount}`);
 
     if (metricsCount === 0) {
@@ -16,12 +16,12 @@ export async function GET() {
     }
 
     // Buscar ETFs com métricas válidas usando raw SQL com filtros básicos
-    const etfsWithMetrics = await prisma.$queryRaw`
+    const etfsWithMetrics = await prisma.$queryRaw<any[]>`
       SELECT 
         e.symbol, e.name, e.assetclass, e.etfcompany, e.nav,
         m.returns_12m, m.volatility_12m, m.sharpe_12m, m.dividends_12m
       FROM etf_list e
-      INNER JOIN calculated_metrics m ON e.symbol = m.symbol
+      INNER JOIN calculated_metrics_teste m ON e.symbol = m.symbol
       WHERE m.sharpe_12m IS NOT NULL 
         AND m.returns_12m IS NOT NULL
         AND m.returns_12m BETWEEN -0.95 AND 5.0
@@ -67,12 +67,12 @@ export async function GET() {
       highDividendETFs
     ] = await Promise.all([
       // Top Sharpe (filtrado)
-      prisma.$queryRaw`
+      prisma.$queryRaw<any[]>`
         SELECT 
           e.symbol, e.name, e.assetclass, e.etfcompany, e.nav,
           m.returns_12m, m.volatility_12m, m.sharpe_12m, m.dividends_12m
         FROM etf_list e
-        INNER JOIN calculated_metrics m ON e.symbol = m.symbol
+        INNER JOIN calculated_metrics_teste m ON e.symbol = m.symbol
         WHERE m.sharpe_12m IS NOT NULL 
           AND m.sharpe_12m BETWEEN 0 AND 10
           AND m.returns_12m BETWEEN -0.50 AND 2.0
@@ -82,12 +82,12 @@ export async function GET() {
       `,
       
       // Top Return (filtrado)
-      prisma.$queryRaw`
+      prisma.$queryRaw<any[]>`
         SELECT 
           e.symbol, e.name, e.assetclass, e.etfcompany, e.nav,
           m.returns_12m, m.volatility_12m, m.sharpe_12m, m.dividends_12m
         FROM etf_list e
-        INNER JOIN calculated_metrics m ON e.symbol = m.symbol
+        INNER JOIN calculated_metrics_teste m ON e.symbol = m.symbol
         WHERE m.returns_12m IS NOT NULL 
           AND m.returns_12m BETWEEN 0 AND 2.0
           AND m.volatility_12m BETWEEN 0 AND 1.0
@@ -96,12 +96,12 @@ export async function GET() {
       `,
       
       // Low Volatility (filtrado)
-      prisma.$queryRaw`
+      prisma.$queryRaw<any[]>`
         SELECT 
           e.symbol, e.name, e.assetclass, e.etfcompany, e.nav,
           m.returns_12m, m.volatility_12m, m.sharpe_12m, m.dividends_12m
         FROM etf_list e
-        INNER JOIN calculated_metrics m ON e.symbol = m.symbol
+        INNER JOIN calculated_metrics_teste m ON e.symbol = m.symbol
         WHERE m.volatility_12m IS NOT NULL 
           AND m.volatility_12m BETWEEN 0 AND 0.30
           AND m.returns_12m BETWEEN 0 AND 1.0
@@ -110,12 +110,12 @@ export async function GET() {
       `,
       
       // High Dividend (filtrado)
-      prisma.$queryRaw`
+      prisma.$queryRaw<any[]>`
         SELECT 
           e.symbol, e.name, e.assetclass, e.etfcompany, e.nav,
           m.returns_12m, m.volatility_12m, m.sharpe_12m, m.dividends_12m
         FROM etf_list e
-        INNER JOIN calculated_metrics m ON e.symbol = m.symbol
+        INNER JOIN calculated_metrics_teste m ON e.symbol = m.symbol
         WHERE m.dividends_12m IS NOT NULL 
           AND m.dividends_12m BETWEEN 0 AND 100
           AND e.nav IS NOT NULL 

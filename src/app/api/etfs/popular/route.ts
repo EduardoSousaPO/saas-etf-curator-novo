@@ -18,13 +18,13 @@ export async function GET() {
         name: true,
         assetclass: true,
         expenseratio: true,
-        assetsundermanagement: true,
+        totalasset: true,
         avgvolume: true
       }
     });
 
     // Buscar métricas calculadas
-    const metrics = await prisma.calculated_metrics.findMany({
+    const metrics = await prisma.calculated_metrics_teste.findMany({
       where: { 
         symbol: { in: popularSymbols }
       },
@@ -47,7 +47,7 @@ export async function GET() {
         volatility_12m: metric?.volatility_12m ? Number(metric.volatility_12m) : 0,
         sharpe_12m: metric?.sharpe_12m ? Number(metric.sharpe_12m) : 0,
         expense_ratio: etf.expenseratio ? Number(etf.expenseratio) : 0,
-        total_assets: etf.assetsundermanagement ? Number(etf.assetsundermanagement) : null,
+        total_assets: etf.totalasset ? Number(etf.totalasset) : null,
         volume: etf.avgvolume ? Number(etf.avgvolume) : null
       };
     });

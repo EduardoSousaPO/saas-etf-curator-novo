@@ -32,7 +32,7 @@ export class DatabaseDataSource implements DataSource {
       const { PrismaClient } = await import('@prisma/client');
       const prisma = new PrismaClient();
       const etf = await prisma.etf_list.findUnique({ where: { symbol } });
-      const metrics = await prisma.calculated_metrics.findUnique({ where: { symbol } });
+      const metrics = await prisma.calculated_metrics_teste.findUnique({ where: { symbol } });
       await prisma.$disconnect();
       if (!etf) return null;
       return {
@@ -53,7 +53,7 @@ export class DatabaseDataSource implements DataSource {
       const { PrismaClient } = await import('@prisma/client');
       const prisma = new PrismaClient();
       const etfList = await prisma.etf_list.findMany({ where: { symbol: { in: symbols } } });
-      const metricsList = await prisma.calculated_metrics.findMany({ where: { symbol: { in: symbols } } });
+      const metricsList = await prisma.calculated_metrics_teste.findMany({ where: { symbol: { in: symbols } } });
       await prisma.$disconnect();
       const result: Record<string, any> = {};
       etfList.forEach(etf => {

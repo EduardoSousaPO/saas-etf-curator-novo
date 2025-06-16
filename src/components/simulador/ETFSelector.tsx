@@ -87,8 +87,8 @@ export default function ETFSelector({ onSelectETF, selectedSymbols, maxSelection
   };
 
   const formatPercentage = (value: number | null | undefined): string => {
-    if (value === null || value === undefined || isNaN(value)) return 'N/A';
-    return `${value.toFixed(2)}%`;
+    if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
+    return `${(Number(value) * 100).toFixed(2)}%`;
   };
 
   const getReturnColor = (value: number | null | undefined): string => {

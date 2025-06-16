@@ -35,7 +35,7 @@ export async function GET(
 
     // Buscar métricas calculadas
     const { data: metricsData } = await supabase
-      .from('calculated_metrics')
+      .from('calculated_metrics_teste')
       .select('*')
       .eq('symbol', symbolUpper)
       .single();

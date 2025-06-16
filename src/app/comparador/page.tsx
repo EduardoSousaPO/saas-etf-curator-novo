@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import ETFSearch from '@/components/comparador/ETFSearch';
 import PerformanceChart from '@/components/comparador/PerformanceChart';
-import TestChart from '@/components/comparador/TestChart';
+
 import { X, TrendingUp, BarChart3, Shield, DollarSign, Zap } from 'lucide-react';
 
 interface ETF {
@@ -59,8 +59,8 @@ export default function ComparadorPage() {
 
   // Formatação de valores
   const formatPercentage = (value: number | null | undefined): string => {
-    if (value === null || value === undefined || isNaN(value)) return 'N/A';
-    return `${value.toFixed(2)}%`;
+    if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
+    return `${(Number(value) * 100).toFixed(2)}%`;
   };
 
   const formatCurrency = (value: number | null | undefined): string => {
@@ -355,9 +355,6 @@ export default function ComparadorPage() {
                 </table>
               </div>
             </div>
-
-            {/* Componente de Teste Debug */}
-            <TestChart etfs={selectedETFs} />
             
             {/* Gráfico de Performance Histórica */}
             <PerformanceChart etfs={selectedETFs} />

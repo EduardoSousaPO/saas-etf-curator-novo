@@ -10,6 +10,7 @@ async function populateRankings() {
     console.log('🧹 Dados antigos removidos');
     
     // 1. TOP RETURNS 12M (filtros rigorosos: -95% a +500%)
+    // CORREÇÃO: dados já estão em formato decimal, não multiplicar por 100
     console.log('📈 Calculando top returns 12m...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
@@ -19,7 +20,7 @@ async function populateRankings() {
         cm.symbol,
         cm.returns_12m as value,
         cm.returns_12m * 100 as percentage_value
-      FROM calculated_metrics cm
+      FROM calculated_metrics_teste cm
       WHERE cm.returns_12m IS NOT NULL 
         AND cm.returns_12m >= -0.95 
         AND cm.returns_12m <= 5.0
@@ -37,7 +38,7 @@ async function populateRankings() {
         cm.symbol,
         cm.sharpe_12m as value,
         NULL as percentage_value
-      FROM calculated_metrics cm
+      FROM calculated_metrics_teste cm
       WHERE cm.sharpe_12m IS NOT NULL 
         AND cm.sharpe_12m >= -10.0 
         AND cm.sharpe_12m <= 10.0
@@ -67,7 +68,7 @@ async function populateRankings() {
             THEN (cm.dividends_12m / el.nav) * 100
             ELSE NULL
           END as dividend_yield
-        FROM calculated_metrics cm
+        FROM calculated_metrics_teste cm
         JOIN etf_list el ON cm.symbol = el.symbol
         WHERE cm.dividends_12m IS NOT NULL 
           AND cm.dividends_12m > 0 
@@ -110,7 +111,7 @@ async function populateRankings() {
         cm.symbol,
         cm.max_drawdown as value,
         cm.max_drawdown * 100 as percentage_value
-      FROM calculated_metrics cm
+      FROM calculated_metrics_teste cm
       WHERE cm.max_drawdown IS NOT NULL 
         AND cm.max_drawdown >= -1.0
         AND cm.max_drawdown < 0
@@ -129,7 +130,7 @@ async function populateRankings() {
         cm.symbol,
         cm.volatility_12m as value,
         cm.volatility_12m * 100 as percentage_value
-      FROM calculated_metrics cm
+      FROM calculated_metrics_teste cm
       WHERE cm.volatility_12m IS NOT NULL 
         AND cm.volatility_12m >= 0.001
         AND cm.volatility_12m <= 2.0

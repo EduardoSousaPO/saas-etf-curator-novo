@@ -17,7 +17,7 @@ export async function GET() {
       prisma.etf_list.count(),
       
       // ETFs com métricas
-      prisma.calculated_metrics.findMany({
+      prisma.calculated_metrics_teste.findMany({
         where: {
           returns_12m: { not: null },
           volatility_12m: { not: null }
@@ -48,8 +48,14 @@ export async function GET() {
 
     console.log(`📊 Dados brutos de métricas: ${metricsData.length}`);
 
-    // Filtrar outliers extremos
-    const filteredMetrics = filterOutliers(metricsData);
+    // Converter Decimal para number e filtrar outliers
+    const convertedMetrics = metricsData.map(m => ({
+      symbol: m.symbol,
+      returns_12m: m.returns_12m ? Number(m.returns_12m) : null,
+      volatility_12m: m.volatility_12m ? Number(m.volatility_12m) : null
+    }));
+
+    const filteredMetrics = filterOutliers(convertedMetrics);
     console.log(`✅ Dados após filtro: ${filteredMetrics.length} (removidos: ${metricsData.length - filteredMetrics.length})`);
 
     // Calcular estatísticas
@@ -65,8 +71,8 @@ export async function GET() {
     ).size;
 
     // Calcular performance média do mercado usando dados filtrados
-    const returns = filteredMetrics.map(m => m.returns_12m).filter(r => r !== null);
-    const volatilities = filteredMetrics.map(m => m.volatility_12m).filter(v => v !== null);
+    const returns = filteredMetrics.map(m => m.returns_12m).filter(r => r !== null) as number[];
+    const volatilities = filteredMetrics.map(m => m.volatility_12m).filter(v => v !== null) as number[];
 
     const returnStats = calculateSafeStats(returns);
     const volatilityStats = calculateSafeStats(volatilities);
@@ -77,8 +83,8 @@ export async function GET() {
       metricsPercentage: Math.round(metricsPercentage * 10) / 10,
       uniqueCompanies,
       uniqueAssetClasses,
-      avgReturn: Math.round(returnStats.mean * 100 * 100) / 100, // Converter para percentual
-      avgVolatility: Math.round(volatilityStats.mean * 100 * 100) / 100, // Converter para percentual
+      avgReturn: Math.round(returnStats.mean * 10000) / 10000, // Dados já em formato decimal
+      avgVolatility: Math.round(volatilityStats.mean * 10000) / 10000, // Dados já em formato decimal
       outliersRemoved: metricsData.length - filteredMetrics.length,
       lastUpdated: new Date().toISOString(),
       dataQuality: {
@@ -108,8 +114,8 @@ export async function GET() {
         metricsPercentage: 96.5,
         uniqueCompanies: 135,
         uniqueAssetClasses: 172,
-        avgReturn: 8.2,
-        avgVolatility: 16.8,
+        avgReturn: 0.082,
+        avgVolatility: 0.168,
         outliersRemoved: 0,
         lastUpdated: new Date().toISOString()
       },
