@@ -30,7 +30,7 @@ export async function GET() {
         symbol: true,
         returns_12m: true,
         volatility_12m: true,
-        sharpe_ratio: true
+        sharpe_12m: true
       }
     });
     console.log('📋 Amostras de dados:', samples);
