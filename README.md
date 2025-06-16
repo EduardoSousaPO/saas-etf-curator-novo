@@ -280,4 +280,6 @@ Sistema de curadoria e análise de ETFs com IA.
 ## Status do Deploy
 - Repositório agora é público para melhor integração com Vercel
 - Últimas correções: ESLint e dotenv movidos para dependencies
+- Corrigido: Propriedade 'difficulty' removida do ContextualGlossary
+- Corrigido: Versão da API do Stripe atualizada para 2025-05-28.basil
 
