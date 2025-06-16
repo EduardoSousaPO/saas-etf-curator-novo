@@ -104,6 +104,7 @@ export async function GET() {
 
   } catch (error) {
     console.error('❌ Erro ao carregar estatísticas:', error);
+    console.log('🚨 USANDO DADOS DE FALLBACK - Produção não conseguiu acessar banco de dados');
     
     // Fallback com dados estáticos
     return NextResponse.json({

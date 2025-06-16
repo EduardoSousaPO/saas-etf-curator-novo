@@ -40,10 +40,10 @@ export async function GET() {
     // Processar ETFs encontrados
     const processETFs = (etfs: any[]) => {
       return etfs.map(etf => {
-        // Calcular dividend yield se possível
+        // Calcular dividend yield se possível (já em formato decimal)
         let dividend_yield = 0;
         if (etf.dividends_12m && etf.nav && etf.nav > 0) {
-          dividend_yield = (Number(etf.dividends_12m) / Number(etf.nav)) * 100;
+          dividend_yield = Number(etf.dividends_12m) / Number(etf.nav);
         }
 
         return {
@@ -170,34 +170,35 @@ export async function GET() {
 }
 
 function getFallbackData() {
+  console.log('🚨 USANDO DADOS DE FALLBACK - Produção não conseguiu acessar banco de dados');
   const fallbackETFs = [
     {
       symbol: 'SGOV',
       name: 'iShares 0-3 Month Treasury Bond ETF',
       assetclass: 'Fixed Income',
       etfcompany: 'iShares',
-      returns_12m: 5.41,
-      volatility_12m: 0.24,
+      returns_12m: 0.0541,
+      volatility_12m: 0.0024,
       sharpe_12m: 21.79,
-      dividend_yield: 5.28
+      dividend_yield: 0.0528
     },
     {
       symbol: 'SHV',
       name: 'iShares Short Treasury Bond ETF',
       assetclass: 'Fixed Income',
       etfcompany: 'iShares',
-      returns_12m: 5.28,
-      volatility_12m: 0.28,
+      returns_12m: 0.0528,
+      volatility_12m: 0.0028,
       sharpe_12m: 18.43,
-      dividend_yield: 5.15
+      dividend_yield: 0.0515
     },
     {
       symbol: 'ARKG',
       name: 'ARK Genomic Revolution ETF',
       assetclass: 'Equity',
       etfcompany: 'ARK',
-      returns_12m: 3.04,
-      volatility_12m: 17.03,
+      returns_12m: 0.0304,
+      volatility_12m: 0.1703,
       sharpe_12m: 0.18,
       dividend_yield: 0.00
     },
@@ -206,10 +207,10 @@ function getFallbackData() {
       name: 'Monarch Blue Chips Core ETF',
       assetclass: 'Equity',
       etfcompany: 'Monarch',
-      returns_12m: 1.08,
-      volatility_12m: 3.27,
+      returns_12m: 0.0108,
+      volatility_12m: 0.0327,
       sharpe_12m: 0.33,
-      dividend_yield: 2.00
+      dividend_yield: 0.0200
     }
   ];
 

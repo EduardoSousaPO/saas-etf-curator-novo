@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "mercadopago-mcp-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp.mercadopago.com/mcp",
+        "--header",
+        "Authorization:${AUTH_HEADER}"
+      ],
+      "env": {
+        "AUTH_HEADER": "Bearer APP_USR-8537527381073054-061610-1a9b50f7d484cfd5b6a9a779d9b9a567-208600078"
+      }
+    }
+  }
+} 
