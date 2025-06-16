@@ -273,3 +273,11 @@ npm install @prisma/client dotenv xlsx axios --legacy-peer-deps
 - Se você tiver uma chave API para o Financial Modeling Prep (FMP), adicione-a ao arquivo `.env` como `FMP_API_KEY=sua_chave_aqui` para obter dados reais.
 - Sem a chave API, o sistema usará dados simulados.
 
+# ETF Curator
+
+Sistema de curadoria e análise de ETFs com IA.
+
+## Status do Deploy
+- Repositório agora é público para melhor integração com Vercel
+- Últimas correções: ESLint e dotenv movidos para dependencies
+
