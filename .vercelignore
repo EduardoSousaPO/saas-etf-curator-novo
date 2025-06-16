@@ -1,0 +1,39 @@
+# Development files
+.env.local
+.env.development
+.env.test
+
+# Database files
+*.sqlite
+*.db
+DB_sqlite/
+
+# Mobile app
+mobile/
+
+# Scripts
+scripts/
+
+# Documentation
+*.md
+docs/
+
+# Test files
+**/*.test.*
+**/*.spec.*
+
+# Logs
+*.log
+logs/
+
+# Cache
+.cache/
+.next/cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db 
