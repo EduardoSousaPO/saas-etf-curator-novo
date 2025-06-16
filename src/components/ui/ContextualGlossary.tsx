@@ -46,32 +46,6 @@ export default function ContextualGlossary({ children, className = '', inline = 
 function GlossaryTooltip({ term, children, inline }: { term: GlossaryTerm; children: React.ReactNode; inline: boolean }) {
   const [isVisible, setIsVisible] = useState(false);
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'basic':
-        return 'bg-green-100 text-green-800';
-      case 'intermediate':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'advanced':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getDifficultyLabel = (difficulty: string) => {
-    switch (difficulty) {
-      case 'basic':
-        return 'Básico';
-      case 'intermediate':
-        return 'Intermediário';
-      case 'advanced':
-        return 'Avançado';
-      default:
-        return difficulty;
-    }
-  };
-
   if (inline) {
     // Versão simplificada inline sem tooltip para evitar problemas de hydratação
     return (
@@ -98,8 +72,8 @@ function GlossaryTooltip({ term, children, inline }: { term: GlossaryTerm; child
           <span className="space-y-3 block">
             <span className="flex items-center justify-between">
               <span className="font-semibold text-lg text-gray-900">{term.term}</span>
-              <span className={`px-2 py-1 rounded text-xs font-medium ${getDifficultyColor(term.difficulty)}`}>
-                {getDifficultyLabel(term.difficulty)}
+              <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                {term.category}
               </span>
             </span>
             
