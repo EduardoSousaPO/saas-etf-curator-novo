@@ -348,10 +348,10 @@ export default function OnboardingPage() {
                   {userProfile.riskTolerance || 5}
                 </div>
                 <div className="text-sm text-gray-600">
-                  {userProfile.riskTolerance <= 3 && "Prefiro segurança, mesmo com retornos menores"}
-                  {userProfile.riskTolerance >= 4 && userProfile.riskTolerance <= 6 && "Aceito algum risco por retornos moderados"}
-                  {userProfile.riskTolerance >= 7 && userProfile.riskTolerance <= 8 && "Aceito risco significativo por maiores retornos"}
-                  {userProfile.riskTolerance >= 9 && "Aceito alto risco por potenciais altos retornos"}
+                  {userProfile.riskTolerance && userProfile.riskTolerance <= 3 && "Prefiro segurança, mesmo com retornos menores"}
+                  {userProfile.riskTolerance && userProfile.riskTolerance >= 4 && userProfile.riskTolerance <= 6 && "Aceito algum risco por retornos moderados"}
+                  {userProfile.riskTolerance && userProfile.riskTolerance >= 7 && userProfile.riskTolerance <= 8 && "Aceito risco significativo por maiores retornos"}
+                  {userProfile.riskTolerance && userProfile.riskTolerance >= 9 && "Aceito alto risco por potenciais altos retornos"}
                 </div>
               </div>
             </div>
