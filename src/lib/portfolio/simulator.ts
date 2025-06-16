@@ -216,7 +216,7 @@ export class PortfolioSimulator {
   static assessRisk(
     metrics: PortfolioMetrics,
     allocations: PortfolioAllocation[],
-    etfs: ETF[]
+    _etfs: ETF[]
   ): RiskAssessment {
     
     let riskScore = 0;
@@ -312,7 +312,7 @@ export class PortfolioSimulator {
       let monthlyReturn = 0;
       
       simulation.allocations.forEach(alloc => {
-        const etf = etfs.find(e => e.symbol === alloc.etfSymbol);
+        const etf = _etfs.find(e => e.symbol === alloc.etfSymbol);
         if (!etf) return;
         
         const weight = alloc.percentage / 100;
