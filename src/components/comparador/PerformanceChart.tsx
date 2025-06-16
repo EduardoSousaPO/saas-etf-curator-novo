@@ -2,18 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, Calendar, BarChart3, Download, Maximize2, Settings, Info } from 'lucide-react';
+import { TrendingUp, BarChart3, Download, Maximize2, Settings, Info } from 'lucide-react';
 
 interface ETF {
   symbol: string;
   name?: string | null;
 }
 
-interface PriceData {
-  date: string;
-  close: number;
-  symbol: string;
-}
+// interface PriceData {
+//   date: string;
+//   close: number;
+//   symbol: string;
+// }
 
 interface ChartData {
   date: string;
@@ -51,7 +51,7 @@ export default function PerformanceChart({ etfs, period = '1y' }: PerformanceCha
   const [error, setError] = useState<string | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState(period);
   const [showGrid, setShowGrid] = useState(true);
-  const [showLegend, setShowLegend] = useState(true);
+  const [showLegend] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Carregar dados históricos
@@ -125,7 +125,7 @@ export default function PerformanceChart({ etfs, period = '1y' }: PerformanceCha
       // Calcular performance normalizada (base 100)
       const basePrice = prices[0]?.close || 100;
 
-      prices.forEach((price, index) => {
+      prices.forEach((price) => {
         if (!price || typeof price.close !== 'number' || !price.date) {
           return; // Pular dados inválidos
         }

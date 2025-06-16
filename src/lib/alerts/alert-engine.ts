@@ -1,4 +1,4 @@
-import { Alert, AlertType, AlertCondition, AlertNotification } from './types';
+import { Alert, AlertType, AlertNotification } from './types';
 import { ETF } from '@/types';
 
 // Sistema em memória para demonstração

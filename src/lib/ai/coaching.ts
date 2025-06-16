@@ -339,7 +339,7 @@ Responda em formato JSON com a estrutura da lição.
     };
   }
 
-  private getRelevantResources(exerciseId: string): LearningResource[] {
+  private getRelevantResources(_exerciseId: string): LearningResource[] {
     return [
       {
         type: 'article',

@@ -254,7 +254,7 @@ function generateRuleBasedRecommendations(
   };
 }
 
-function categorizeETFsByProfile(etfs: ETF[], profile: InvestorProfile) {
+function categorizeETFsByProfile(etfs: ETF[], _profile: InvestorProfile) {
   const categories: Record<string, ETF[]> = {
     core: [],
     growth: [],
@@ -318,7 +318,7 @@ function calculateETFScore(etf: ETF, profile: InvestorProfile): number {
   return Math.max(0, Math.min(100, score));
 }
 
-function generateRecommendationReasons(etf: ETF, profile: InvestorProfile, category: string): string[] {
+function generateRecommendationReasons(etf: ETF, profile: InvestorProfile, _category: string): string[] {
   const reasons: string[] = [];
 
   // Razões baseadas na performance

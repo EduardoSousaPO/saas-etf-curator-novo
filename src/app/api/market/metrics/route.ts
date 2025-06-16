@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { filterOutliers, calculateSafeStats, safeNumber } from '@/lib/data-filters';
+import { filterOutliers, calculateSafeStats } from '@/lib/data-filters';
 
 export async function GET() {
   try {

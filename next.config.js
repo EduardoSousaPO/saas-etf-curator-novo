@@ -1,7 +1,5 @@
-import type { NextConfig } from "next";
-
 /** @type {import('next').NextConfig} */
-const nextConfig: NextConfig = {
+const nextConfig = {
   reactStrictMode: true,
   
   // Forçar carregamento das variáveis de ambiente
@@ -37,8 +35,14 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Ignorar warnings do Prisma em desenvolvimento
+  // Configuração webpack para resolver path aliases e outros problemas
   webpack: (config, { dev, isServer }) => {
+    // Configurar path aliases explicitamente
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, 'src'),
+    };
+    
     if (dev && !isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -70,4 +74,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig; 
