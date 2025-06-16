@@ -11,7 +11,7 @@
     "fmp-enrich": "tsx scripts/fmp-integration.ts",
     "data-import-complete": "npm run import-excel && npm run fmp-enrich -- --limit 100",
     "diagnose": "tsx scripts/diagnose-data.ts",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "migrate:data-sources": "npx tsx scripts/migrate-data-sources.ts",
     "test:data-sources": "npx tsx scripts/test-data-sources.ts",
     "dev:optimized": "node scripts/start-dev.js",
