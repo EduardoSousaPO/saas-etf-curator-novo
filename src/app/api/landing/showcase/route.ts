@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-
 export async function GET() {
   try {
     console.log('🔍 Carregando ETFs de destaque para showcase...');
@@ -11,8 +10,13 @@ export async function GET() {
     console.log(`📊 Total de métricas na tabela: ${metricsCount}`);
 
     if (metricsCount === 0) {
-      console.log('⚠️ Nenhuma métrica encontrada, usando dados fallback');
-      return getFallbackData();
+      console.error('❌ ERRO CRÍTICO: Nenhuma métrica encontrada no banco de dados');
+      return NextResponse.json({
+        success: false,
+        error: 'Banco de dados vazio - nenhuma métrica encontrada',
+        message: 'Produção deve sempre ter dados reais. Verificar processo de enriquecimento de dados.',
+        timestamp: new Date().toISOString()
+      }, { status: 500 });
     }
 
     // Buscar ETFs com métricas válidas usando raw SQL com filtros básicos
@@ -33,8 +37,13 @@ export async function GET() {
     console.log(`📊 ETFs com métricas válidas encontrados: ${etfsWithMetrics.length}`);
 
     if (etfsWithMetrics.length === 0) {
-      console.log('⚠️ Nenhum ETF com métricas válidas encontrado, usando dados fallback');
-      return getFallbackData();
+      console.error('❌ ERRO CRÍTICO: Nenhum ETF com métricas válidas encontrado');
+      return NextResponse.json({
+        success: false,
+        error: 'Nenhum ETF com métricas válidas encontrado no banco',
+        message: 'Dados existem mas não passaram nos filtros de qualidade. Verificar processo de enriquecimento.',
+        timestamp: new Date().toISOString()
+      }, { status: 500 });
     }
 
     // Processar ETFs encontrados
@@ -139,10 +148,15 @@ export async function GET() {
       }
     };
 
-    // Se alguma categoria está vazia, usar fallback
+    // Se alguma categoria está vazia, retornar erro
     if (processedData.featured.length === 0) {
-      console.log('⚠️ Nenhum ETF em destaque encontrado, usando dados fallback');
-      return getFallbackData();
+      console.error('❌ ERRO CRÍTICO: Nenhum ETF em destaque encontrado após processamento');
+      return NextResponse.json({
+        success: false,
+        error: 'Nenhum ETF em destaque encontrado após aplicar filtros',
+        message: 'Dados existem mas não geraram ETFs em destaque. Verificar critérios de filtros.',
+        timestamp: new Date().toISOString()
+      }, { status: 500 });
     }
 
     console.log(`✅ Showcase carregado com ${processedData.featured.length} ETFs em destaque`);
@@ -152,87 +166,27 @@ export async function GET() {
       data: {
         ...processedData,
         lastUpdated: new Date().toISOString(),
-        source: 'filtered_database',
+        source: 'real_database',
         criteria: {
-          featured: 'Melhores ETFs por Sharpe Ratio (filtrados)',
+          featured: 'Melhores ETFs por Sharpe Ratio (dados reais)',
           topSharpe: 'Maior Sharpe Ratio (0 a 10)',
           topReturn: 'Maior Retorno 12m (0% a 200%)',
           lowVolatility: 'Menor Volatilidade (0% a 30%)',
-          highDividend: 'Maiores Dividendos (filtrados)'
+          highDividend: 'Maiores Dividendos (dados reais)'
         }
       }
     });
 
   } catch (error) {
-    console.error('❌ Erro ao carregar showcase:', error);
-    return getFallbackData();
+    console.error('❌ ERRO CRÍTICO ao carregar showcase:', error);
+    console.error('🚨 PRODUÇÃO DEVE SEMPRE USAR DADOS REAIS - Verificar conexão com Supabase');
+    
+    // NUNCA usar fallback - sempre retornar erro para forçar correção
+    return NextResponse.json({
+      success: false,
+      error: `Falha ao conectar com banco de dados: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      message: 'Produção deve sempre usar dados reais do Supabase. Verificar variáveis de ambiente e conexão.',
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
-}
-
-function getFallbackData() {
-  console.log('🚨 USANDO DADOS DE FALLBACK - Produção não conseguiu acessar banco de dados');
-  const fallbackETFs = [
-    {
-      symbol: 'SGOV',
-      name: 'iShares 0-3 Month Treasury Bond ETF',
-      assetclass: 'Fixed Income',
-      etfcompany: 'iShares',
-      returns_12m: 0.0541,
-      volatility_12m: 0.0024,
-      sharpe_12m: 21.79,
-      dividend_yield: 0.0528
-    },
-    {
-      symbol: 'SHV',
-      name: 'iShares Short Treasury Bond ETF',
-      assetclass: 'Fixed Income',
-      etfcompany: 'iShares',
-      returns_12m: 0.0528,
-      volatility_12m: 0.0028,
-      sharpe_12m: 18.43,
-      dividend_yield: 0.0515
-    },
-    {
-      symbol: 'ARKG',
-      name: 'ARK Genomic Revolution ETF',
-      assetclass: 'Equity',
-      etfcompany: 'ARK',
-      returns_12m: 0.0304,
-      volatility_12m: 0.1703,
-      sharpe_12m: 0.18,
-      dividend_yield: 0.00
-    },
-    {
-      symbol: 'MBCC',
-      name: 'Monarch Blue Chips Core ETF',
-      assetclass: 'Equity',
-      etfcompany: 'Monarch',
-      returns_12m: 0.0108,
-      volatility_12m: 0.0327,
-      sharpe_12m: 0.33,
-      dividend_yield: 0.0200
-    }
-  ];
-
-  return NextResponse.json({
-    success: true,
-    data: {
-      featured: fallbackETFs,
-      categories: {
-        topSharpe: fallbackETFs,
-        topReturn: fallbackETFs,
-        lowVolatility: fallbackETFs,
-        highDividend: fallbackETFs
-      },
-      lastUpdated: new Date().toISOString(),
-      source: 'fallback',
-      criteria: {
-        featured: 'Dados de fallback - ETFs conhecidos',
-        topSharpe: 'Fallback data',
-        topReturn: 'Fallback data',
-        lowVolatility: 'Fallback data',
-        highDividend: 'Fallback data'
-      }
-    }
-  });
 } 

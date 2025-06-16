@@ -154,33 +154,15 @@ export async function GET() {
     return NextResponse.json(response);
 
   } catch (error) {
-    console.error('❌ Erro ao calcular métricas de mercado:', error);
+    console.error('❌ ERRO CRÍTICO ao calcular métricas de mercado:', error);
+    console.error('🚨 PRODUÇÃO DEVE SEMPRE USAR DADOS REAIS - Verificar conexão com Supabase');
     
-    // Fallback com dados básicos
+    // NUNCA usar fallback - sempre retornar erro para forçar correção
     return NextResponse.json({
-      totalETFs: 4409,
-      etfsWithMetrics: 4253,
-      dataCompleteness: 96.5,
-      outliersRemoved: 0,
-      avgReturn: 0.082,
-      avgVolatility: 0.168,
-      avgSharpe: 0.65,
-      marketTrend: 'stable' as const,
-      topPerformer: 'SGOV',
-      topPerformerReturn: 0.152,
-      assetClassDistribution: {
-        'Equity': 2500,
-        'Fixed Income': 800,
-        'International': 600,
-        'Sector': 400,
-        'Other': 109
-      },
-      highVolatilityPercentage: 25.3,
-      topPerformers: [],
-      alerts: [],
-      lastUpdated: new Date().toISOString(),
-      dataSource: 'fallback_data',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 200 });
+      success: false,
+      error: `Falha ao conectar com banco de dados: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      message: 'Produção deve sempre usar dados reais do Supabase. Verificar variáveis de ambiente e conexão.',
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 } 

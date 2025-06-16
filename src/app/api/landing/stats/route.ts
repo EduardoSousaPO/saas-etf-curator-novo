@@ -103,24 +103,15 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('❌ Erro ao carregar estatísticas:', error);
-    console.log('🚨 USANDO DADOS DE FALLBACK - Produção não conseguiu acessar banco de dados');
+    console.error('❌ ERRO CRÍTICO ao carregar estatísticas:', error);
+    console.error('🚨 PRODUÇÃO DEVE SEMPRE USAR DADOS REAIS - Verificar conexão com Supabase');
     
-    // Fallback com dados estáticos
+    // NUNCA usar fallback - sempre retornar erro para forçar correção
     return NextResponse.json({
       success: false,
-      data: {
-        totalETFs: 4409,
-        etfsWithMetrics: 4253,
-        metricsPercentage: 96.5,
-        uniqueCompanies: 135,
-        uniqueAssetClasses: 172,
-        avgReturn: 0.082,
-        avgVolatility: 0.168,
-        outliersRemoved: 0,
-        lastUpdated: new Date().toISOString()
-      },
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+      error: `Falha ao conectar com banco de dados: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      message: 'Produção deve sempre usar dados reais do Supabase. Verificar variáveis de ambiente e conexão.',
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 } 
