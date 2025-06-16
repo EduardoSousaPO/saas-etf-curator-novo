@@ -209,7 +209,7 @@ export const ONBOARDING_QUESTIONS: OnboardingQuestion[] = [
 
 // Função para calcular perfil baseado nas respostas
 export function calculateInvestorProfile(answers: UserAnswers): ProfileAssessment {
-  let totalScore = 0;
+  let _totalScore = 0;
   let experienceLevel = 1;
   let riskScore = 1;
   
@@ -229,18 +229,18 @@ export function calculateInvestorProfile(answers: UserAnswers): ProfileAssessmen
     
     if (question.type === 'single') {
       const option = question.options?.find(opt => opt.value === answer);
-      totalScore += option?.score || 0;
+      _totalScore += option?.score || 0;
     }
     
     if (question.type === 'multiple' && Array.isArray(answer)) {
       answer.forEach(value => {
         const option = question.options?.find(opt => opt.value === value);
-        totalScore += option?.score || 0;
+        _totalScore += option?.score || 0;
       });
     }
     
     if (question.type === 'scale') {
-      totalScore += typeof answer === 'number' ? answer : parseInt(answer as string);
+      _totalScore += typeof answer === 'number' ? answer : parseInt(answer as string);
     }
   });
   
@@ -269,7 +269,7 @@ export function calculateInvestorProfile(answers: UserAnswers): ProfileAssessmen
   };
 }
 
-function generateRecommendations(profile: InvestorProfile, answers: UserAnswers): string[] {
+function generateRecommendations(profile: InvestorProfile, _answers: UserAnswers): string[] {
   const recommendations = [
     `Baseado no seu perfil ${profile.name.toLowerCase()}, recomendamos focar em ${profile.preferredCategories.join(', ')}.`
   ];
@@ -297,7 +297,7 @@ function generateRecommendations(profile: InvestorProfile, answers: UserAnswers)
   return recommendations;
 }
 
-function generateNextSteps(profile: InvestorProfile, answers: UserAnswers): string[] {
+function generateNextSteps(_profile: InvestorProfile, _answers: UserAnswers): string[] {
   return [
     'Explore nosso comparador de ETFs para encontrar opções alinhadas ao seu perfil',
     'Configure seu dashboard personalizado com as métricas mais relevantes',

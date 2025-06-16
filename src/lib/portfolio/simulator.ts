@@ -120,7 +120,7 @@ export class PortfolioSimulator {
     
     // Calcular shares para cada ETF
     const allocationsWithShares = allocations.map(alloc => {
-      const etf = etfs.find(e => e.symbol === alloc.etfSymbol);
+      const _etf = etfs.find(e => e.symbol === alloc.etfSymbol);
       const mockPrice = 100; // Em produção, usar preço real
       return {
         ...alloc,
@@ -300,7 +300,7 @@ export class PortfolioSimulator {
   // Executar simulação de cenário específico
   private static runScenarioSimulation(
     simulation: PortfolioSimulation,
-    etfs: ETF[],
+    _etfs: ETF[],
     scenario: SimulationScenario
   ): BacktestResult {
     

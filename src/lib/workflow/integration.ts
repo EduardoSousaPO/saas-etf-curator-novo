@@ -1,6 +1,6 @@
 import React from 'react';
 import { ETF } from '@/types';
-import { PortfolioAllocation } from '@/lib/portfolio/simulator';
+// import { PortfolioAllocation } from '@/lib/portfolio/simulator';
 
 export interface WorkflowState {
   currentStep: 'recommendations' | 'simulation' | 'comparison' | 'implementation';
