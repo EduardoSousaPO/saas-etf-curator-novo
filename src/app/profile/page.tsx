@@ -146,9 +146,9 @@ export default function ProfilePage() {
     try {
       const profileData = {
         ...formData,
-        monthly_investment: formData.monthly_investment ? Number(formData.monthly_investment) : null,
-        total_patrimony: formData.total_patrimony ? Number(formData.total_patrimony) : null,
-        birth_date: formData.birth_date ? new Date(formData.birth_date) : null
+        monthly_investment: formData.monthly_investment ? Number(formData.monthly_investment) : undefined,
+        total_patrimony: formData.total_patrimony ? Number(formData.total_patrimony) : undefined,
+        birth_date: formData.birth_date || undefined
       };
 
       const result = await updateProfile(profileData);
