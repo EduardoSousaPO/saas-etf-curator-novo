@@ -44,6 +44,10 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Buscando ETFs com métricas (otimizado)...');
     
     // OTIMIZAÇÃO: Buscar ETFs e métricas em uma única query usando SQL raw SEGURO
+    // Garantir que os parâmetros não sejam null/undefined para o Prisma
+    const safeSearchTerm = searchTerm || '';
+    const safeAssetClass = assetclass || '';
+    
     const result = await prisma.$queryRaw<any[]>(
       Prisma.sql`
       SELECT 
@@ -75,8 +79,8 @@ export async function GET(request: NextRequest) {
       FROM etf_list e
       LEFT JOIN calculated_metrics_teste m ON e.symbol = m.symbol
       WHERE 
-        (COALESCE(${searchTerm}, '') = '' OR e.symbol ILIKE CONCAT('%', ${searchTerm}, '%') OR e.name ILIKE CONCAT('%', ${searchTerm}, '%'))
-        AND (COALESCE(${assetclass}, '') = '' OR ${assetclass} = 'all' OR e.assetclass ILIKE CONCAT('%', ${assetclass}, '%'))
+        (${safeSearchTerm} = '' OR e.symbol ILIKE CONCAT('%', ${safeSearchTerm}, '%') OR e.name ILIKE CONCAT('%', ${safeSearchTerm}, '%'))
+        AND (${safeAssetClass} = '' OR ${safeAssetClass} = 'all' OR e.assetclass ILIKE CONCAT('%', ${safeAssetClass}, '%'))
         ${onlyComplete ? Prisma.sql`AND e.name IS NOT NULL AND e.assetclass IS NOT NULL AND e.inceptiondate IS NOT NULL` : Prisma.empty}
       ORDER BY e.symbol ASC
       LIMIT ${actualLimit} OFFSET ${actualOffset}
