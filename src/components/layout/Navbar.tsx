@@ -24,10 +24,18 @@ export default function Navbar() {
 
   const handleSignOut = async () => {
     try {
+      console.log('🚪 Fazendo logout...');
       await signOut();
       setIsUserMenuOpen(false);
+      
+      // Forçar limpeza do localStorage e redirecionamento
+      localStorage.clear();
+      window.location.href = '/';
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
+      // Em caso de erro, forçar limpeza mesmo assim
+      localStorage.clear();
+      window.location.href = '/';
     }
   };
 
@@ -63,8 +71,18 @@ export default function Navbar() {
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             {/* Debug info - remover após teste */}
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-gray-500 flex items-center gap-2">
               L:{loading ? 'Y' : 'N'} U:{user ? 'Y' : 'N'}
+              <button
+                onClick={() => {
+                  localStorage.clear();
+                  window.location.href = '/';
+                }}
+                className="text-red-500 hover:text-red-700 text-xs"
+                title="Limpar sessão (debug)"
+              >
+                🗑️
+              </button>
             </div>
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>

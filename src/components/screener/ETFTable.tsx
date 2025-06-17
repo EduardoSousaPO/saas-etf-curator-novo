@@ -1,6 +1,7 @@
 // src/components/screener/ETFTable.tsx
 "use client";
 
+import React from "react";
 import {
   Table,
   TableBody,

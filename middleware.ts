@@ -17,7 +17,6 @@ export async function middleware(req: NextRequest) {
     '/simulador',
     '/rankings',
     '/screener',
-    '/onboarding',
     '/profile',
     '/settings'
   ]
@@ -37,9 +36,9 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Se usuário está logado e tenta acessar páginas de auth
+  // Se usuário está logado e tenta acessar páginas de auth, redirecionar para página inicial
   if (user && authRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+    return NextResponse.redirect(new URL('/', req.url))
   }
 
   return res

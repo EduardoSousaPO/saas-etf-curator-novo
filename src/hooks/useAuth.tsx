@@ -26,17 +26,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        console.log('🔍 Inicializando autenticação...');
         const { session } = await authService.getCurrentSession();
         
         if (session?.user) {
+          console.log('✅ Sessão encontrada:', session.user.email);
           setUser(session.user);
           setSession(session);
           
           const { profile } = await authService.getProfile(session.user.id);
           setProfile(profile);
+        } else {
+          console.log('❌ Nenhuma sessão encontrada');
+          setUser(null);
+          setSession(null);
+          setProfile(null);
         }
       } catch (error) {
-        console.error('Erro ao inicializar autenticação:', error);
+        console.error('❌ Erro ao inicializar autenticação:', error);
+        // Em caso de erro, limpar tudo
+        setUser(null);
+        setSession(null);
+        setProfile(null);
       } finally {
         setLoading(false);
       }
@@ -46,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = authService.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session);
+        console.log('🔄 Auth state changed:', event, session?.user?.email || 'no user');
         
         setSession(session);
         setUser(session?.user ?? null);
