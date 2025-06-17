@@ -363,7 +363,7 @@ export default function ScreenerPage() {
                             <td colSpan={8} className="py-12 text-center text-gray-600 dark:text-gray-400 font-light">
                               Nenhum ETF encontrado com os filtros aplicados.<br />
                               {filters.onlyComplete && (
-                                <span className="block text-xs text-blue-600 dark:text-blue-300 mt-2">Tente desmarcar "Apenas ETFs com dados completos" para ver todos os ETFs disponíveis.</span>
+                                <span className="block text-xs text-blue-600 dark:text-blue-300 mt-2">Tente desmarcar &quot;Apenas ETFs com dados completos&quot; para ver todos os ETFs disponíveis.</span>
                               )}
                             </td>
                           </tr>

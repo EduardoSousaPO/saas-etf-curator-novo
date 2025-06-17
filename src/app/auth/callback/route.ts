@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   // Método POST não é suportado para callback
   return NextResponse.json(
     { error: 'Method not allowed' },

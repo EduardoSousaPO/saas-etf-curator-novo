@@ -132,7 +132,7 @@ export default function VerifyEmailPage() {
             <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
               <li>Abra seu aplicativo de email</li>
               <li>Procure por um email do ETF Curator</li>
-              <li>Clique no botão "Confirmar Email"</li>
+              <li>Clique no botão &quot;Confirmar Email&quot;</li>
               <li>Você será redirecionado automaticamente</li>
             </ol>
           </div>
