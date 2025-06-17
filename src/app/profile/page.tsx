@@ -10,13 +10,8 @@ import {
   Calendar, 
   MapPin, 
   DollarSign, 
-  TrendingUp, 
-  Shield,
-  Bell,
   Save,
-  AlertCircle,
   CheckCircle,
-  Target,
   BarChart3
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
@@ -55,40 +50,11 @@ const countries = [
   { value: 'Outro', label: 'Outro' }
 ];
 
-const objectives = [
-  { value: 'preservacao_capital', label: 'Preservação de Capital' },
-  { value: 'renda_passiva', label: 'Geração de Renda Passiva' },
-  { value: 'crescimento_moderado', label: 'Crescimento Moderado' },
-  { value: 'crescimento_agressivo', label: 'Crescimento Agressivo' },
-  { value: 'diversificacao_internacional', label: 'Diversificação Internacional' },
-  { value: 'aposentadoria', label: 'Aposentadoria' }
-];
-
-const timeHorizons = [
-  { value: 'curto_prazo', label: 'Curto Prazo (até 2 anos)' },
-  { value: 'medio_prazo', label: 'Médio Prazo (2-5 anos)' },
-  { value: 'longo_prazo', label: 'Longo Prazo (5+ anos)' },
-  { value: 'muito_longo_prazo', label: 'Muito Longo Prazo (10+ anos)' }
-];
-
-const sectors = [
-  { value: 'technology', label: 'Tecnologia' },
-  { value: 'healthcare', label: 'Saúde' },
-  { value: 'financials', label: 'Financeiro' },
-  { value: 'energy', label: 'Energia' },
-  { value: 'real_estate', label: 'Imobiliário' },
-  { value: 'consumer', label: 'Consumo' },
-  { value: 'utilities', label: 'Utilidades' },
-  { value: 'materials', label: 'Materiais' },
-  { value: 'industrials', label: 'Industrial' },
-  { value: 'emerging_markets', label: 'Mercados Emergentes' }
-];
+// Removidas variáveis não utilizadas no momento
 
 export default function ProfilePage() {
   const { user, profile, updateProfile, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('personal');
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState<ProfileFormData>({
     full_name: '',
