@@ -23,7 +23,7 @@ export async function GET() {
     }
 
     // Buscar perfil do usuário no banco
-    let profile = null;
+    let profile: any = null;
     try {
       profile = await prisma.user_profiles.findUnique({
         where: { id: user.id }
