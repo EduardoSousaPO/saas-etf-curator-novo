@@ -72,7 +72,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@prisma/nextjs-monorepo-workaround-plugin": "^6.9.0",
     "@types/dotenv": "^6.1.1",
     "@types/xlsx": "^0.0.35",
     "husky": "^9.1.7",
