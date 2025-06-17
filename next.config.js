@@ -1,3 +1,5 @@
+const { PrismaPlugin } = require('@prisma/nextjs-monorepo-workaround-plugin');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -17,8 +19,8 @@ const nextConfig = {
   
   // Configurações experimentais para melhor performance
   experimental: {
-    // Otimizações para SSR e bundle
-    optimizePackageImports: ['@prisma/client'],
+    // Removido @prisma/client que causa conflitos na Vercel
+    optimizePackageImports: [],
   },
 
   // Headers para CORS se necessário
@@ -37,6 +39,11 @@ const nextConfig = {
 
   // Configuração webpack para resolver path aliases e outros problemas
   webpack: (config, { dev, isServer }) => {
+    // Adicionar plugin do Prisma para resolver problemas na Vercel
+    if (isServer) {
+      config.plugins = [...config.plugins, new PrismaPlugin()];
+    }
+    
     // Configurar path aliases explicitamente
     config.resolve.alias = {
       ...config.resolve.alias,
