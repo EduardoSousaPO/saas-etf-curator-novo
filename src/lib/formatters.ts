@@ -9,12 +9,13 @@
 
 /**
  * Formata um valor percentual
- * @param value - Valor decimal (0.10 = 10%)
+ * @param value - Valor já em formato percentual (36.00 = 36%)
  * @returns String formatada com símbolo de porcentagem
  */
 export const formatPercentage = (value: number | null | undefined, decimals: number = 2): string => {
   if (value === null || value === undefined) return 'N/A';
-  return `${(Number(value) * 100).toFixed(decimals)}%`;
+  // CORREÇÃO: Os dados já vêm em formato percentual do banco (36.00 = 36%)
+  return `${Number(value).toFixed(decimals)}%`;
 };
 
 /**

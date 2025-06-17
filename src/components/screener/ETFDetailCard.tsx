@@ -59,10 +59,11 @@ const formatLargeNumber = (value: number | null | undefined): string => {
   return value.toLocaleString('pt-BR');
 };
 
-// Função para formatar percentuais
+// Função para formatar percentuais - CORRIGIDO: dados já vêm em formato percentual
 const formatPercentage = (value: number | null | undefined, decimals: number = 2): string => {
   if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-  return `${(Number(value) * 100).toFixed(decimals)}%`;
+  // CORREÇÃO: Os dados já vêm em formato percentual do banco (36.00 = 36%)
+  return `${Number(value).toFixed(decimals)}%`;
 };
 
 // Função para formatar números simples

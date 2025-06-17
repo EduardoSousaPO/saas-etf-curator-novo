@@ -115,7 +115,8 @@ export default function ScenarioAnalysis({
 
   const formatPercentage = (value: number): string => {
     if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-    return `${(Number(value) * 100).toFixed(2)}%`;
+    // CORREÇÃO: Os dados já vêm em formato percentual do banco
+    return `${Number(value).toFixed(2)}%`;
   };
 
   const formatCurrency = (value: number): string => {

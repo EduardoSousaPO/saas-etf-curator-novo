@@ -26,8 +26,9 @@ interface ShowcaseData {
 
 function ETFCard({ etf }: { etf: ETFData }) {
   const formatPercentage = (value: number) => {
-    return `${(value * 100).toFixed(2)}%`;
-  };
+  // CORREÇÃO: Os dados já vêm em formato percentual do banco
+  return `${Number(value).toFixed(2)}%`;
+};
 
   const formatSharpe = (value: number) => {
     return value.toFixed(2);

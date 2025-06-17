@@ -6,42 +6,66 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    // Verificar usuário e sessão
+    const {
+      data: { user, session },
+      error
+    } = await supabase.auth.getUser()
 
-  // Lista de rotas que requerem autenticação
-  const protectedRoutes = [
-    '/dashboard',
-    '/comparador', 
-    '/simulador',
-    '/rankings',
-    '/screener',
-    '/profile',
-    '/settings'
-  ]
+    // Se há erro na autenticação, limpar cookies e tratar como não autenticado
+    if (error) {
+      console.log('🔥 Middleware: Erro na autenticação:', error.message)
+      // Limpar cookies de autenticação
+      res.cookies.delete('sb-etf-curator-auth-token')
+      res.cookies.delete('supabase-auth-token')
+    }
 
-  // Lista de rotas de autenticação que usuários logados não deveriam acessar
-  const authRoutes = [
-    '/auth/login',
-    '/auth/register'
-  ]
+    // Lista de rotas que requerem autenticação
+    const protectedRoutes = [
+      '/dashboard',
+      '/comparador', 
+      '/simulador',
+      '/rankings',
+      '/screener',
+      '/profile',
+      '/settings'
+    ]
 
-  const { pathname } = req.nextUrl
+    // Lista de rotas de autenticação que usuários logados não deveriam acessar
+    const authRoutes = [
+      '/auth/login',
+      '/auth/register'
+    ]
 
-  // Se usuário não está logado e tenta acessar rota protegida
-  if (!user && protectedRoutes.some(route => pathname.startsWith(route))) {
-    const redirectUrl = new URL('/auth/login', req.url)
-    redirectUrl.searchParams.set('redirectTo', pathname)
-    return NextResponse.redirect(redirectUrl)
+    const { pathname } = req.nextUrl
+
+    // Verificar se a sessão não expirou (se existe)
+    const isSessionValid = user && session && (!session.expires_at || session.expires_at > Math.floor(Date.now() / 1000))
+
+    // Se usuário não está logado OU sessão inválida/expirada e tenta acessar rota protegida
+    if (!isSessionValid && protectedRoutes.some(route => pathname.startsWith(route))) {
+      console.log('🔒 Middleware: Redirecionando para login - usuário não autenticado ou sessão inválida')
+      const redirectUrl = new URL('/auth/login', req.url)
+      redirectUrl.searchParams.set('redirectTo', pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Se usuário está logado com sessão válida e tenta acessar páginas de auth, redirecionar para dashboard
+    if (isSessionValid && authRoutes.some(route => pathname.startsWith(route))) {
+      console.log('🏠 Middleware: Usuário logado tentando acessar auth, redirecionando para dashboard')
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+
+    return res
+  } catch (error) {
+    console.error('❌ Middleware: Erro inesperado:', error)
+    // Em caso de erro, permitir acesso mas limpar cookies
+    const res = NextResponse.next()
+    res.cookies.delete('sb-etf-curator-auth-token')
+    res.cookies.delete('supabase-auth-token')
+    return res
   }
-
-  // Se usuário está logado e tenta acessar páginas de auth, redirecionar para página inicial
-  if (user && authRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.redirect(new URL('/', req.url))
-  }
-
-  return res
 }
 
 export const config = {

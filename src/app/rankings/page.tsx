@@ -93,10 +93,9 @@ export default function RankingsPage() {
     const numValue = Number(value);
     if (isNaN(numValue)) return 'N/A';
     
-    // Converter para percentual se o valor estiver em decimal
-    const percentValue = numValue < 1 && numValue > -1 ? numValue * 100 : numValue;
-    
-    return `${percentValue.toFixed(2)}%`;
+    // CORREÇÃO: Os dados já vêm em formato percentual do banco
+    // Remover a multiplicação por 100 que estava causando valores incorretos
+    return `${numValue.toFixed(2)}%`;
   };
 
   // Função para obter cor baseada no valor

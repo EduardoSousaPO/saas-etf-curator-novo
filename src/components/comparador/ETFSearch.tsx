@@ -99,7 +99,8 @@ export default function ETFSearch({
 
   const formatPercentage = (value: number | null | undefined): string => {
     if (value === null || value === undefined || isNaN(value)) return 'N/A';
-    return `${value.toFixed(2)}%`;
+    // CORREÇÃO: Os dados já vêm em formato percentual do banco
+    return `${Number(value).toFixed(2)}%`;
   };
 
   return (

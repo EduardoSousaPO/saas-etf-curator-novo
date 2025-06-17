@@ -24,32 +24,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+    
     const initializeAuth = async () => {
       try {
         console.log('🔍 Inicializando autenticação...');
-        const { session } = await authService.getCurrentSession();
         
-        if (session?.user) {
-          console.log('✅ Sessão encontrada:', session.user.email);
+        // Verificar se há uma sessão válida
+        const { session, error } = await authService.getCurrentSession();
+        
+        if (error) {
+          console.log('❌ Erro na sessão:', error.message);
+          // Limpar dados inválidos
+          await authService.signOut();
+          if (mounted) {
+            setUser(null);
+            setSession(null);
+            setProfile(null);
+          }
+          return;
+        }
+        
+        if (session?.user && mounted) {
+          console.log('✅ Sessão válida encontrada:', session.user.email);
+          
+          // Verificar se a sessão não expirou
+          const now = Math.floor(Date.now() / 1000);
+          if (session.expires_at && session.expires_at < now) {
+            console.log('⏰ Sessão expirada, fazendo logout...');
+            await authService.signOut();
+            setUser(null);
+            setSession(null);
+            setProfile(null);
+            return;
+          }
+          
           setUser(session.user);
           setSession(session);
           
-          const { profile } = await authService.getProfile(session.user.id);
-          setProfile(profile);
+          // Buscar perfil apenas se necessário
+          try {
+            const { profile } = await authService.getProfile(session.user.id);
+            if (mounted) {
+              setProfile(profile);
+            }
+          } catch (profileError) {
+            console.warn('⚠️ Erro ao buscar perfil:', profileError);
+            // Não falhar a autenticação por causa do perfil
+          }
         } else {
-          console.log('❌ Nenhuma sessão encontrada');
-          setUser(null);
-          setSession(null);
-          setProfile(null);
+          console.log('❌ Nenhuma sessão válida encontrada');
+          if (mounted) {
+            setUser(null);
+            setSession(null);
+            setProfile(null);
+          }
         }
       } catch (error) {
         console.error('❌ Erro ao inicializar autenticação:', error);
         // Em caso de erro, limpar tudo
-        setUser(null);
-        setSession(null);
-        setProfile(null);
+        if (mounted) {
+          setUser(null);
+          setSession(null);
+          setProfile(null);
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -59,21 +101,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (event, session) => {
         console.log('🔄 Auth state changed:', event, session?.user?.email || 'no user');
         
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          const { profile } = await authService.getProfile(session.user.id);
-          setProfile(profile);
-        } else {
-          setProfile(null);
+        if (!mounted) return;
+        
+        // Tratar diferentes eventos
+        switch (event) {
+          case 'SIGNED_IN':
+            console.log('✅ Usuário logado');
+            setSession(session);
+            setUser(session?.user ?? null);
+            if (session?.user) {
+              try {
+                const { profile } = await authService.getProfile(session.user.id);
+                setProfile(profile);
+              } catch (error) {
+                console.warn('⚠️ Erro ao buscar perfil no login:', error);
+              }
+            }
+            break;
+            
+          case 'SIGNED_OUT':
+            console.log('🚪 Usuário deslogado');
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            // Limpar localStorage se houver dados persistentes
+            localStorage.removeItem('supabase.auth.token');
+            break;
+            
+          case 'TOKEN_REFRESHED':
+            console.log('🔄 Token renovado');
+            setSession(session);
+            break;
+            
+          default:
+            setSession(session);
+            setUser(session?.user ?? null);
+            if (!session?.user) {
+              setProfile(null);
+            }
         }
 
         setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, userData?: Partial<UserProfile>) => {
@@ -105,13 +180,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     setLoading(true);
     try {
+      console.log('🚪 Iniciando logout...');
+      
+      // Limpar estado local primeiro
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      
+      // Limpar localStorage
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('sb-etf-curator-auth-token');
+      
+      // Fazer logout no Supabase
       const result = await authService.signOut();
-      if (!result.error) {
-        setUser(null);
-        setSession(null);
-        setProfile(null);
-      }
+      
+      console.log('✅ Logout completo');
       return result;
+    } catch (error) {
+      console.error('❌ Erro no logout:', error);
+      // Mesmo com erro, garantir que o estado local seja limpo
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      return { error };
     } finally {
       setLoading(false);
     }

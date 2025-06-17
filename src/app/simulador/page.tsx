@@ -249,7 +249,8 @@ export default function SimuladorPage() {
 
   // Formatação de valores
   const formatPercentage = (value: number): string => {
-    return `${value.toFixed(2)}%`;
+    // CORREÇÃO: Os dados já vêm em formato percentual do banco
+    return `${Number(value).toFixed(2)}%`;
   };
 
   const formatCurrency = (value: number): string => {

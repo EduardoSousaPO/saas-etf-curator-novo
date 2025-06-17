@@ -39,6 +39,23 @@ export default function Navbar() {
     }
   };
 
+  const handleClearSession = () => {
+    console.log('🗑️ Limpando sessão forçadamente...');
+    // Limpar todos os dados de autenticação
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Limpar cookies manualmente
+    document.cookie.split(";").forEach((c) => {
+      const eqPos = c.indexOf("=");
+      const name = eqPos > -1 ? c.substr(0, eqPos) : c;
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+    });
+    
+    // Recarregar a página
+    window.location.href = '/';
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-black/90 backdrop-blur-md border-b border-gray-200/20 dark:border-gray-800/20">
       <div className="max-w-7xl mx-auto px-6">
@@ -70,18 +87,17 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Debug info - remover após teste */}
+            {/* Auth Debug & Emergency Clear */}
             <div className="text-xs text-gray-500 flex items-center gap-2">
-              L:{loading ? 'Y' : 'N'} U:{user ? 'Y' : 'N'}
+              <span title={`Loading: ${loading}, User: ${!!user}, Email: ${user?.email || 'N/A'}`}>
+                L:{loading ? 'Y' : 'N'} U:{user ? 'Y' : 'N'}
+              </span>
               <button
-                onClick={() => {
-                  localStorage.clear();
-                  window.location.href = '/';
-                }}
-                className="text-red-500 hover:text-red-700 text-xs"
-                title="Limpar sessão (debug)"
+                onClick={handleClearSession}
+                className="text-red-500 hover:text-red-700 text-xs px-1 py-0.5 rounded border border-red-300 hover:border-red-500"
+                title="Limpar sessão forçadamente (resolver problemas de login)"
               >
-                🗑️
+                🗑️ CLEAR
               </button>
             </div>
             {loading ? (

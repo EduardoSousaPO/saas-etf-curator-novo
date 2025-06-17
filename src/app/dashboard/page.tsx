@@ -186,9 +186,10 @@ export default function DashboardPage() {
   };
 
   const formatPercentage = (value: number | null | undefined): string => {
-    if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-    return `${(Number(value) * 100).toFixed(2)}%`;
-  };
+  if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
+  // CORREÇÃO: Os dados já vêm em formato percentual do banco
+  return `${Number(value).toFixed(2)}%`;
+};
 
   // Obter insights baseados no perfil
   const getProfileInsights = (): Insight[] => {
