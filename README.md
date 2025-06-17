@@ -283,3 +283,5 @@ Sistema de curadoria e análise de ETFs com IA.
 - Corrigido: Propriedade 'difficulty' removida do ContextualGlossary
 - Corrigido: Versão da API do Stripe atualizada para 2025-05-28.basil
 
+#   U p d a t e   t i m e s t a m p :   0 6 / 1 7 / 2 0 2 5   1 6 : 4 3 : 5 6  
+ 
