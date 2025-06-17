@@ -59,11 +59,11 @@ const formatLargeNumber = (value: number | null | undefined): string => {
   return value.toLocaleString('pt-BR');
 };
 
-// Função para formatar percentuais - CORRIGIDO: dados já vêm em formato percentual
+// Função para formatar percentuais - CORRIGIDO: dados vêm em formato decimal
 const formatPercentage = (value: number | null | undefined, decimals: number = 2): string => {
   if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-  // CORREÇÃO: Os dados já vêm em formato percentual do banco (36.00 = 36%)
-  return `${Number(value).toFixed(decimals)}%`;
+  // CORREÇÃO: Os dados vêm em formato decimal do banco (0.359224 = 35.92%)
+  return `${(Number(value) * 100).toFixed(decimals)}%`;
 };
 
 // Função para formatar números simples
@@ -144,7 +144,7 @@ export default function ETFDetailCard({ details, onClose }: ETFDetailCardProps) 
             </div>
             <div>
               <p className="text-sm text-gray-500">Taxa Admin.</p>
-              <p className="font-medium">{formatPercentage(details.expense_ratio)}</p>
+              <p className="font-medium">{details.expense_ratio ? `${Number(details.expense_ratio).toFixed(2)}%` : 'N/A'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Volume Médio</p>

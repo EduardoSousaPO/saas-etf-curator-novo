@@ -19,8 +19,8 @@ interface PortfolioMetricsProps {
 export default function PortfolioMetrics({ metrics, investmentAmount }: PortfolioMetricsProps) {
   const formatPercentage = (value: number): string => {
   if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-  // CORREÇÃO: Os dados já vêm em formato percentual do banco
-  return `${Number(value).toFixed(2)}%`;
+  // CORREÇÃO: Os dados vêm em formato decimal do banco (0.359224 = 35.92%)
+  return `${(Number(value) * 100).toFixed(2)}%`;
 };
 
   const formatCurrency = (value: number): string => {
@@ -124,7 +124,7 @@ export default function PortfolioMetrics({ metrics, investmentAmount }: Portfoli
             <span className="text-sm text-gray-600">Taxa Média</span>
           </div>
           <div className="text-xl font-bold text-purple-600">
-            {formatPercentage(metrics.expenseRatio)}
+            {metrics.expenseRatio ? `${Number(metrics.expenseRatio).toFixed(2)}%` : 'N/A'}
           </div>
           <div className="text-xs text-gray-500">Custo anual</div>
         </div>

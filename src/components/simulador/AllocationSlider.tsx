@@ -41,8 +41,8 @@ export default function AllocationSlider({ allocation, onWeightChange, onRemove 
 
   const formatPercentage = (value: number | null | undefined): string => {
   if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-  // CORREÇÃO: Os dados já vêm em formato percentual do banco
-  return `${Number(value).toFixed(2)}%`;
+  // CORREÇÃO: Os dados vêm em formato decimal do banco (0.359224 = 35.92%)
+  return `${(Number(value) * 100).toFixed(2)}%`;
 };
 
   const getReturnColor = (value: number | null | undefined): string => {
@@ -115,7 +115,7 @@ export default function AllocationSlider({ allocation, onWeightChange, onRemove 
           <DollarSign className="w-3 h-3 mr-1 text-purple-600" />
           <span className="text-gray-500 mr-1">Taxa:</span>
           <span className="text-gray-700">
-            {formatPercentage(allocation.expense_ratio)}
+            {allocation.expense_ratio ? `${Number(allocation.expense_ratio).toFixed(2)}%` : 'N/A'}
           </span>
         </div>
       </div>

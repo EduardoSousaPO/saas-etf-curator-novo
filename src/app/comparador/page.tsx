@@ -61,8 +61,8 @@ export default function ComparadorPage() {
   // Formatação de valores
   const formatPercentage = (value: number | null | undefined): string => {
   if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-  // CORREÇÃO: Os dados já vêm em formato percentual do banco
-  return `${Number(value).toFixed(2)}%`;
+  // CORREÇÃO: Os dados vêm em formato decimal do banco (0.359224 = 35.92%)
+  return `${(Number(value) * 100).toFixed(2)}%`;
 };
 
   const formatCurrency = (value: number | null | undefined): string => {
@@ -232,7 +232,7 @@ export default function ComparadorPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Taxa de Administração</td>
                       {selectedETFs.map((etf) => (
                         <td key={etf.symbol} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatPercentage(etf.expense_ratio)}
+                          {etf.expense_ratio ? `${Number(etf.expense_ratio).toFixed(2)}%` : 'N/A'}
                         </td>
                       ))}
                     </tr>
