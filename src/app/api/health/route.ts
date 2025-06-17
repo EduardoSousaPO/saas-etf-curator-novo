@@ -3,7 +3,15 @@ import { prisma } from '@/lib/prisma';
 import { supabase } from '@/lib/supabaseClient';
 
 export async function GET() {
-  const checks = {
+  const checks: {
+    timestamp: string;
+    environment: string | undefined;
+    checks: any;
+    overall?: {
+      status: string;
+      message: string;
+    };
+  } = {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     checks: {} as any
