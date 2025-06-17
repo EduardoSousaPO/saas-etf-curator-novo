@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar, MapPin, ArrowRight, AlertCircle, DollarSign } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar, MapPin, ArrowRight, AlertCircle, DollarSign, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-hot-toast';
 
@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const { signUp, loading } = useAuth();
   
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     // Dados de autenticação
     email: '',
@@ -37,6 +38,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [registrationComplete, setRegistrationComplete] = useState(false);
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
@@ -49,8 +51,10 @@ export default function RegisterPage() {
 
     if (!formData.password) {
       newErrors.password = 'Senha é obrigatória';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Senha deve ter pelo menos 8 caracteres';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = 'Senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número';
     }
 
     if (!formData.confirmPassword) {
@@ -61,6 +65,8 @@ export default function RegisterPage() {
 
     if (!formData.full_name) {
       newErrors.full_name = 'Nome completo é obrigatório';
+    } else if (formData.full_name.length < 3) {
+      newErrors.full_name = 'Nome deve ter pelo menos 3 caracteres';
     }
 
     setErrors(newErrors);
@@ -72,6 +78,13 @@ export default function RegisterPage() {
 
     if (!formData.birth_date) {
       newErrors.birth_date = 'Data de nascimento é obrigatória';
+    } else {
+      const birthDate = new Date(formData.birth_date);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      if (age < 18) {
+        newErrors.birth_date = 'Você deve ter pelo menos 18 anos';
+      }
     }
 
     if (!formData.monthly_investment) {
@@ -112,6 +125,9 @@ export default function RegisterPage() {
 
     if (!validateStep2()) return;
 
+    setIsSubmitting(true);
+    setErrors({});
+
     try {
       const userData = {
         full_name: formData.full_name,
@@ -128,17 +144,36 @@ export default function RegisterPage() {
       const { user, error } = await signUp(formData.email, formData.password, userData);
       
       if (error) {
-        toast.error('Erro no registro: ' + (error.message || 'Erro desconhecido'));
+        console.error('Erro detalhado no registro:', error);
+        
+        // Tratamento específico de erros
+        if (error.message?.includes('email') && error.message?.includes('already')) {
+          setErrors({ email: 'Este email já está cadastrado' });
+          setStep(1);
+        } else if (error.message?.includes('password')) {
+          setErrors({ password: 'Senha não atende aos critérios de segurança' });
+          setStep(1);
+        } else if (error.message?.includes('weak_password')) {
+          setErrors({ password: 'Senha muito fraca. Use pelo menos 8 caracteres com letras e números' });
+          setStep(1);
+        } else if (error.message?.includes('invalid_email')) {
+          setErrors({ email: 'Formato de email inválido' });
+          setStep(1);
+        } else {
+          toast.error(`Erro no registro: ${error.message || 'Erro desconhecido'}`);
+        }
         return;
       }
 
       if (user) {
-        toast.success('Conta criada com sucesso! Verifique seu email.');
-        router.push('/auth/verify-email');
+        setRegistrationComplete(true);
+        toast.success('Conta criada com sucesso! Verifique seu email para confirmar.');
       }
     } catch (error) {
-      console.error('Erro no registro:', error);
-      toast.error('Erro inesperado no registro');
+      console.error('Erro inesperado no registro:', error);
+      toast.error('Erro inesperado no registro. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -159,6 +194,64 @@ export default function RegisterPage() {
     { value: 'intermediario', label: 'Intermediário - Alguma experiência' },
     { value: 'avancado', label: 'Avançado - Experiência significativa' }
   ];
+
+  // Tela de confirmação de registro
+  if (registrationComplete) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center px-4 py-8">
+        <div className="max-w-lg w-full">
+          <div className="text-center mb-8">
+            <Link href="/" className="inline-block mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">
+                ETF<span className="font-light">Curator</span>
+              </h1>
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-6">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              Conta criada com sucesso!
+            </h2>
+            
+            <p className="text-gray-600 mb-6">
+              Enviamos um email de confirmação para <strong>{formData.email}</strong>. 
+              Clique no link para ativar sua conta e começar a usar o ETF Curator.
+            </p>
+
+            <div className="space-y-4">
+              <button
+                onClick={() => router.push('/auth/login')}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Ir para Login
+              </button>
+              
+              <Link
+                href="/"
+                className="block w-full text-gray-600 py-3 px-4 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors font-medium"
+              >
+                Voltar ao Início
+              </Link>
+            </div>
+
+            <p className="text-sm text-gray-500 mt-6">
+              Não recebeu o email? Verifique sua caixa de spam ou{' '}
+              <button 
+                onClick={() => setRegistrationComplete(false)}
+                className="text-blue-600 hover:underline"
+              >
+                tente novamente
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center px-4 py-8">
@@ -219,6 +312,7 @@ export default function RegisterPage() {
                         errors.full_name ? 'border-red-300' : 'border-gray-300'
                       }`}
                       placeholder="Seu nome completo"
+                      disabled={isSubmitting}
                     />
                   </div>
                   {errors.full_name && (
@@ -247,6 +341,7 @@ export default function RegisterPage() {
                         errors.email ? 'border-red-300' : 'border-gray-300'
                       }`}
                       placeholder="seu@email.com"
+                      disabled={isSubmitting}
                     />
                   </div>
                   {errors.email && (
@@ -273,6 +368,7 @@ export default function RegisterPage() {
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       placeholder="(11) 99999-9999"
+                      disabled={isSubmitting}
                     />
                   </div>
                 </div>
@@ -295,11 +391,13 @@ export default function RegisterPage() {
                         errors.password ? 'border-red-300' : 'border-gray-300'
                       }`}
                       placeholder="••••••••"
+                      disabled={isSubmitting}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      disabled={isSubmitting}
                     >
                       {showPassword ? (
                         <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
@@ -314,6 +412,9 @@ export default function RegisterPage() {
                       {errors.password}
                     </div>
                   )}
+                  <p className="mt-1 text-xs text-gray-500">
+                    Mínimo 8 caracteres com pelo menos 1 maiúscula, 1 minúscula e 1 número
+                  </p>
                 </div>
 
                 {/* Confirmar Senha */}
@@ -334,11 +435,13 @@ export default function RegisterPage() {
                         errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                       }`}
                       placeholder="••••••••"
+                      disabled={isSubmitting}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      disabled={isSubmitting}
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
@@ -374,6 +477,7 @@ export default function RegisterPage() {
                       className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                         errors.birth_date ? 'border-red-300' : 'border-gray-300'
                       }`}
+                      disabled={isSubmitting}
                     />
                   </div>
                   {errors.birth_date && (
@@ -398,6 +502,7 @@ export default function RegisterPage() {
                       value={formData.country}
                       onChange={(e) => handleInputChange('country', e.target.value)}
                       className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      disabled={isSubmitting}
                     >
                       {countries.map(country => (
                         <option key={country} value={country}>{country}</option>
@@ -409,13 +514,14 @@ export default function RegisterPage() {
                 {/* Experiência de Investimento */}
                 <div>
                   <label htmlFor="investment_experience" className="block text-sm font-medium text-gray-700 mb-2">
-                    Experiência com Investimentos *
+                    Experiência em Investimentos
                   </label>
                   <select
                     id="investment_experience"
                     value={formData.investment_experience}
                     onChange={(e) => handleInputChange('investment_experience', e.target.value)}
-                    className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="block w-full py-3 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    disabled={isSubmitting}
                   >
                     {experienceLevels.map(level => (
                       <option key={level.value} value={level.value}>{level.label}</option>
@@ -426,9 +532,10 @@ export default function RegisterPage() {
                 {/* Tolerância ao Risco */}
                 <div>
                   <label htmlFor="risk_tolerance" className="block text-sm font-medium text-gray-700 mb-2">
-                    Tolerância ao Risco: {formData.risk_tolerance}/10
+                    Tolerância ao Risco (1-10)
                   </label>
-                  <div className="px-3">
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm text-gray-500">Conservador</span>
                     <input
                       id="risk_tolerance"
                       type="range"
@@ -436,20 +543,20 @@ export default function RegisterPage() {
                       max="10"
                       value={formData.risk_tolerance}
                       onChange={(e) => handleInputChange('risk_tolerance', parseInt(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      className="flex-1"
+                      disabled={isSubmitting}
                     />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>Conservador</span>
-                      <span>Moderado</span>
-                      <span>Agressivo</span>
-                    </div>
+                    <span className="text-sm text-gray-500">Agressivo</span>
+                    <span className="text-sm font-medium text-gray-700 w-8 text-center">
+                      {formData.risk_tolerance}
+                    </span>
                   </div>
                 </div>
 
                 {/* Investimento Mensal */}
                 <div>
                   <label htmlFor="monthly_investment" className="block text-sm font-medium text-gray-700 mb-2">
-                    Valor Mensal para Investimento (R$) *
+                    Investimento Mensal (R$) *
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -466,6 +573,7 @@ export default function RegisterPage() {
                         errors.monthly_investment ? 'border-red-300' : 'border-gray-300'
                       }`}
                       placeholder="1000.00"
+                      disabled={isSubmitting}
                     />
                   </div>
                   {errors.monthly_investment && (
@@ -496,6 +604,7 @@ export default function RegisterPage() {
                         errors.total_patrimony ? 'border-red-300' : 'border-gray-300'
                       }`}
                       placeholder="50000.00"
+                      disabled={isSubmitting}
                     />
                   </div>
                   {errors.total_patrimony && (
@@ -514,21 +623,23 @@ export default function RegisterPage() {
                     checked={formData.email_notifications}
                     onChange={(e) => handleInputChange('email_notifications', e.target.checked)}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    disabled={isSubmitting}
                   />
                   <label htmlFor="email_notifications" className="ml-2 block text-sm text-gray-700">
-                    Receber notificações por email sobre mercado e portfolio
+                    Receber notificações por email sobre atualizações e recomendações
                   </label>
                 </div>
               </>
             )}
 
-            {/* Botões */}
-            <div className="flex gap-4">
+            {/* Botões de Navegação */}
+            <div className="flex space-x-4 pt-6">
               {step === 2 && (
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                  className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                  disabled={isSubmitting}
                 >
                   Voltar
                 </button>
@@ -536,11 +647,11 @@ export default function RegisterPage() {
               
               <button
                 type="submit"
-                disabled={loading}
-                className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                disabled={isSubmitting || loading}
+                className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                {isSubmitting || loading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 ) : (
                   <>
                     {step === 1 ? 'Próximo' : 'Criar Conta'}
@@ -551,32 +662,15 @@ export default function RegisterPage() {
             </div>
           </form>
 
-          {/* Divisor */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <p className="text-center text-sm text-gray-600">
+          {/* Link para Login */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
               Já tem uma conta?{' '}
-              <Link 
-                href="/auth/login" 
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-              >
+              <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">
                 Fazer login
               </Link>
             </p>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-xs text-gray-500">
-            Ao criar uma conta, você concorda com nossos{' '}
-            <Link href="/terms" className="text-blue-600 hover:text-blue-700">
-              Termos de Uso
-            </Link>{' '}
-            e{' '}
-            <Link href="/privacy" className="text-blue-600 hover:text-blue-700">
-              Política de Privacidade
-            </Link>
-          </p>
         </div>
       </div>
     </div>

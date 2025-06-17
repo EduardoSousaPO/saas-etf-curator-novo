@@ -1,22 +1,41 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-hot-toast';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, loading } = useAuth();
+  const searchParams = useSearchParams();
+  const { signIn, loading, user } = useAuth();
   
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+  
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Verificar se há erro nos parâmetros da URL
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) {
+      toast.error(decodeURIComponent(error));
+    }
+  }, [searchParams]);
+
+  // Redirecionar se já estiver logado
+  useEffect(() => {
+    if (user && user.email_confirmed_at) {
+      const redirectTo = searchParams.get('redirect') || '/dashboard';
+      router.push(redirectTo);
+    }
+  }, [user, router, searchParams]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -29,8 +48,6 @@ export default function LoginPage() {
 
     if (!formData.password) {
       newErrors.password = 'Senha é obrigatória';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
     }
 
     setErrors(newErrors);
@@ -42,21 +59,51 @@ export default function LoginPage() {
     
     if (!validateForm()) return;
 
+    setIsSubmitting(true);
+    setErrors({});
+
     try {
       const { user, error } = await signIn(formData.email, formData.password);
       
       if (error) {
-        toast.error('Erro no login: ' + (error.message || 'Credenciais inválidas'));
+        console.error('Erro no login:', error);
+        
+        // Tratamento específico de erros
+        if (error.message.includes('Email ou senha incorretos')) {
+          setErrors({ 
+            email: 'Email ou senha incorretos',
+            password: 'Email ou senha incorretos'
+          });
+        } else if (error.message.includes('confirme seu email')) {
+          toast.error(error.message);
+          // Redirecionar para página de verificação com o email
+          router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
+        } else if (error.message.includes('Muitas tentativas')) {
+          toast.error(error.message);
+        } else {
+          toast.error(error.message || 'Erro no login');
+        }
         return;
       }
 
       if (user) {
+        // Verificar se o email foi confirmado
+        if (!user.email_confirmed_at) {
+          toast.error('Por favor, confirme seu email antes de continuar');
+          router.push(`/auth/verify-email?email=${encodeURIComponent(user.email || '')}`);
+          return;
+        }
+
+        // Login bem-sucedido
+        const redirectTo = searchParams.get('redirect') || '/dashboard';
         toast.success('Login realizado com sucesso!');
-        router.push('/dashboard');
+        router.push(redirectTo);
       }
     } catch (error) {
-      console.error('Erro no login:', error);
-      toast.error('Erro inesperado no login');
+      console.error('Erro inesperado no login:', error);
+      toast.error('Erro inesperado. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -68,7 +115,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center px-4 py-8">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
@@ -81,7 +128,7 @@ export default function LoginPage() {
             Bem-vindo de volta
           </h2>
           <p className="text-gray-600">
-            Faça login para acessar sua conta
+            Entre na sua conta para acessar suas análises e simulações
           </p>
         </div>
 
@@ -106,6 +153,8 @@ export default function LoginPage() {
                     errors.email ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="seu@email.com"
+                  disabled={isSubmitting}
+                  autoComplete="email"
                 />
               </div>
               {errors.email && (
@@ -134,11 +183,14 @@ export default function LoginPage() {
                     errors.password ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="••••••••"
+                  disabled={isSubmitting}
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  disabled={isSubmitting}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
@@ -156,23 +208,37 @@ export default function LoginPage() {
             </div>
 
             {/* Esqueci a senha */}
-            <div className="text-right">
-              <Link 
-                href="/auth/forgot-password" 
-                className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
-              >
-                Esqueci minha senha
-              </Link>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                  Lembrar de mim
+                </label>
+              </div>
+
+              <div className="text-sm">
+                <Link
+                  href="/auth/reset-password"
+                  className="text-blue-600 hover:text-blue-500 font-medium"
+                >
+                  Esqueceu a senha?
+                </Link>
+              </div>
             </div>
 
             {/* Botão de Login */}
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              disabled={isSubmitting || loading}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              {isSubmitting || loading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
               ) : (
                 <>
                   Entrar
@@ -182,30 +248,31 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Divisor */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <p className="text-center text-sm text-gray-600">
+          {/* Link para Registro */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
               Não tem uma conta?{' '}
-              <Link 
-                href="/auth/register" 
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-              >
-                Criar conta
+              <Link href="/auth/register" className="text-blue-600 hover:underline font-medium">
+                Criar conta gratuita
               </Link>
             </p>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-8 text-center">
+        {/* Links Úteis */}
+        <div className="mt-6 text-center space-y-2">
           <p className="text-xs text-gray-500">
-            Ao fazer login, você concorda com nossos{' '}
-            <Link href="/terms" className="text-blue-600 hover:text-blue-700">
-              Termos de Uso
-            </Link>{' '}
-            e{' '}
-            <Link href="/privacy" className="text-blue-600 hover:text-blue-700">
-              Política de Privacidade
+            Problemas para acessar?{' '}
+            <a 
+              href="mailto:suporte@etfcurator.com" 
+              className="text-blue-600 hover:underline"
+            >
+              Entre em contato
+            </a>
+          </p>
+          <p className="text-xs text-gray-500">
+            <Link href="/" className="text-blue-600 hover:underline">
+              Voltar ao início
             </Link>
           </p>
         </div>

@@ -1,18 +1,21 @@
 "use client";
 
-import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { authService, UserProfile, AuthState } from '@/lib/auth';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { User, AuthError, Session } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabaseClient';
+import { toast } from 'react-hot-toast';
 
-interface AuthContextType extends AuthState {
-  signUp: (email: string, password: string, userData?: Partial<UserProfile>) => Promise<any>;
-  signIn: (email: string, password: string) => Promise<any>;
-  signOut: () => Promise<any>;
-  updateProfile: (profileData: Partial<UserProfile>) => Promise<any>;
-  upsertProfile: (profileData: Partial<UserProfile>) => Promise<any>;
-  migrateLocalProfile: () => Promise<any>;
-  resetPassword: (email: string) => Promise<any>;
-  updatePassword: (newPassword: string) => Promise<any>;
+interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  loading: boolean;
+  signUp: (email: string, password: string, userData?: any) => Promise<{ user: User | null; error: AuthError | null }>;
+  signIn: (email: string, password: string) => Promise<{ user: User | null; error: AuthError | null }>;
+  signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  updatePassword: (password: string) => Promise<{ error: AuthError | null }>;
+  resendConfirmation: (email: string) => Promise<{ error: AuthError | null }>;
+  isEmailConfirmed: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,74 +23,33 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEmailConfirmed, setIsEmailConfirmed] = useState(false);
+
+  const supabase = createClient();
 
   useEffect(() => {
     let mounted = true;
-    
-    const initializeAuth = async () => {
+
+    // Função para verificar sessão atual
+    const getInitialSession = async () => {
       try {
-        console.log('🔍 Inicializando autenticação...');
-        
-        // Verificar se há uma sessão válida
-        const { session, error } = await authService.getCurrentSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.log('❌ Erro na sessão:', error);
-          // Limpar dados inválidos
-          await authService.signOut();
-          if (mounted) {
-            setUser(null);
-            setSession(null);
-            setProfile(null);
-          }
-          return;
-        }
-        
-        if (session?.user && mounted) {
-          console.log('✅ Sessão válida encontrada:', session.user.email);
-          
-          // Verificar se a sessão não expirou
-          const now = Math.floor(Date.now() / 1000);
-          if (session.expires_at && session.expires_at < now) {
-            console.log('⏰ Sessão expirada, fazendo logout...');
-            await authService.signOut();
-            setUser(null);
-            setSession(null);
-            setProfile(null);
-            return;
-          }
-          
-          setUser(session.user);
-          setSession(session);
-          
-          // Buscar perfil apenas se necessário
-          try {
-            const { profile } = await authService.getProfile(session.user.id);
-            if (mounted) {
-              setProfile(profile);
-            }
-          } catch (profileError) {
-            console.warn('⚠️ Erro ao buscar perfil:', profileError);
-            // Não falhar a autenticação por causa do perfil
-          }
-        } else {
-          console.log('❌ Nenhuma sessão válida encontrada');
-          if (mounted) {
-            setUser(null);
-            setSession(null);
-            setProfile(null);
-          }
-        }
-      } catch (error) {
-        console.error('❌ Erro ao inicializar autenticação:', error);
-        // Em caso de erro, limpar tudo
-        if (mounted) {
+          console.error('Erro ao obter sessão:', error);
+          // Limpar dados locais se houver erro na sessão
+          localStorage.removeItem('supabase.auth.token');
           setUser(null);
           setSession(null);
-          setProfile(null);
+          setIsEmailConfirmed(false);
+        } else if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setIsEmailConfirmed(session?.user?.email_confirmed_at ? true : false);
         }
+      } catch (error) {
+        console.error('Erro inesperado ao verificar sessão:', error);
       } finally {
         if (mounted) {
           setLoading(false);
@@ -95,53 +57,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    initializeAuth();
+    getInitialSession();
 
-    const { data: { subscription } } = authService.onAuthStateChange(
+    // Listener para mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 Auth state changed:', event, session?.user?.email || 'no user');
-        
         if (!mounted) return;
-        
-        // Tratar diferentes eventos
-        switch (event) {
-          case 'SIGNED_IN':
-            console.log('✅ Usuário logado');
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session?.user) {
-              try {
-                const { profile } = await authService.getProfile(session.user.id);
-                setProfile(profile);
-              } catch (error) {
-                console.warn('⚠️ Erro ao buscar perfil no login:', error);
-              }
-            }
-            break;
-            
-          case 'SIGNED_OUT':
-            console.log('🚪 Usuário deslogado');
-            setSession(null);
-            setUser(null);
-            setProfile(null);
-            // Limpar localStorage se houver dados persistentes
-            localStorage.removeItem('supabase.auth.token');
-            break;
-            
-          case 'TOKEN_REFRESHED':
-            console.log('🔄 Token renovado');
-            setSession(session);
-            break;
-            
-          default:
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (!session?.user) {
-              setProfile(null);
-            }
+
+        console.log('Auth state changed:', event, session?.user?.email);
+
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsEmailConfirmed(session?.user?.email_confirmed_at ? true : false);
+
+        // Atualizar loading apenas após processar o evento
+        if (event === 'INITIAL_SESSION') {
+          setLoading(false);
         }
 
-        setLoading(false);
+        // Tratamento específico para diferentes eventos
+        switch (event) {
+          case 'SIGNED_IN':
+            if (session?.user?.email_confirmed_at) {
+              toast.success('Login realizado com sucesso!');
+            } else {
+              toast.error('Por favor, confirme seu email antes de continuar.');
+            }
+            break;
+          case 'SIGNED_OUT':
+            // Limpeza completa
+            localStorage.removeItem('supabase.auth.token');
+            setUser(null);
+            setSession(null);
+            setIsEmailConfirmed(false);
+            break;
+          case 'TOKEN_REFRESHED':
+            console.log('Token refreshed successfully');
+            break;
+          case 'USER_UPDATED':
+            console.log('User data updated');
+            break;
+        }
       }
     );
 
@@ -151,129 +107,195 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, userData?: Partial<UserProfile>) => {
-    setLoading(true);
+  const signUp = async (email: string, password: string, userData?: any) => {
     try {
-      const result = await authService.signUp(email, password, userData);
-      
-      if (result.user && !result.error) {
-        if (userData) {
-          await authService.upsertProfile(result.user.id, userData);
+      setLoading(true);
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData,
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
+      });
+
+      if (error) {
+        console.error('Erro no signup:', error);
+        return { user: null, error };
       }
-      
-      return result;
+
+      // Se o usuário foi criado mas precisa confirmar email
+      if (data.user && !data.user.email_confirmed_at) {
+        toast.success('Conta criada! Verifique seu email para ativar.');
+      }
+
+      return { user: data.user, error: null };
+    } catch (error) {
+      console.error('Erro inesperado no signup:', error);
+      return { 
+        user: null, 
+        error: { message: 'Erro inesperado durante o registro' } as AuthError 
+      };
     } finally {
       setLoading(false);
     }
   };
 
   const signIn = async (email: string, password: string) => {
-    setLoading(true);
     try {
-      return await authService.signIn(email, password);
+      setLoading(true);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        console.error('Erro no signin:', error);
+        
+        // Tratamento específico de erros de login
+        let errorMessage = error.message;
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Email ou senha incorretos';
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Por favor, confirme seu email antes de fazer login';
+        } else if (error.message.includes('Too many requests')) {
+          errorMessage = 'Muitas tentativas de login. Tente novamente em alguns minutos';
+        }
+
+        return { 
+          user: null, 
+          error: { ...error, message: errorMessage } 
+        };
+      }
+
+      // Verificar se o email foi confirmado
+      if (data.user && !data.user.email_confirmed_at) {
+        await supabase.auth.signOut();
+        return {
+          user: null,
+          error: { message: 'Por favor, confirme seu email antes de fazer login' } as AuthError
+        };
+      }
+
+      return { user: data.user, error: null };
+    } catch (error) {
+      console.error('Erro inesperado no signin:', error);
+      return { 
+        user: null, 
+        error: { message: 'Erro inesperado durante o login' } as AuthError 
+      };
     } finally {
       setLoading(false);
     }
   };
 
   const signOut = async () => {
-    setLoading(true);
     try {
-      console.log('🚪 Iniciando logout...');
+      setLoading(true);
       
-      // Limpar estado local primeiro
-      setUser(null);
-      setSession(null);
-      setProfile(null);
-      
-      // Limpar localStorage
+      // Limpeza local antes do logout
       localStorage.removeItem('supabase.auth.token');
-      localStorage.removeItem('sb-etf-curator-auth-token');
       
-      // Fazer logout no Supabase
-      const result = await authService.signOut();
+      const { error } = await supabase.auth.signOut();
       
-      console.log('✅ Logout completo');
-      return result;
+      if (error) {
+        console.error('Erro no logout:', error);
+        toast.error('Erro ao fazer logout');
+      } else {
+        // Limpeza do estado
+        setUser(null);
+        setSession(null);
+        setIsEmailConfirmed(false);
+        toast.success('Logout realizado com sucesso');
+      }
     } catch (error) {
-      console.error('❌ Erro no logout:', error);
-      // Mesmo com erro, garantir que o estado local seja limpo
-      setUser(null);
-      setSession(null);
-      setProfile(null);
-      return { error };
+      console.error('Erro inesperado no logout:', error);
+      toast.error('Erro inesperado ao fazer logout');
     } finally {
       setLoading(false);
     }
   };
 
-  const updateProfile = async (profileData: Partial<UserProfile>) => {
-    if (!user) return { error: 'Usuário não autenticado' };
-
-    try {
-      const result = await authService.upsertProfile(user.id, profileData);
-      if (result.profile && !result.error) {
-        setProfile(result.profile);
-      }
-      return result;
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      return { profile: null, error };
-    }
-  };
-
-  const upsertProfile = async (profileData: Partial<UserProfile>) => {
-    if (!user) return { error: 'Usuário não autenticado' };
-
-    try {
-      const result = await authService.upsertProfile(user.id, profileData);
-      if (result.profile && !result.error) {
-        setProfile(result.profile);
-      }
-      return result;
-    } catch (error) {
-      console.error('Erro ao salvar perfil:', error);
-      return { profile: null, error };
-    }
-  };
-
-  const migrateLocalProfile = async () => {
-    if (!user) return { success: false, error: 'Usuário não autenticado' };
-
-    try {
-      const result = await authService.migrateLocalProfile(user.id);
-      if (result.success && result.profile) {
-        setProfile(result.profile);
-      }
-      return result;
-    } catch (error) {
-      console.error('Erro na migração:', error);
-      return { success: false, error };
-    }
-  };
-
   const resetPassword = async (email: string) => {
-    return await authService.resetPassword(email);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
+      });
+
+      if (error) {
+        console.error('Erro ao solicitar reset de senha:', error);
+        return { error };
+      }
+
+      toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.');
+      return { error: null };
+    } catch (error) {
+      console.error('Erro inesperado no reset de senha:', error);
+      return { 
+        error: { message: 'Erro inesperado ao solicitar recuperação de senha' } as AuthError 
+      };
+    }
   };
 
-  const updatePassword = async (newPassword: string) => {
-    return await authService.updatePassword(newPassword);
+  const updatePassword = async (password: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password
+      });
+
+      if (error) {
+        console.error('Erro ao atualizar senha:', error);
+        return { error };
+      }
+
+      toast.success('Senha atualizada com sucesso!');
+      return { error: null };
+    } catch (error) {
+      console.error('Erro inesperado ao atualizar senha:', error);
+      return { 
+        error: { message: 'Erro inesperado ao atualizar senha' } as AuthError 
+      };
+    }
   };
 
-  const value: AuthContextType = {
+  const resendConfirmation = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        console.error('Erro ao reenviar confirmação:', error);
+        return { error };
+      }
+
+      toast.success('Email de confirmação reenviado!');
+      return { error: null };
+    } catch (error) {
+      console.error('Erro inesperado ao reenviar confirmação:', error);
+      return { 
+        error: { message: 'Erro inesperado ao reenviar confirmação' } as AuthError 
+      };
+    }
+  };
+
+  const value = {
     user,
     session,
-    profile,
     loading,
     signUp,
     signIn,
     signOut,
-    updateProfile,
-    upsertProfile,
-    migrateLocalProfile,
     resetPassword,
-    updatePassword
+    updatePassword,
+    resendConfirmation,
+    isEmailConfirmed
   };
 
   return (
@@ -286,7 +308,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 } 
