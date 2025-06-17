@@ -163,9 +163,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { user: null, error };
       }
 
-      // Se o usuário foi criado mas precisa confirmar email
-      if (data.user && !data.user.email_confirmed_at) {
-        toast.success('Conta criada! Verifique seu email para ativar.');
+      // Se o usuário foi criado, tentar criar perfil como fallback
+      if (data.user) {
+        try {
+          // Tentar criar perfil (fallback caso o trigger do banco falhe)
+          const profileData = {
+            id: data.user.id,
+            email: data.user.email || email,
+            full_name: userData?.full_name || '',
+            phone: userData?.phone || null,
+            birth_date: userData?.birth_date || null,
+            country: userData?.country || null,
+            investment_experience: userData?.investment_experience || 'iniciante',
+            risk_tolerance: userData?.risk_tolerance || 5,
+            monthly_investment: userData?.monthly_investment || null,
+            total_patrimony: userData?.total_patrimony || null,
+            email_notifications: userData?.email_notifications ?? true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+
+          // Tentar inserir perfil (se já existir, será ignorado)
+          const { error: profileError } = await supabase
+            .from('user_profiles')
+            .upsert(profileData, { 
+              onConflict: 'id',
+              ignoreDuplicates: true 
+            });
+
+          if (profileError) {
+            console.warn('Aviso: Não foi possível criar perfil inicial:', profileError);
+            // Não falhar o registro por causa disso, pois o trigger pode ter funcionado
+          }
+        } catch (profileErr) {
+          console.warn('Aviso: Erro ao criar perfil inicial:', profileErr);
+          // Não falhar o registro por causa disso
+        }
+
+        // Se o usuário foi criado mas precisa confirmar email
+        if (!data.user.email_confirmed_at) {
+          toast.success('Conta criada! Verifique seu email para ativar.');
+        }
       }
 
       return { user: data.user, error: null };
