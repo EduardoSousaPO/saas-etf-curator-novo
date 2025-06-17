@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
+import { formatPercentage, formatCurrency } from "@/lib/formatters";
 
 // Definição correta de ETF
 interface ETF {
@@ -73,17 +74,13 @@ export default function ETFTable({
       
       // Formatação específica para ativos totais
       if (key === "total_assets") {
-        if (value > 1_000_000_000) {
-          return (value / 1_000_000_000).toFixed(2) + "B";
-        } else if (value > 1_000_000) {
-          return (value / 1_000_000).toFixed(2) + "M";
-        }
-        return value.toFixed(2);
+        return formatCurrency(value);
       }
       
-      // Formatação específica para valores percentuais - CORRIGIDO: não multiplicar por 100 novamente
-      if (key === "returns_12m" || key === "dividend_yield") {
-        return value.toFixed(2) + "%";
+      // Formatação específica para valores percentuais - CORRIGIDO: usar formatPercentage
+      if (key === "returns_12m" || key === "returns_24m" || key === "returns_36m" || 
+          key === "dividend_yield" || key === "volatility_12m" || key === "max_drawdown") {
+        return formatPercentage(value);
       }
       
       return value.toFixed(2);
