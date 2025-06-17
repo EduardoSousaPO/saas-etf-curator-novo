@@ -62,6 +62,10 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Debug info - remover após teste */}
+            <div className="text-xs text-gray-500">
+              L:{loading ? 'Y' : 'N'} U:{user ? 'Y' : 'N'}
+            </div>
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
             ) : user ? (
@@ -159,6 +163,10 @@ export default function Navbar() {
               
               {/* Mobile Auth */}
               <div className="pt-4 border-t border-gray-200/20 dark:border-gray-800/20">
+                {/* Debug info mobile - remover após teste */}
+                <div className="text-xs text-gray-500 mb-2">
+                  L:{loading ? 'Y' : 'N'} U:{user ? 'Y' : 'N'}
+                </div>
                 {user ? (
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
