@@ -76,7 +76,7 @@ const investorProfiles: InvestorProfile[] = [
 ];
 
 export default function OnboardingPage() {
-  const { user, profile: authProfile, upsertProfile } = useAuth();
+  const { user, profile: authProfile, updateProfile: updateUserProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [userProfile, setUserProfile] = useState<Partial<UserProfile>>({});
   const [recommendedProfile, setRecommendedProfile] = useState<InvestorProfile | null>(null);
@@ -107,13 +107,13 @@ export default function OnboardingPage() {
 
   // Salvar dados (priorizar banco se autenticado, senão localStorage)
   const saveProfile = async (profileData: Partial<UserProfile>) => {
-    if (user && upsertProfile) {
+    if (user && updateUserProfile) {
       try {
         setSaving(true);
-        await upsertProfile({
-          name: profileData.name || '',
+        await updateUserProfile({
+          full_name: profileData.name || '',
           age: profileData.age || 0,
-          experience: profileData.experience || 'iniciante',
+          investment_experience: profileData.experience || 'iniciante',
           risk_tolerance: profileData.riskTolerance || 5,
           objective: profileData.investmentGoal || 'crescimento',
           time_horizon: profileData.timeHorizon || 'medio',

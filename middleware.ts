@@ -160,7 +160,7 @@ export async function middleware(request: NextRequest) {
 
   // Rate limiting para rotas de API sensíveis (implementação básica)
   if (pathname.startsWith('/api/auth/') || pathname.startsWith('/api/user/')) {
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
     // Aqui você poderia implementar rate limiting mais sofisticado
     // usando Redis ou outra solução de cache
   }

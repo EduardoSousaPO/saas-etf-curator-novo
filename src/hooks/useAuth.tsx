@@ -4,17 +4,20 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, AuthError, Session } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabaseClient';
 import { toast } from 'react-hot-toast';
+import { UserProfile } from '@/lib/auth';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
+  profile: UserProfile | null;
   loading: boolean;
-  signUp: (email: string, password: string, userData?: any) => Promise<{ user: User | null; error: AuthError | null }>;
-  signIn: (email: string, password: string) => Promise<{ user: User | null; error: AuthError | null }>;
+  signUp: (email: string, password: string, userData?: any) => Promise<{ user: User | null; error: any }>;
+  signIn: (email: string, password: string) => Promise<{ user: User | null; error: any }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
-  updatePassword: (password: string) => Promise<{ error: AuthError | null }>;
-  resendConfirmation: (email: string) => Promise<{ error: AuthError | null }>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
+  updatePassword: (password: string) => Promise<{ error: any }>;
+  resendConfirmation: (email: string) => Promise<{ error: any }>;
+  updateProfile: (profileData: Partial<UserProfile>) => Promise<{ profile: UserProfile | null; error: any }>;
   isEmailConfirmed: boolean;
 }
 
@@ -23,10 +26,31 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEmailConfirmed, setIsEmailConfirmed] = useState(false);
 
   const supabase = createClient();
+
+  // Função para carregar o perfil do usuário
+  const loadProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao carregar perfil:', error);
+        return;
+      }
+
+      setProfile(data);
+    } catch (error) {
+      console.error('Erro inesperado ao carregar perfil:', error);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -42,11 +66,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem('supabase.auth.token');
           setUser(null);
           setSession(null);
+          setProfile(null);
           setIsEmailConfirmed(false);
         } else if (mounted) {
           setSession(session);
           setUser(session?.user ?? null);
           setIsEmailConfirmed(session?.user?.email_confirmed_at ? true : false);
+          
+          // Carregar perfil se usuário estiver autenticado
+          if (session?.user) {
+            await loadProfile(session.user.id);
+          }
         }
       } catch (error) {
         console.error('Erro inesperado ao verificar sessão:', error);
@@ -70,6 +100,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         setIsEmailConfirmed(session?.user?.email_confirmed_at ? true : false);
 
+        // Carregar perfil se usuário estiver autenticado
+        if (session?.user) {
+          await loadProfile(session.user.id);
+        } else {
+          setProfile(null);
+        }
+
         // Atualizar loading apenas após processar o evento
         if (event === 'INITIAL_SESSION') {
           setLoading(false);
@@ -89,6 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem('supabase.auth.token');
             setUser(null);
             setSession(null);
+            setProfile(null);
             setIsEmailConfirmed(false);
             break;
           case 'TOKEN_REFRESHED':
@@ -207,6 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Limpeza do estado
         setUser(null);
         setSession(null);
+        setProfile(null);
         setIsEmailConfirmed(false);
         toast.success('Logout realizado com sucesso');
       }
@@ -285,9 +324,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = async (profileData: Partial<UserProfile>) => {
+    try {
+      if (!user) {
+        return { 
+          profile: null, 
+          error: { message: 'Usuário não autenticado' } as AuthError 
+        };
+      }
+
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user.id,
+          ...profileData,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erro ao atualizar perfil:', error);
+        return { profile: null, error };
+      }
+
+      // Atualizar estado local
+      setProfile(data);
+      return { profile: data, error: null };
+    } catch (error) {
+      console.error('Erro inesperado ao atualizar perfil:', error);
+      return { 
+        profile: null, 
+        error: { message: 'Erro inesperado ao atualizar perfil' } as AuthError 
+      };
+    }
+  };
+
   const value = {
     user,
     session,
+    profile,
     loading,
     signUp,
     signIn,
@@ -295,6 +371,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetPassword,
     updatePassword,
     resendConfirmation,
+    updateProfile,
     isEmailConfirmed
   };
 
