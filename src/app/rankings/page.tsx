@@ -93,8 +93,8 @@ export default function RankingsPage() {
     const numValue = Number(value);
     if (isNaN(numValue)) return 'N/A';
     
-    // CORREÇÃO: Os dados vêm em formato decimal do banco (0.359224 = 35.92%)
-    return `${(numValue * 100).toFixed(2)}%`;
+    // Os dados já vêm em formato percentual do banco
+    return `${numValue.toFixed(2)}%`;
   };
 
   // Função para obter cor baseada no valor

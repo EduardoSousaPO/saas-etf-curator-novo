@@ -40,10 +40,10 @@ export default function AllocationSlider({ allocation, onWeightChange, onRemove 
   };
 
   const formatPercentage = (value: number | null | undefined): string => {
-  if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-  // CORREÇÃO: Os dados vêm em formato decimal do banco (0.359224 = 35.92%)
-  return `${(Number(value) * 100).toFixed(2)}%`;
-};
+    if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
+    // Os dados já vêm em formato percentual do banco
+    return `${Number(value).toFixed(2)}%`;
+  };
 
   const getReturnColor = (value: number | null | undefined): string => {
     if (value === null || value === undefined || isNaN(value)) return 'text-gray-500';

@@ -332,7 +332,7 @@ export default function ScreenerPage() {
                                 <td className="py-4 px-6 text-gray-600 dark:text-gray-400 font-light break-words whitespace-normal">{etf.name || "N/A"}</td>
                                 <td className="py-4 px-6 text-gray-600 dark:text-gray-400 font-light break-words whitespace-normal">{etf.assetclass || "N/A"}</td>
                               <td className="py-4 px-6 text-right text-gray-600 dark:text-gray-400 font-light">
-                                {etf.returns_12m !== null && etf.returns_12m !== undefined ? `${(Number(etf.returns_12m) * 100).toFixed(2)}%` : "N/A"}
+                                {etf.returns_12m !== null && etf.returns_12m !== undefined ? `${Number(etf.returns_12m).toFixed(2)}%` : "N/A"}
                               </td>
                               <td className="py-4 px-6 text-right text-gray-600 dark:text-gray-400 font-light">
                                 {etf.sharpe_12m !== null && etf.sharpe_12m !== undefined ? Number(etf.sharpe_12m).toFixed(2) : "N/A"}
