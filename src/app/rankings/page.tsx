@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { ETF } from "../../types";
 import Navbar from "@/components/layout/Navbar";
+import RequireAuth from "@/components/auth/RequireAuth";
 
 import { toast } from "react-hot-toast";
 import { TrendingUp, Award, DollarSign, BarChart3, Volume2, Shield, Activity } from "lucide-react";
@@ -189,22 +190,25 @@ export default function RankingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
+      <RequireAuth>
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <p className="mt-2 text-gray-600">Carregando rankings...</p>
           </div>
         </div>
-      </div>
+        </div>
+      </RequireAuth>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
+      <RequireAuth>
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
             <div className="text-red-600 mb-4">
@@ -220,26 +224,30 @@ export default function RankingsPage() {
             </button>
           </div>
         </div>
-      </div>
+        </div>
+      </RequireAuth>
     );
   }
 
   if (!rankings) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
+      <RequireAuth>
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
             <p className="text-gray-600">Nenhum dado de ranking disponível</p>
           </div>
         </div>
-      </div>
+        </div>
+      </RequireAuth>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
+    <RequireAuth>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
@@ -325,7 +333,8 @@ export default function RankingsPage() {
             <p>• Volume representa a média diária de negociação dos últimos 30 dias</p>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </RequireAuth>
   );
 }

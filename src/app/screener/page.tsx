@@ -4,6 +4,7 @@
 import React from "react";
 import { useEffect, useState, ReactNode } from "react";
 import Navbar from "@/components/layout/Navbar";
+import RequireAuth from "@/components/auth/RequireAuth";
 import Filters from "@/components/screener/Filters";
 import ETFDetailCard from "@/components/screener/ETFDetailCard";
 import { Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
@@ -222,8 +223,9 @@ export default function ScreenerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
-      <Navbar />
+    <RequireAuth>
+      <div className="min-h-screen bg-white dark:bg-black">
+        <Navbar />
       
       {/* Hero Section */}
       <section className="pt-24 pb-12 bg-white dark:bg-black">
@@ -399,8 +401,9 @@ export default function ScreenerPage() {
             </div>
           </div>
         </div>
-      </section>
-    </div>
+        </section>
+      </div>
+    </RequireAuth>
   );
 }
 
