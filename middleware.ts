@@ -7,11 +7,16 @@ export async function middleware(req: NextRequest) {
   const supabase = createMiddlewareClient({ req, res })
 
   try {
-    // Verificar usuário e sessão
+    // Verificar usuário e sessão separadamente
     const {
-      data: { user, session },
+      data: { user },
       error
     } = await supabase.auth.getUser()
+
+    // Obter sessão separadamente
+    const {
+      data: { session }
+    } = await supabase.auth.getSession()
 
     // Se há erro na autenticação, limpar cookies e tratar como não autenticado
     if (error) {

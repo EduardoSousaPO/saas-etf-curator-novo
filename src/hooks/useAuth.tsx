@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { session, error } = await authService.getCurrentSession();
         
         if (error) {
-          console.log('❌ Erro na sessão:', error.message);
+          console.log('❌ Erro na sessão:', error);
           // Limpar dados inválidos
           await authService.signOut();
           if (mounted) {
