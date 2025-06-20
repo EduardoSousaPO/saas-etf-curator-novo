@@ -29,8 +29,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEmailConfirmed, setIsEmailConfirmed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const supabase = createClient();
+
+  // Proteção contra hidratação
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Função para carregar o perfil do usuário
   const loadProfile = async (userId: string) => {
@@ -53,7 +59,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    let mounted = true;
+    if (!mounted) return;
+
+    let isMounted = true;
 
     // Função para verificar sessão atual
     const getInitialSession = async () => {
@@ -62,13 +70,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (error) {
           console.error('Erro ao obter sessão:', error);
-          // Limpar dados locais se houver erro na sessão
-          localStorage.removeItem('supabase.auth.token');
-          setUser(null);
-          setSession(null);
-          setProfile(null);
-          setIsEmailConfirmed(false);
-        } else if (mounted) {
+          if (isMounted) {
+            setUser(null);
+            setSession(null);
+            setProfile(null);
+            setIsEmailConfirmed(false);
+            setLoading(false);
+          }
+        } else if (isMounted) {
           setSession(session);
           setUser(session?.user ?? null);
           setIsEmailConfirmed(session?.user?.email_confirmed_at ? true : false);
@@ -77,11 +86,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (session?.user) {
             await loadProfile(session.user.id);
           }
+          setLoading(false);
         }
       } catch (error) {
         console.error('Erro inesperado ao verificar sessão:', error);
-      } finally {
-        if (mounted) {
+        if (isMounted) {
           setLoading(false);
         }
       }
@@ -92,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (!mounted) return;
+        if (!isMounted) return;
 
         console.log('Auth state changed:', event, session?.user?.email);
 
@@ -107,11 +116,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(null);
         }
 
-        // Atualizar loading apenas após processar o evento
-        if (event === 'INITIAL_SESSION') {
-          setLoading(false);
-        }
-
         // Tratamento específico para diferentes eventos
         switch (event) {
           case 'SIGNED_IN':
@@ -123,7 +127,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             break;
           case 'SIGNED_OUT':
             // Limpeza completa
-            localStorage.removeItem('supabase.auth.token');
             setUser(null);
             setSession(null);
             setProfile(null);
@@ -140,10 +143,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     return () => {
-      mounted = false;
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [mounted]);
 
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
@@ -154,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: {
           data: userData,
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined
         }
       });
 
@@ -200,19 +203,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Não falhar o registro por causa disso
         }
 
-        // Se o usuário foi criado mas precisa confirmar email
         if (!data.user.email_confirmed_at) {
           toast.success('Conta criada! Verifique seu email para ativar.');
         }
       }
 
       return { user: data.user, error: null };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro inesperado no signup:', error);
-      return { 
-        user: null, 
-        error: { message: 'Erro inesperado durante o registro' } as AuthError 
-      };
+      return { user: null, error };
     } finally {
       setLoading(false);
     }
@@ -230,38 +229,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         console.error('Erro no signin:', error);
         
-        // Tratamento específico de erros de login
-        let errorMessage = error.message;
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = 'Email ou senha incorretos';
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'Por favor, confirme seu email antes de fazer login';
-        } else if (error.message.includes('Too many requests')) {
-          errorMessage = 'Muitas tentativas de login. Tente novamente em alguns minutos';
+        if (error.message?.includes('Invalid login credentials')) {
+          return { user: null, error: { message: 'Email ou senha incorretos' } };
+        } else if (error.message?.includes('Email not confirmed')) {
+          return { user: null, error: { message: 'Email not confirmed' } };
         }
-
-        return { 
-          user: null, 
-          error: { ...error, message: errorMessage } 
-        };
+        
+        return { user: null, error };
       }
 
       // Verificar se o email foi confirmado
       if (data.user && !data.user.email_confirmed_at) {
+        // Fazer logout imediatamente se email não foi confirmado
         await supabase.auth.signOut();
-        return {
-          user: null,
-          error: { message: 'Por favor, confirme seu email antes de fazer login' } as AuthError
+        return { 
+          user: null, 
+          error: { message: 'Email not confirmed' }
         };
       }
 
       return { user: data.user, error: null };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro inesperado no signin:', error);
-      return { 
-        user: null, 
-        error: { message: 'Erro inesperado durante o login' } as AuthError 
-      };
+      return { user: null, error };
     } finally {
       setLoading(false);
     }
@@ -271,16 +261,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       
-      // Limpeza local antes do logout
-      localStorage.removeItem('supabase.auth.token');
-      
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('Erro no logout:', error);
+        console.error('Erro no signout:', error);
         toast.error('Erro ao fazer logout');
       } else {
-        // Limpeza do estado
+        // Limpeza manual dos estados
         setUser(null);
         setSession(null);
         setProfile(null);
@@ -288,7 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         toast.success('Logout realizado com sucesso');
       }
     } catch (error) {
-      console.error('Erro inesperado no logout:', error);
+      console.error('Erro inesperado no signout:', error);
       toast.error('Erro inesperado ao fazer logout');
     } finally {
       setLoading(false);
@@ -298,42 +285,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`
+        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback?type=recovery` : undefined
       });
 
       if (error) {
-        console.error('Erro ao solicitar reset de senha:', error);
+        console.error('Erro no reset de senha:', error);
         return { error };
       }
 
-      toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.');
       return { error: null };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro inesperado no reset de senha:', error);
-      return { 
-        error: { message: 'Erro inesperado ao solicitar recuperação de senha' } as AuthError 
-      };
+      return { error };
     }
   };
 
   const updatePassword = async (password: string) => {
     try {
-      const { error } = await supabase.auth.updateUser({
-        password
-      });
+      const { error } = await supabase.auth.updateUser({ password });
 
       if (error) {
         console.error('Erro ao atualizar senha:', error);
         return { error };
       }
 
-      toast.success('Senha atualizada com sucesso!');
       return { error: null };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro inesperado ao atualizar senha:', error);
-      return { 
-        error: { message: 'Erro inesperado ao atualizar senha' } as AuthError 
-      };
+      return { error };
     }
   };
 
@@ -343,7 +322,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         type: 'signup',
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined
         }
       });
 
@@ -352,23 +331,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error };
       }
 
-      toast.success('Email de confirmação reenviado!');
       return { error: null };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro inesperado ao reenviar confirmação:', error);
-      return { 
-        error: { message: 'Erro inesperado ao reenviar confirmação' } as AuthError 
-      };
+      return { error };
     }
   };
 
   const updateProfile = async (profileData: Partial<UserProfile>) => {
     try {
       if (!user) {
-        return { 
-          profile: null, 
-          error: { message: 'Usuário não autenticado' } as AuthError 
-        };
+        return { profile: null, error: { message: 'Usuário não autenticado' } };
       }
 
       const { data, error } = await supabase
@@ -386,35 +359,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { profile: null, error };
       }
 
-      // Atualizar estado local
       setProfile(data);
       return { profile: data, error: null };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro inesperado ao atualizar perfil:', error);
-      return { 
-        profile: null, 
-        error: { message: 'Erro inesperado ao atualizar perfil' } as AuthError 
-      };
+      return { profile: null, error };
     }
   };
 
-  const value = {
-    user,
-    session,
-    profile,
-    loading,
-    signUp,
-    signIn,
-    signOut,
-    resetPassword,
-    updatePassword,
-    resendConfirmation,
-    updateProfile,
-    isEmailConfirmed
-  };
+  // Renderizar loading até estar montado
+  if (!mounted) {
+    return (
+      <AuthContext.Provider value={{
+        user: null,
+        session: null,
+        profile: null,
+        loading: true,
+        signUp,
+        signIn,
+        signOut,
+        resetPassword,
+        updatePassword,
+        resendConfirmation,
+        updateProfile,
+        isEmailConfirmed: false
+      }}>
+        <div suppressHydrationWarning>{children}</div>
+      </AuthContext.Provider>
+    );
+  }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{
+      user,
+      session,
+      profile,
+      loading,
+      signUp,
+      signIn,
+      signOut,
+      resetPassword,
+      updatePassword,
+      resendConfirmation,
+      updateProfile,
+      isEmailConfirmed
+    }}>
       {children}
     </AuthContext.Provider>
   );

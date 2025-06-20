@@ -1,60 +1,60 @@
-import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabaseClient';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
-
-    const {
-      data: { user },
-      error: authError
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    console.log('🔍 Testando status de autenticação...');
+    
+    const supabase = createClient();
+    
+    // Teste básico de conectividade
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('❌ Erro ao obter sessão:', sessionError);
       return NextResponse.json({
-        authenticated: false,
-        user: null,
-        profile: null,
-        message: 'Usuário não autenticado'
-      });
+        success: false,
+        error: 'Erro ao verificar sessão',
+        details: sessionError.message,
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Configurada' : 'Não configurada',
+        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Configurada' : 'Não configurada'
+      }, { status: 500 });
     }
 
-    // Buscar perfil do usuário no banco
-    let profile: any = null;
-    try {
-      profile = await prisma.user_profiles.findUnique({
-        where: { id: user.id }
-      });
-    } catch (profileError) {
-      console.warn('Erro ao buscar perfil:', profileError);
-    }
+    // Teste de conectividade com o banco
+    const { data: testData, error: testError } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .limit(1);
 
-    return NextResponse.json({
-      authenticated: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        created_at: user.created_at,
-        updated_at: user.updated_at
+    const response = {
+      success: true,
+      message: 'Autenticação funcionando',
+      session: session ? {
+        user_id: session.user.id,
+        email: session.user.email,
+        email_confirmed: !!session.user.email_confirmed_at
+      } : null,
+      database: {
+        connected: !testError,
+        error: testError?.message || null
       },
-      profile,
-      hasProfile: !!profile,
-      profileComplete: !!(profile?.full_name && profile?.investment_experience),
-      message: 'Usuário autenticado com sucesso'
-    });
+      config: {
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Configurada' : 'Não configurada',
+        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Configurada' : 'Não configurada'
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('✅ Status de autenticação:', response);
+    return NextResponse.json(response);
 
   } catch (error) {
-    console.error('Erro ao verificar status de autenticação:', error);
-    
+    console.error('❌ Erro inesperado no teste de autenticação:', error);
     return NextResponse.json({
-      authenticated: false,
-      user: null,
-      profile: null,
-      error: 'Erro interno do servidor',
-      message: 'Erro ao verificar autenticação'
+      success: false,
+      error: 'Erro inesperado',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 } 

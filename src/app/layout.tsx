@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from '@/hooks/useAuth';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
 import GlobalAppLogic from '@/components/layout/GlobalAppLogic';
+import ClientOnly from '@/components/layout/ClientOnly';
 import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -65,51 +66,59 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR">
-      <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
+        <ClientOnly 
+          fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          }
         >
-          <AuthProvider>
-            <GlobalAppLogic />
-            {children}
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: '#fff',
-                  color: '#374151',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  fontSize: '0.875rem',
-                  maxWidth: '500px',
-                },
-                success: {
-                  iconTheme: {
-                    primary: '#10b981',
-                    secondary: '#fff',
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            <AuthProvider>
+              <GlobalAppLogic />
+              {children}
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: '#fff',
+                    color: '#374151',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0.5rem',
+                    fontSize: '0.875rem',
+                    maxWidth: '500px',
                   },
-                },
-                error: {
-                  iconTheme: {
-                    primary: '#ef4444',
-                    secondary: '#fff',
+                  success: {
+                    iconTheme: {
+                      primary: '#10b981',
+                      secondary: '#fff',
+                    },
                   },
-                },
-                loading: {
-                  iconTheme: {
-                    primary: '#3b82f6',
-                    secondary: '#fff',
+                  error: {
+                    iconTheme: {
+                      primary: '#ef4444',
+                      secondary: '#fff',
+                    },
                   },
-                },
-              }}
-            />
-          </AuthProvider>
-        </ThemeProvider>
+                  loading: {
+                    iconTheme: {
+                      primary: '#3b82f6',
+                      secondary: '#fff',
+                    },
+                  },
+                }}
+              />
+            </AuthProvider>
+          </ThemeProvider>
+        </ClientOnly>
       </body>
     </html>
   );

@@ -5,6 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import MarketMetrics from '@/components/dashboard/MarketMetrics';
 import RequireAuth from '@/components/auth/RequireAuth';
 import { useAuth } from '@/hooks/useAuth';
+import { formatPercentage } from '@/lib/formatters';
 import { 
   User, 
   BarChart3, 
@@ -185,11 +186,7 @@ export default function DashboardPage() {
     }).format(value);
   };
 
-  const formatPercentage = (value: number | null | undefined): string => {
-  if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-  // CORREÇÃO: Os dados vêm em formato decimal do banco (0.359224 = 35.92%)
-  return `${(Number(value) * 100).toFixed(2)}%`;
-};
+  // Formatação removida - usando versão unificada do formatters.ts
 
   // Obter insights baseados no perfil
   const getProfileInsights = (): Insight[] => {

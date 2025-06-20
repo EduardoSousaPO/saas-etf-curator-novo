@@ -28,32 +28,40 @@ export default function Navbar() {
       await signOut();
       setIsUserMenuOpen(false);
       
-      // Forçar limpeza do localStorage e redirecionamento
-      localStorage.clear();
-      window.location.href = '/';
+      // Forçar limpeza do localStorage e redirecionamento (apenas no cliente)
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        window.location.href = '/';
+      }
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
       // Em caso de erro, forçar limpeza mesmo assim
-      localStorage.clear();
-      window.location.href = '/';
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        window.location.href = '/';
+      }
     }
   };
 
   const handleClearSession = () => {
     console.log('🗑️ Limpando sessão forçadamente...');
-    // Limpar todos os dados de autenticação
-    localStorage.clear();
-    sessionStorage.clear();
     
-    // Limpar cookies manualmente
-    document.cookie.split(";").forEach((c) => {
-      const eqPos = c.indexOf("=");
-      const name = eqPos > -1 ? c.substr(0, eqPos) : c;
-      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-    });
-    
-    // Recarregar a página
-    window.location.href = '/';
+    // Verificar se estamos no cliente
+    if (typeof window !== 'undefined') {
+      // Limpar todos os dados de autenticação
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Limpar cookies manualmente
+      document.cookie.split(";").forEach((c) => {
+        const eqPos = c.indexOf("=");
+        const name = eqPos > -1 ? c.substr(0, eqPos) : c;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+      });
+      
+      // Recarregar a página
+      window.location.href = '/';
+    }
   };
 
   return (
@@ -87,19 +95,6 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Auth Debug & Emergency Clear */}
-            <div className="text-xs text-gray-500 flex items-center gap-2">
-              <span title={`Loading: ${loading}, User: ${!!user}, Email: ${user?.email || 'N/A'}`}>
-                L:{loading ? 'Y' : 'N'} U:{user ? 'Y' : 'N'}
-              </span>
-              <button
-                onClick={handleClearSession}
-                className="text-red-500 hover:text-red-700 text-xs px-1 py-0.5 rounded border border-red-300 hover:border-red-500"
-                title="Limpar sessão forçadamente (resolver problemas de login)"
-              >
-                🗑️ CLEAR
-              </button>
-            </div>
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
             ) : user ? (
@@ -131,13 +126,24 @@ export default function Navbar() {
                     </div>
                     
                     <Link
-                      href="/onboarding"
+                      href="/profile"
                       onClick={() => setIsUserMenuOpen(false)}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       <Settings className="w-4 h-4 mr-2" />
-                      Configurações
+                      Perfil
                     </Link>
+                    
+                    <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                    
+                    <button
+                      onClick={handleClearSession}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      title="Resolver problemas de login"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Limpar Cache
+                    </button>
                     
                     <button
                       onClick={handleSignOut}
@@ -197,10 +203,6 @@ export default function Navbar() {
               
               {/* Mobile Auth */}
               <div className="pt-4 border-t border-gray-200/20 dark:border-gray-800/20">
-                {/* Debug info mobile - remover após teste */}
-                <div className="text-xs text-gray-500 mb-2">
-                  L:{loading ? 'Y' : 'N'} U:{user ? 'Y' : 'N'}
-                </div>
                 {user ? (
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">

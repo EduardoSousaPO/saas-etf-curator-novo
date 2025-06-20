@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { TrendingUp, Building2, DollarSign, BarChart3, Shield } from 'lucide-react';
+import { formatPercentage, formatCurrency, formatNumber, getValueColor, formatDate } from '@/lib/formatters';
 
 interface ETFDetails {
   symbol: string;
@@ -34,18 +35,7 @@ interface ETFDetailCardProps {
   onClose: () => void;
 }
 
-// Função para formatar valores monetários
-const formatCurrency = (value: number | null | undefined): string => {
-  if (value === null || value === undefined || isNaN(value)) return 'N/A';
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(value);
-};
-
-// Função para formatar valores grandes (volume, etc.)
+// Função para formatar valores grandes (volume, etc.) - mantida local pois é específica
 const formatLargeNumber = (value: number | null | undefined): string => {
   if (value === null || value === undefined || isNaN(value)) return 'N/A';
   
@@ -59,34 +49,8 @@ const formatLargeNumber = (value: number | null | undefined): string => {
   return value.toLocaleString('pt-BR');
 };
 
-// Função para formatar percentuais - Os dados já vêm em formato percentual do banco
-const formatPercentage = (value: number | null | undefined, decimals: number = 2): string => {
-  if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-  // Os dados já vêm em formato percentual do banco
-  return `${Number(value).toFixed(decimals)}%`;
-};
-
-// Função para formatar números simples
-const formatNumber = (value: number | null | undefined, decimals: number = 2): string => {
-  if (value === null || value === undefined || isNaN(value)) return 'N/A';
-  return value.toFixed(decimals);
-};
-
-// Função para obter cor baseada no retorno
-const getReturnColor = (value: number | null | undefined): string => {
-  if (value === null || value === undefined || isNaN(value)) return 'text-gray-500';
-  return value >= 0 ? 'text-green-600' : 'text-red-600';
-};
-
-// Função para formatar data
-const formatDate = (dateString: string | null | undefined): string => {
-  if (!dateString) return 'N/A';
-  try {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  } catch {
-    return 'N/A';
-  }
-};
+// Renomeando para usar a versão unificada do formatters.ts
+const getReturnColor = getValueColor;
 
 export default function ETFDetailCard({ details, onClose }: ETFDetailCardProps) {
   return (

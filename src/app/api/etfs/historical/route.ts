@@ -1,19 +1,175 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '../../../../lib/supabaseClient';
 
-interface ReturnData {
+// Interfaces para tipagem
+interface YFinanceData {
+  symbol: string;
   date: string;
-  return: number;
-  price: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  adj_close: number;
+}
+
+interface HistoricalResponse {
+  symbol: string;
+  period: string;
+  dataPoints: number;
+  prices: YFinanceData[];
+  metrics: {
+    totalReturn: number;
+    startPrice: number;
+    endPrice: number;
+    highestPrice: number;
+    lowestPrice: number;
+    averageVolume: number;
+    volatility: number;
+    sharpeRatio: number;
+  };
+  hasData: boolean;
+}
+
+// Função para buscar dados do Yahoo Finance
+async function fetchYahooFinanceData(symbol: string, period: string): Promise<YFinanceData[]> {
+  try {
+    // Mapear períodos para formato Yahoo Finance
+    const periodMap: Record<string, string> = {
+      '1m': '1mo',
+      '3m': '3mo', 
+      '6m': '6mo',
+      '1y': '1y'
+    };
+
+    const yahooApiUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
+    const params = new URLSearchParams({
+      period1: Math.floor(Date.now() / 1000 - getPeriodInSeconds(period)).toString(),
+      period2: Math.floor(Date.now() / 1000).toString(),
+      interval: '1d',
+      includePrePost: 'true',
+      events: 'div,splits'
+    });
+
+    const response = await fetch(`${yahooApiUrl}?${params}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Yahoo Finance API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.chart?.result?.[0]) {
+      throw new Error('No data returned from Yahoo Finance');
+    }
+
+    const result = data.chart.result[0];
+    const timestamps = result.timestamp || [];
+    const quotes = result.indicators?.quote?.[0] || {};
+    const adjClose = result.indicators?.adjclose?.[0]?.adjclose || [];
+
+    const historicalData: YFinanceData[] = [];
+
+    for (let i = 0; i < timestamps.length; i++) {
+      const date = new Date(timestamps[i] * 1000);
+      
+      // Pular dados inválidos
+      if (!quotes.open?.[i] || !quotes.close?.[i]) continue;
+
+      historicalData.push({
+        symbol,
+        date: date.toISOString().split('T')[0],
+        open: Number(quotes.open[i].toFixed(2)),
+        high: Number(quotes.high[i].toFixed(2)),
+        low: Number(quotes.low[i].toFixed(2)),
+        close: Number(quotes.close[i].toFixed(2)),
+        volume: quotes.volume[i] || 0,
+        adj_close: Number((adjClose[i] || quotes.close[i]).toFixed(2))
+      });
+    }
+
+    return historicalData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  } catch (error) {
+    console.error(`❌ Erro ao buscar dados do Yahoo Finance para ${symbol}:`, error);
+    return [];
+  }
+}
+
+// Função para converter período em segundos
+function getPeriodInSeconds(period: string): number {
+  const periodMap: Record<string, number> = {
+    '1m': 30 * 24 * 60 * 60,    // 30 dias
+    '3m': 90 * 24 * 60 * 60,    // 90 dias
+    '6m': 180 * 24 * 60 * 60,   // 180 dias
+    '1y': 365 * 24 * 60 * 60    // 365 dias
+  };
+  
+  return periodMap[period] || periodMap['1y'];
+}
+
+// Função para calcular métricas dos dados históricos
+function calculateMetrics(prices: YFinanceData[]): HistoricalResponse['metrics'] {
+  if (prices.length === 0) {
+    return {
+      totalReturn: 0,
+      startPrice: 0,
+      endPrice: 0,
+      highestPrice: 0,
+      lowestPrice: 0,
+      averageVolume: 0,
+      volatility: 0,
+      sharpeRatio: 0
+    };
+  }
+
+  const startPrice = prices[0].adj_close;
+  const endPrice = prices[prices.length - 1].adj_close;
+  const totalReturn = ((endPrice - startPrice) / startPrice) * 100;
+  
+  const highestPrice = Math.max(...prices.map(p => p.high));
+  const lowestPrice = Math.min(...prices.map(p => p.low));
+  const averageVolume = prices.reduce((sum, p) => sum + p.volume, 0) / prices.length;
+
+  // Calcular volatilidade (desvio padrão dos retornos diários)
+  const dailyReturns = [];
+  for (let i = 1; i < prices.length; i++) {
+    const dailyReturn = (prices[i].adj_close - prices[i-1].adj_close) / prices[i-1].adj_close;
+    dailyReturns.push(dailyReturn);
+  }
+  
+  const meanReturn = dailyReturns.reduce((sum, ret) => sum + ret, 0) / dailyReturns.length;
+  const variance = dailyReturns.reduce((sum, ret) => sum + Math.pow(ret - meanReturn, 2), 0) / dailyReturns.length;
+  const volatility = Math.sqrt(variance) * Math.sqrt(252) * 100; // Anualizada
+
+  // Calcular Sharpe Ratio (assumindo taxa livre de risco de 2%)
+  const riskFreeRate = 0.02;
+  const annualizedReturn = totalReturn * (365 / prices.length);
+  const sharpeRatio = volatility > 0 ? (annualizedReturn - riskFreeRate) / (volatility / 100) : 0;
+
+  return {
+    totalReturn: Number(totalReturn.toFixed(2)),
+    startPrice: Number(startPrice.toFixed(2)),
+    endPrice: Number(endPrice.toFixed(2)),
+    highestPrice: Number(highestPrice.toFixed(2)),
+    lowestPrice: Number(lowestPrice.toFixed(2)),
+    averageVolume: Math.round(averageVolume),
+    volatility: Number(volatility.toFixed(2)),
+    sharpeRatio: Number(sharpeRatio.toFixed(2))
+  };
 }
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const symbols = searchParams.get('symbols')?.split(',') || [];
-    const period = searchParams.get('period') || '1y'; // 1y, 6m, 3m, 1m
-    const interval = searchParams.get('interval') || 'monthly'; // daily, weekly, monthly
+    const period = searchParams.get('period') || '1y';
 
+    // Validação de parâmetros
     if (symbols.length === 0) {
       return NextResponse.json(
         { error: 'Symbols parameter is required' },
@@ -21,173 +177,102 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (symbols.length > 10) {
+    if (!['1m', '3m', '6m', '1y'].includes(period)) {
       return NextResponse.json(
-        { error: 'Maximum 10 symbols allowed' },
+        { error: 'Invalid period. Use: 1m, 3m, 6m, 1y' },
         { status: 400 }
       );
     }
 
-    console.log(`🔍 Buscando dados históricos para ${symbols.length} ETFs (período: ${period})`);
-
-    // Calcular data de início baseada no período
-    const endDate = new Date();
-    const startDate = new Date();
-    
-    switch (period) {
-      case '1m':
-        startDate.setMonth(startDate.getMonth() - 1);
-        break;
-      case '3m':
-        startDate.setMonth(startDate.getMonth() - 3);
-        break;
-      case '6m':
-        startDate.setMonth(startDate.getMonth() - 6);
-        break;
-      case '1y':
-      default:
-        startDate.setFullYear(startDate.getFullYear() - 1);
-        break;
+    // Limitar número de símbolos para evitar sobrecarga
+    if (symbols.length > 10) {
+      return NextResponse.json(
+        { error: 'Maximum 10 symbols allowed per request' },
+        { status: 400 }
+      );
     }
+
+    console.log(`🔍 Buscando dados históricos do Yahoo Finance para ${symbols.length} ETFs (período: ${period})`);
 
     const symbolsUpper = symbols.map(s => s.toUpperCase());
 
-    // Buscar dados históricos de preços
-    const { data: pricesData, error: pricesError } = await supabase
-      .from('etf_prices')
-      .select('symbol, date, close, volume')
-      .in('symbol', symbolsUpper)
-      .gte('date', startDate.toISOString().split('T')[0])
-      .lte('date', endDate.toISOString().split('T')[0])
-      .order('date', { ascending: true });
+    // Verificar se os símbolos existem no nosso banco
+    const { data: etfData, error: etfError } = await supabase
+      .from('etf_list')
+      .select('symbol, name, nav')
+      .in('symbol', symbolsUpper);
 
-    if (pricesError) {
-      throw pricesError;
+    if (etfError) {
+      console.error('❌ Erro ao verificar ETFs no banco:', etfError);
+      return NextResponse.json(
+        { error: 'Database error', details: etfError },
+        { status: 500 }
+      );
     }
 
-    // Agrupar dados por símbolo
-    const historicalData: Record<string, any> = {};
-    
-    symbolsUpper.forEach(symbol => {
-      const symbolPrices = pricesData?.filter(p => p.symbol === symbol) || [];
+    const validSymbols = etfData?.map(etf => etf.symbol) || [];
+    const invalidSymbols = symbolsUpper.filter(symbol => !validSymbols.includes(symbol));
+
+    if (invalidSymbols.length > 0) {
+      console.log(`⚠️ Símbolos não encontrados no banco: ${invalidSymbols.join(', ')}`);
+    }
+
+    // Buscar dados históricos do Yahoo Finance para símbolos válidos
+    const historicalPromises = validSymbols.map(async (symbol) => {
+      const prices = await fetchYahooFinanceData(symbol, period);
       
-      // Aplicar intervalo (sampling)
-      let sampledPrices = symbolPrices;
-      
-      if (interval === 'weekly' && symbolPrices.length > 52) {
-        // Pegar uma amostra semanal
-        sampledPrices = symbolPrices.filter((_, index) => index % 7 === 0);
-      } else if (interval === 'monthly' && symbolPrices.length > 12) {
-        // Pegar uma amostra mensal
-        sampledPrices = symbolPrices.filter((_, index) => index % 30 === 0);
+      if (prices.length === 0) {
+        return null;
       }
 
-      // Calcular retornos
-      const returns: ReturnData[] = [];
-      for (let i = 1; i < sampledPrices.length; i++) {
-        const currentPrice = sampledPrices[i].close;
-        const previousPrice = sampledPrices[i - 1].close;
-        
-        if (currentPrice && previousPrice && previousPrice > 0) {
-          const returnPct = ((currentPrice - previousPrice) / previousPrice) * 100;
-          returns.push({
-            date: sampledPrices[i].date,
-            return: returnPct,
-            price: Number(currentPrice)
-          });
-        }
-      }
-
-      // Calcular métricas do período
-      const prices = sampledPrices.map(p => p.close).filter(p => p !== null);
-      const startPrice = prices[0];
-      const endPrice = prices[prices.length - 1];
-      
-      const totalReturn = startPrice && endPrice && startPrice > 0 
-        ? ((endPrice - startPrice) / startPrice) * 100 
-        : 0;
-
-      const returnValues = returns.map(r => r.return);
-      const avgReturn = returnValues.length > 0 
-        ? returnValues.reduce((sum, r) => sum + r, 0) / returnValues.length 
-        : 0;
-
-      const volatility = returnValues.length > 1 
-        ? Math.sqrt(returnValues.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / (returnValues.length - 1))
-        : 0;
-
-      const maxPrice = Math.max(...prices);
-      const minPrice = Math.min(...prices);
-      const maxDrawdown = maxPrice > 0 ? ((minPrice - maxPrice) / maxPrice) * 100 : 0;
-
-      historicalData[symbol] = {
+      return {
         symbol,
         period,
-        interval,
-        dataPoints: sampledPrices.length,
-        
-        // Dados de preços
-        prices: sampledPrices.map(p => ({
-          date: p.date,
-          close: p.close,
-          volume: p.volume
-        })),
-        
-        // Retornos
-        returns,
-        
-        // Métricas do período
-        metrics: {
-          totalReturn: Number(totalReturn.toFixed(2)),
-          avgReturn: Number(avgReturn.toFixed(2)),
-          volatility: Number(volatility.toFixed(2)),
-          maxDrawdown: Number(maxDrawdown.toFixed(2)),
-          startPrice: startPrice,
-          endPrice: endPrice,
-          maxPrice: maxPrice,
-          minPrice: minPrice
-        },
-        
-        // Metadados
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0],
-        hasData: sampledPrices.length > 0
+        dataPoints: prices.length,
+        prices,
+        metrics: calculateMetrics(prices),
+        hasData: true
       };
     });
 
-    const foundSymbols = Object.keys(historicalData).filter(s => historicalData[s].hasData);
-    const notFoundSymbols = symbolsUpper.filter(s => !historicalData[s]?.hasData);
+    // Executar todas as buscas em paralelo
+    const results = await Promise.all(historicalPromises);
+    const successfulResults = results.filter(result => result !== null) as HistoricalResponse[];
 
-    console.log(`✅ Dados históricos carregados para ${foundSymbols.length}/${symbolsUpper.length} ETFs`);
-    
-    if (notFoundSymbols.length > 0) {
-      console.log(`⚠️ ETFs sem dados históricos: ${notFoundSymbols.join(', ')}`);
+    // Organizar dados por símbolo
+    const historicalData: Record<string, HistoricalResponse> = {};
+    successfulResults.forEach(result => {
+      historicalData[result.symbol] = result;
+    });
+
+    const foundSymbols = Object.keys(historicalData);
+    const failedSymbols = validSymbols.filter(symbol => !foundSymbols.includes(symbol));
+
+    console.log(`✅ Dados históricos obtidos para ${foundSymbols.length} ETFs`);
+    if (failedSymbols.length > 0) {
+      console.log(`⚠️ Falha ao obter dados para: ${failedSymbols.join(', ')}`);
     }
 
+    // Retornar dados mesmo se alguns símbolos falharam
     return NextResponse.json({
+      success: true,
       data: historicalData,
       metadata: {
+        requestedSymbols: symbolsUpper,
+        foundSymbols,
+        failedSymbols,
+        invalidSymbols,
         period,
-        interval,
-        totalSymbols: symbolsUpper.length,
-        foundSymbols: foundSymbols.length,
-        notFoundSymbols: notFoundSymbols.length,
-        foundSymbolsList: foundSymbols,
-        notFoundSymbolsList: notFoundSymbols,
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0],
-        dataSource: 'supabase_historical',
-        timestamp: new Date().toISOString()
+        dataSource: 'yahoo_finance_realtime',
+        timestamp: new Date().toISOString(),
+        totalDataPoints: successfulResults.reduce((sum, result) => sum + result.dataPoints, 0)
       }
     });
 
   } catch (error) {
     console.error('❌ Erro na API de dados históricos:', error);
     return NextResponse.json(
-      { 
-        error: 'Failed to fetch historical data',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

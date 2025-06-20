@@ -1,27 +1,31 @@
 /**
  * Funções utilitárias para formatação consistente de métricas de ETFs
  * 
- * Padrões de dados:
- * - Percentuais: Já vêm em formato percentual do banco (35.92 = 35.92%)
+ * Padrões de dados CONFIRMADOS pela análise técnica:
+ * - Percentuais: Vêm em formato DECIMAL do banco (0.1234 = 12.34%)
  * - Valores monetários: Em dólares
  * - Sharpe Ratio: Número absoluto (não percentual)
+ * 
+ * CORREÇÃO CRÍTICA: Dados percentuais precisam ser multiplicados por 100 para exibição
  */
 
 /**
- * Formata um valor percentual
- * @param value - Valor já em formato percentual (35.92 = 35.92%)
+ * VERSÃO UNIFICADA E CORRETA - Formata um valor percentual
+ * @param value - Valor em formato decimal do banco (0.1234 = 12.34%)
  * @returns String formatada com símbolo de porcentagem
  */
 export const formatPercentage = (value: number | null | undefined, decimals: number = 2): string => {
-  if (value === null || value === undefined) return 'N/A';
-  // Os dados já vêm em formato percentual do banco
-  return `${Number(value).toFixed(decimals)}%`;
+  if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
+  // CORREÇÃO: Os dados vêm em formato decimal do banco (0.1234 = 12.34%)
+  // Multiplicar por 100 para converter para percentual
+  return `${(Number(value) * 100).toFixed(decimals)}%`;
 };
 
 /**
- * Formata um valor que já está em formato percentual
+ * DEPRECATED - Use formatPercentage() - Mantido para compatibilidade temporária
  * @param value - Valor já em formato percentual (4.42 = 4.42%)
  * @returns String formatada com símbolo de porcentagem
+ * @deprecated Use formatPercentage() que agora é a versão unificada
  */
 export const formatPercentageAlready = (value: number | null | undefined, decimals: number = 2): string => {
   if (value === null || value === undefined) return 'N/A';

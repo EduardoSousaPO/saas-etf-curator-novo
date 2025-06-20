@@ -8,6 +8,7 @@ import PortfolioMetrics from '@/components/simulador/PortfolioMetrics';
 import ScenarioAnalysis from '@/components/simulador/ScenarioAnalysis';
 import ETFSelector from '@/components/simulador/ETFSelector';
 import { useAuth } from '@/hooks/useAuth';
+import { formatPercentage } from '@/lib/formatters';
 import { 
   PieChart, 
   Target,
@@ -247,11 +248,7 @@ export default function SimuladorPage() {
     })));
   };
 
-  // Formatação de valores
-  const formatPercentage = (value: number): string => {
-    // CORREÇÃO: Os dados já vêm em formato percentual do banco
-    return `${Number(value).toFixed(2)}%`;
-  };
+  // Formatação removida - usando versão unificada do formatters.ts
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {

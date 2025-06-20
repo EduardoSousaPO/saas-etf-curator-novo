@@ -9,8 +9,9 @@ async function populateRankings() {
     await prisma.$executeRaw`DELETE FROM etf_rankings`;
     console.log('🧹 Dados antigos removidos');
     
-    // 1. TOP RETURNS 12M (filtros rigorosos: -95% a +500%)
-    // CORREÇÃO: dados já estão em formato decimal, não multiplicar por 100
+    // 1. TOP RETURNS 12M (filtros rigorosos: -95% a +50%)
+    // CORREÇÃO CRÍTICA: dados vêm em formato decimal do banco (0.1234 = 12.34%)
+    // Multiplicar por 100 para percentage_value para exibição correta
     console.log('📈 Calculando top returns 12m...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
@@ -23,7 +24,7 @@ async function populateRankings() {
       FROM calculated_metrics_teste cm
       WHERE cm.returns_12m IS NOT NULL 
         AND cm.returns_12m >= -0.95 
-        AND cm.returns_12m <= 5.0
+        AND cm.returns_12m <= 0.5
       ORDER BY cm.returns_12m DESC
       LIMIT 10
     `;
@@ -44,7 +45,7 @@ async function populateRankings() {
         AND cm.sharpe_12m <= 10.0
         AND cm.returns_12m IS NOT NULL
         AND cm.returns_12m >= -0.95 
-        AND cm.returns_12m <= 5.0
+        AND cm.returns_12m <= 0.5
       ORDER BY cm.sharpe_12m DESC
       LIMIT 10
     `;
@@ -101,26 +102,28 @@ async function populateRankings() {
       LIMIT 10
     `;
     
-    // 5. LOWEST MAX DRAWDOWN (filtros: entre -100% e 0%, ordenar por ASC para pegar os menores)
+    // 5. LOWEST MAX DRAWDOWN (filtros: entre -50% e 0%, ordenar por DESC para pegar os menores drawdowns)
+    // CORREÇÃO: max_drawdown em formato decimal (-0.1234 = -12.34%)
     console.log('🛡️ Calculando lowest max drawdown...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
       SELECT 
         'lowest_max_drawdown' as category,
-        ROW_NUMBER() OVER (ORDER BY cm.max_drawdown ASC) as rank_position,
+        ROW_NUMBER() OVER (ORDER BY cm.max_drawdown DESC) as rank_position,
         cm.symbol,
         cm.max_drawdown as value,
         cm.max_drawdown * 100 as percentage_value
       FROM calculated_metrics_teste cm
       WHERE cm.max_drawdown IS NOT NULL 
-        AND cm.max_drawdown >= -1.0
+        AND cm.max_drawdown >= -0.5
         AND cm.max_drawdown < 0
         AND cm.max_drawdown != 0
-      ORDER BY cm.max_drawdown ASC
+      ORDER BY cm.max_drawdown DESC
       LIMIT 10
     `;
     
-    // 6. LOWEST VOLATILITY 12M (filtros: entre 0.1% e 200%, não pode ser zero)
+    // 6. LOWEST VOLATILITY 12M (filtros: entre 0.1% e 100%, não pode ser zero)
+    // CORREÇÃO: volatilidade em formato decimal (0.1234 = 12.34%)
     console.log('📉 Calculando lowest volatility 12m...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
@@ -133,7 +136,7 @@ async function populateRankings() {
       FROM calculated_metrics_teste cm
       WHERE cm.volatility_12m IS NOT NULL 
         AND cm.volatility_12m >= 0.001
-        AND cm.volatility_12m <= 2.0
+        AND cm.volatility_12m <= 1.0
       ORDER BY cm.volatility_12m ASC
       LIMIT 10
     `;

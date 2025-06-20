@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { TrendingUp, Shield, Award, DollarSign, Target, Calculator } from 'lucide-react';
+import { formatPercentage } from '@/lib/formatters';
 
 interface PortfolioMetrics {
   expectedReturn: number;
@@ -17,11 +18,7 @@ interface PortfolioMetricsProps {
 }
 
 export default function PortfolioMetrics({ metrics, investmentAmount }: PortfolioMetricsProps) {
-  const formatPercentage = (value: number): string => {
-  if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-  // CORREÇÃO: Os dados vêm em formato decimal do banco (0.359224 = 35.92%)
-  return `${(Number(value) * 100).toFixed(2)}%`;
-};
+  // Formatação removida - usando versão unificada do formatters.ts
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
