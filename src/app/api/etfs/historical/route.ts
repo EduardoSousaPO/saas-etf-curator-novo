@@ -34,17 +34,19 @@ interface HistoricalResponse {
 // Função para buscar dados do Yahoo Finance
 async function fetchYahooFinanceData(symbol: string, period: string): Promise<YFinanceData[]> {
   try {
-    // Mapear períodos para formato Yahoo Finance
-    const periodMap: Record<string, string> = {
-      '1m': '1mo',
-      '3m': '3mo', 
-      '6m': '6mo',
-      '1y': '1y'
-    };
-
     const yahooApiUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
+    
+    // Converter período em segundos
+    const periodSecondsMap: Record<string, number> = {
+      '1m': 30 * 24 * 60 * 60,    // 30 dias
+      '3m': 90 * 24 * 60 * 60,    // 90 dias
+      '6m': 180 * 24 * 60 * 60,   // 180 dias
+      '1y': 365 * 24 * 60 * 60    // 365 dias
+    };
+    const periodSeconds = periodSecondsMap[period] || periodSecondsMap['1y'];
+    
     const params = new URLSearchParams({
-      period1: Math.floor(Date.now() / 1000 - getPeriodInSeconds(period)).toString(),
+      period1: Math.floor(Date.now() / 1000 - periodSeconds).toString(),
       period2: Math.floor(Date.now() / 1000).toString(),
       interval: '1d',
       includePrePost: 'true',
@@ -100,7 +102,7 @@ async function fetchYahooFinanceData(symbol: string, period: string): Promise<YF
   }
 }
 
-// Função para converter período em segundos (removida pois não é utilizada)
+
 
 // Função para calcular métricas dos dados históricos
 function calculateMetrics(prices: YFinanceData[]): HistoricalResponse['metrics'] {
