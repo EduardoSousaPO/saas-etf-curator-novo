@@ -12,7 +12,6 @@ import {
   AlertTriangle,
   CheckCircle,
   DollarSign,
-  Calendar,
   ArrowRight,
   Lightbulb,
   Shield,
@@ -75,7 +74,7 @@ export default function DashboardPage() {
         objective: authProfile.objective || 'Aposentadoria',
         monthlyInvestment: authProfile.monthly_investment || 1000,
         totalPatrimony: authProfile.total_patrimony || 50000,
-        targetAmount: authProfile.target_amount || 1000000,
+        targetAmount: 1000000, // Meta padrão já que target_amount não existe no UserProfile
         timeHorizon: authProfile.time_horizon || '10 anos',
         profile: authProfile.profile || 'Moderado'
       });
@@ -108,7 +107,6 @@ export default function DashboardPage() {
       const monthlyGainPercent = baseReturn / 12;
       
       // Cálculo simples se está no caminho
-      const monthlyNeeded = userProfile?.monthlyInvestment || 1000;
       const targetAmount = userProfile?.targetAmount || 1000000;
       const yearsToGoal = Math.log(targetAmount / currentValueBRL) / Math.log(1 + baseReturn);
       const monthsToGoal = Math.round(yearsToGoal * 12);

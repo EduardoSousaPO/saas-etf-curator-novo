@@ -15,9 +15,7 @@ import {
 
 export default function TestCurrencyPage() {
   const [amount1, setAmount1] = useState<number>(1000);
-  const [currency1, setCurrency1] = useState<'BRL' | 'USD'>('BRL');
   const [amount2, setAmount2] = useState<number>(5000);
-  const [currency2, setCurrency2] = useState<'BRL' | 'USD'>('BRL');
   const [exchangeInfo, setExchangeInfo] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -137,9 +135,8 @@ export default function TestCurrencyPage() {
             <CurrencyInput
               label="Quanto você investe por mês?"
               value={amount1}
-              onChange={(value, currency) => {
+              onChange={(value) => {
                 setAmount1(value);
-                setCurrency1(currency);
               }}
               placeholder="1.000,00"
               showConverter={true}
@@ -160,9 +157,8 @@ export default function TestCurrencyPage() {
             <CurrencyInput
               label="Qual sua meta de patrimônio?"
               value={amount2}
-              onChange={(value, currency) => {
+              onChange={(value) => {
                 setAmount2(value);
-                setCurrency2(currency);
               }}
               placeholder="1.000.000,00"
               showConverter={true}

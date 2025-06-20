@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, AuthError, Session } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import { UserProfile } from '@/lib/auth';

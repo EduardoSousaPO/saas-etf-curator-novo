@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabaseClient';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     console.log('🔍 Testando status de autenticação...');
     
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Teste de conectividade com o banco
-    const { data: testData, error: testError } = await supabase
+    const { error: testError } = await supabase
       .from('user_profiles')
       .select('id')
       .limit(1);

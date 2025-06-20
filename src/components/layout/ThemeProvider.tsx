@@ -24,7 +24,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
 
   // Renderizar versão completa no cliente
   return (
-    <NextThemesProvider {...props} suppressHydrationWarning>
+    <NextThemesProvider {...props}>
       {children}
     </NextThemesProvider>
   );

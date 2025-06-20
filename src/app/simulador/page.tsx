@@ -10,8 +10,6 @@ import {
   Calculator, 
   Target, 
   TrendingUp,
-  DollarSign,
-  Clock,
   AlertCircle,
   CheckCircle,
   ArrowRight,
@@ -56,7 +54,7 @@ interface ETFSuggestion {
 }
 
 export default function SimulatorPage() {
-  const { user, profile } = useAuth();
+  const { profile } = useAuth();
   const [input, setInput] = useState<SimulationInput>({
     monthlyInvestment: 1000,
     monthlyInvestmentCurrency: 'BRL',
@@ -69,8 +67,6 @@ export default function SimulatorPage() {
   });
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [suggestions, setSuggestions] = useState<ETFSuggestion[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [exchangeRate, setExchangeRate] = useState<number>(5.50);
 
   useEffect(() => {
     // Carregar dados do perfil se disponível
@@ -79,7 +75,7 @@ export default function SimulatorPage() {
         ...prev,
         monthlyInvestment: profile.monthly_investment || prev.monthlyInvestment,
         initialAmount: profile.total_patrimony || prev.initialAmount,
-        targetAmount: profile.target_amount || prev.targetAmount,
+        targetAmount: 1000000, // Meta padrão já que target_amount não existe no UserProfile
         riskProfile: profile.profile?.toLowerCase() as any || prev.riskProfile
       }));
     }
@@ -89,26 +85,12 @@ export default function SimulatorPage() {
     calculateSimulation();
   }, [input]);
 
-  useEffect(() => {
-    loadExchangeRate();
-  }, []);
-
-  const loadExchangeRate = async () => {
-    try {
-      const rate = await currencyService.getExchangeRate();
-      setExchangeRate(rate);
-    } catch (error) {
-      console.error('Erro ao carregar taxa de câmbio:', error);
-    }
-  };
-
   const convertToUSD = async (amount: number, currency: 'BRL' | 'USD'): Promise<number> => {
     if (currency === 'USD') return amount;
     return await currencyService.convertBRLToUSD(amount);
   };
 
   const calculateSimulation = async () => {
-    setLoading(true);
     
     try {
       // Taxas de retorno baseadas no perfil de risco (ETFs americanos)
@@ -142,11 +124,9 @@ export default function SimulatorPage() {
       // Calcular quanto tempo para atingir a meta
       let monthsToGoal = 0;
       let tempAmountUSD = initialAmountUSD;
-      let tempContributedUSD = initialAmountUSD;
       
       while (tempAmountUSD < targetAmountUSD && monthsToGoal < 600) { // máximo 50 anos
         tempAmountUSD = tempAmountUSD * (1 + monthlyReturn) + monthlyInvestmentUSD;
-        tempContributedUSD += monthlyInvestmentUSD;
         monthsToGoal++;
       }
 
@@ -183,8 +163,6 @@ export default function SimulatorPage() {
       generateETFSuggestions(input.riskProfile);
     } catch (error) {
       console.error('Erro no cálculo da simulação:', error);
-    } finally {
-      setLoading(false);
     }
   };
 

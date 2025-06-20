@@ -100,17 +100,7 @@ async function fetchYahooFinanceData(symbol: string, period: string): Promise<YF
   }
 }
 
-// Função para converter período em segundos
-function getPeriodInSeconds(period: string): number {
-  const periodMap: Record<string, number> = {
-    '1m': 30 * 24 * 60 * 60,    // 30 dias
-    '3m': 90 * 24 * 60 * 60,    // 90 dias
-    '6m': 180 * 24 * 60 * 60,   // 180 dias
-    '1y': 365 * 24 * 60 * 60    // 365 dias
-  };
-  
-  return periodMap[period] || periodMap['1y'];
-}
+// Função para converter período em segundos (removida pois não é utilizada)
 
 // Função para calcular métricas dos dados históricos
 function calculateMetrics(prices: YFinanceData[]): HistoricalResponse['metrics'] {
@@ -136,7 +126,7 @@ function calculateMetrics(prices: YFinanceData[]): HistoricalResponse['metrics']
   const averageVolume = prices.reduce((sum, p) => sum + p.volume, 0) / prices.length;
 
   // Calcular volatilidade (desvio padrão dos retornos diários)
-  const dailyReturns = [];
+  const dailyReturns: number[] = [];
   for (let i = 1; i < prices.length; i++) {
     const dailyReturn = (prices[i].adj_close - prices[i-1].adj_close) / prices[i-1].adj_close;
     dailyReturns.push(dailyReturn);
