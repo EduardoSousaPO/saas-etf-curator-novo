@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import RequireAuth from '@/components/auth/RequireAuth';
+import CurrencyInput from '@/components/ui/CurrencyInput';
 import { useAuth } from '@/hooks/useAuth';
+import { currencyService } from '@/lib/currency';
 import { 
   Calculator, 
   Target, 
@@ -15,23 +17,31 @@ import {
   ArrowRight,
   PieChart,
   Lightbulb,
-  Zap
+  Zap,
+  Globe
 } from 'lucide-react';
 
 interface SimulationInput {
   monthlyInvestment: number;
+  monthlyInvestmentCurrency: 'BRL' | 'USD';
   initialAmount: number;
+  initialAmountCurrency: 'BRL' | 'USD';
   targetAmount: number;
+  targetAmountCurrency: 'BRL' | 'USD';
   timeHorizon: number; // em anos
   riskProfile: 'conservative' | 'moderate' | 'aggressive';
 }
 
 interface SimulationResult {
   finalAmount: number;
+  finalAmountUSD: number;
   monthsToGoal: number;
   totalContributed: number;
+  totalContributedUSD: number;
   totalGains: number;
+  totalGainsUSD: number;
   monthlyNeeded: number;
+  monthlyNeededUSD: number;
   isRealistic: boolean;
   dollarExposure: number;
   suggestedETFs: string[];
@@ -49,14 +59,18 @@ export default function SimulatorPage() {
   const { user, profile } = useAuth();
   const [input, setInput] = useState<SimulationInput>({
     monthlyInvestment: 1000,
+    monthlyInvestmentCurrency: 'BRL',
     initialAmount: 10000,
+    initialAmountCurrency: 'BRL',
     targetAmount: 1000000,
+    targetAmountCurrency: 'BRL',
     timeHorizon: 15,
     riskProfile: 'moderate'
   });
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [suggestions, setSuggestions] = useState<ETFSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number>(5.50);
 
   useEffect(() => {
     // Carregar dados do perfil se disponível
@@ -75,65 +89,103 @@ export default function SimulatorPage() {
     calculateSimulation();
   }, [input]);
 
-  const calculateSimulation = () => {
+  useEffect(() => {
+    loadExchangeRate();
+  }, []);
+
+  const loadExchangeRate = async () => {
+    try {
+      const rate = await currencyService.getExchangeRate();
+      setExchangeRate(rate);
+    } catch (error) {
+      console.error('Erro ao carregar taxa de câmbio:', error);
+    }
+  };
+
+  const convertToUSD = async (amount: number, currency: 'BRL' | 'USD'): Promise<number> => {
+    if (currency === 'USD') return amount;
+    return await currencyService.convertBRLToUSD(amount);
+  };
+
+  const calculateSimulation = async () => {
     setLoading(true);
     
-    // Taxas de retorno baseadas no perfil de risco
-    const returnRates = {
-      conservative: 0.06, // 6% ao ano
-      moderate: 0.08,     // 8% ao ano
-      aggressive: 0.12    // 12% ao ano
-    };
+    try {
+      // Taxas de retorno baseadas no perfil de risco (ETFs americanos)
+      const returnRates = {
+        conservative: 0.06, // 6% ao ano
+        moderate: 0.08,     // 8% ao ano
+        aggressive: 0.12    // 12% ao ano
+      };
 
-    const annualReturn = returnRates[input.riskProfile];
-    const monthlyReturn = annualReturn / 12;
-    
-    // Cálculo de juros compostos
-    const months = input.timeHorizon * 12;
-    let currentAmount = input.initialAmount;
-    let totalContributed = input.initialAmount;
-    
-    // Simular crescimento mês a mês
-    for (let i = 0; i < months; i++) {
-      currentAmount = currentAmount * (1 + monthlyReturn) + input.monthlyInvestment;
-      totalContributed += input.monthlyInvestment;
+      const annualReturn = returnRates[input.riskProfile];
+      const monthlyReturn = annualReturn / 12;
+      
+      // Converter valores para USD para cálculos (ETFs são em USD)
+      const monthlyInvestmentUSD = await convertToUSD(input.monthlyInvestment, input.monthlyInvestmentCurrency);
+      const initialAmountUSD = await convertToUSD(input.initialAmount, input.initialAmountCurrency);
+      const targetAmountUSD = await convertToUSD(input.targetAmount, input.targetAmountCurrency);
+      
+      // Cálculo de juros compostos em USD
+      const months = input.timeHorizon * 12;
+      let currentAmountUSD = initialAmountUSD;
+      let totalContributedUSD = initialAmountUSD;
+      
+      // Simular crescimento mês a mês
+      for (let i = 0; i < months; i++) {
+        currentAmountUSD = currentAmountUSD * (1 + monthlyReturn) + monthlyInvestmentUSD;
+        totalContributedUSD += monthlyInvestmentUSD;
+      }
+
+      const totalGainsUSD = currentAmountUSD - totalContributedUSD;
+      
+      // Calcular quanto tempo para atingir a meta
+      let monthsToGoal = 0;
+      let tempAmountUSD = initialAmountUSD;
+      let tempContributedUSD = initialAmountUSD;
+      
+      while (tempAmountUSD < targetAmountUSD && monthsToGoal < 600) { // máximo 50 anos
+        tempAmountUSD = tempAmountUSD * (1 + monthlyReturn) + monthlyInvestmentUSD;
+        tempContributedUSD += monthlyInvestmentUSD;
+        monthsToGoal++;
+      }
+
+      // Calcular aporte mensal necessário para atingir a meta no prazo
+      const monthlyNeededUSD = calculateMonthlyNeeded(
+        initialAmountUSD,
+        targetAmountUSD,
+        input.timeHorizon,
+        annualReturn
+      );
+
+      // Converter valores de volta para BRL para exibição
+      const finalAmountBRL = await currencyService.convertUSDToBRL(currentAmountUSD);
+      const totalContributedBRL = await currencyService.convertUSDToBRL(totalContributedUSD);
+      const totalGainsBRL = await currencyService.convertUSDToBRL(totalGainsUSD);
+      const monthlyNeededBRL = await currencyService.convertUSDToBRL(monthlyNeededUSD);
+
+      const result: SimulationResult = {
+        finalAmount: finalAmountBRL,
+        finalAmountUSD: currentAmountUSD,
+        monthsToGoal,
+        totalContributed: totalContributedBRL,
+        totalContributedUSD,
+        totalGains: totalGainsBRL,
+        totalGainsUSD,
+        monthlyNeeded: monthlyNeededBRL,
+        monthlyNeededUSD,
+        isRealistic: monthsToGoal <= input.timeHorizon * 12,
+        dollarExposure: currentAmountUSD,
+        suggestedETFs: getSuggestedETFs(input.riskProfile)
+      };
+
+      setResult(result);
+      generateETFSuggestions(input.riskProfile);
+    } catch (error) {
+      console.error('Erro no cálculo da simulação:', error);
+    } finally {
+      setLoading(false);
     }
-
-    const totalGains = currentAmount - totalContributed;
-    
-    // Calcular quanto tempo para atingir a meta
-    let monthsToGoal = 0;
-    let tempAmount = input.initialAmount;
-    let tempContributed = input.initialAmount;
-    
-    while (tempAmount < input.targetAmount && monthsToGoal < 600) { // máximo 50 anos
-      tempAmount = tempAmount * (1 + monthlyReturn) + input.monthlyInvestment;
-      tempContributed += input.monthlyInvestment;
-      monthsToGoal++;
-    }
-
-    // Calcular aporte mensal necessário para atingir a meta no prazo
-    const monthlyNeeded = calculateMonthlyNeeded(
-      input.initialAmount,
-      input.targetAmount,
-      input.timeHorizon,
-      annualReturn
-    );
-
-    const result: SimulationResult = {
-      finalAmount: currentAmount,
-      monthsToGoal,
-      totalContributed,
-      totalGains,
-      monthlyNeeded,
-      isRealistic: monthsToGoal <= input.timeHorizon * 12,
-      dollarExposure: currentAmount * 0.7, // 70% em ETFs americanos
-      suggestedETFs: getSuggestedETFs(input.riskProfile)
-    };
-
-    setResult(result);
-    generateETFSuggestions(input.riskProfile);
-    setLoading(false);
   };
 
   const calculateMonthlyNeeded = (initial: number, target: number, years: number, annualReturn: number): number => {
@@ -191,15 +243,6 @@ export default function SimulatorPage() {
     setSuggestions(suggestions);
   };
 
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
-  };
-
   const formatYears = (months: number): string => {
     const years = Math.floor(months / 12);
     const remainingMonths = months % 12;
@@ -242,6 +285,15 @@ export default function SimulatorPage() {
             <p className="text-gray-600 mt-2">
               Descubra quanto investir e em que ETFs para atingir seus objetivos
             </p>
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center">
+                <Globe className="w-5 h-5 text-blue-600 mr-2" />
+                <span className="text-sm text-blue-800">
+                  <strong>💡 Importante:</strong> ETFs são negociados em dólares (USD). 
+                  Use os conversores abaixo para calcular em reais ou dólares.
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -255,55 +307,40 @@ export default function SimulatorPage() {
 
                 <div className="space-y-6">
                   {/* Quanto investir por mês */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      💰 Quanto posso investir por mês?
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
-                      <input
-                        type="number"
-                        value={input.monthlyInvestment}
-                        onChange={(e) => setInput({...input, monthlyInvestment: Number(e.target.value)})}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="1000"
-                      />
-                    </div>
-                  </div>
+                  <CurrencyInput
+                    label="💰 Quanto posso investir por mês?"
+                    value={input.monthlyInvestment}
+                    onChange={(value, currency) => setInput({
+                      ...input, 
+                      monthlyInvestment: value,
+                      monthlyInvestmentCurrency: currency
+                    })}
+                    placeholder="1.000,00"
+                  />
 
                   {/* Valor inicial */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      🏦 Quanto já tenho investido?
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
-                      <input
-                        type="number"
-                        value={input.initialAmount}
-                        onChange={(e) => setInput({...input, initialAmount: Number(e.target.value)})}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="10000"
-                      />
-                    </div>
-                  </div>
+                  <CurrencyInput
+                    label="🏦 Quanto já tenho investido?"
+                    value={input.initialAmount}
+                    onChange={(value, currency) => setInput({
+                      ...input, 
+                      initialAmount: value,
+                      initialAmountCurrency: currency
+                    })}
+                    placeholder="10.000,00"
+                  />
 
                   {/* Meta financeira */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      🎯 Qual minha meta financeira?
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
-                      <input
-                        type="number"
-                        value={input.targetAmount}
-                        onChange={(e) => setInput({...input, targetAmount: Number(e.target.value)})}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="1000000"
-                      />
-                    </div>
-                  </div>
+                  <CurrencyInput
+                    label="🎯 Qual minha meta financeira?"
+                    value={input.targetAmount}
+                    onChange={(value, currency) => setInput({
+                      ...input, 
+                      targetAmount: value,
+                      targetAmountCurrency: currency
+                    })}
+                    placeholder="1.000.000,00"
+                  />
 
                   {/* Prazo */}
                   <div>
@@ -366,19 +403,25 @@ export default function SimulatorPage() {
                       Resultado da Simulação
                     </h2>
 
-                    <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="grid grid-cols-1 gap-4 mb-6">
                       <div className="text-center p-4 bg-blue-50 rounded-lg">
                         <div className="text-2xl font-bold text-blue-600">
-                          {formatCurrency(result.finalAmount)}
+                          {currencyService.formatCurrency(result.finalAmount, 'BRL')}
                         </div>
-                        <div className="text-sm text-gray-600">Valor Final</div>
+                        <div className="text-sm text-gray-600">Valor Final (BRL)</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {currencyService.formatCurrency(result.finalAmountUSD, 'USD')} em dólares
+                        </div>
                       </div>
                       
                       <div className="text-center p-4 bg-green-50 rounded-lg">
                         <div className="text-2xl font-bold text-green-600">
-                          {formatCurrency(result.totalGains)}
+                          {currencyService.formatCurrency(result.totalGains, 'BRL')}
                         </div>
-                        <div className="text-sm text-gray-600">Ganhos</div>
+                        <div className="text-sm text-gray-600">Ganhos (BRL)</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {currencyService.formatCurrency(result.totalGainsUSD, 'USD')} em dólares
+                        </div>
                       </div>
                     </div>
 
@@ -407,7 +450,10 @@ export default function SimulatorPage() {
                             Para atingir sua meta em {input.timeHorizon} anos, você precisa investir:
                           </p>
                           <p className="font-bold text-lg text-yellow-700">
-                            {formatCurrency(result.monthlyNeeded)}/mês
+                            {currencyService.formatCurrency(result.monthlyNeeded, 'BRL')}/mês
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            ({currencyService.formatCurrency(result.monthlyNeededUSD, 'USD')}/mês em dólares)
                           </p>
                           <p className="mt-2">
                             Ou levará {formatYears(result.monthsToGoal)} com o aporte atual
@@ -421,7 +467,7 @@ export default function SimulatorPage() {
                   <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
                       <PieChart className="w-5 h-5 mr-2 text-purple-600" />
-                      Carteira Sugerida
+                      Carteira Sugerida (em USD)
                     </h2>
 
                     <div className="space-y-4">
@@ -441,7 +487,10 @@ export default function SimulatorPage() {
                             <div className="text-right">
                               <div className="text-lg font-bold text-gray-900">{etf.allocation}%</div>
                               <div className="text-sm text-gray-600">
-                                {formatCurrency((result.finalAmount * etf.allocation) / 100)}
+                                {currencyService.formatCurrency((result.finalAmountUSD * etf.allocation) / 100, 'USD')}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                ≈ {currencyService.formatCurrency(((result.finalAmount * etf.allocation) / 100), 'BRL')}
                               </div>
                             </div>
                           </div>
@@ -460,11 +509,12 @@ export default function SimulatorPage() {
                     <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center mb-2">
                         <Lightbulb className="w-4 h-4 text-yellow-600 mr-2" />
-                        <h4 className="font-medium text-gray-900">Dicas Importantes</h4>
+                        <h4 className="font-medium text-gray-900">Dicas para Brasileiros</h4>
                       </div>
                       <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• ETFs são negociados em dólares americanos (USD)</li>
+                        <li>• Considere o impacto do câmbio nos seus investimentos</li>
                         <li>• Rebalanceie sua carteira a cada 6 meses</li>
-                        <li>• Considere o impacto do câmbio (70% em USD)</li>
                         <li>• Mantenha disciplina nos aportes mensais</li>
                         <li>• Reavalie seus objetivos anualmente</li>
                       </ul>

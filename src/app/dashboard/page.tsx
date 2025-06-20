@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import RequireAuth from '@/components/auth/RequireAuth';
 import { useAuth } from '@/hooks/useAuth';
-import { formatPercentage } from '@/lib/formatters';
+import { currencyService } from '@/lib/currency';
 import { 
   TrendingUp, 
   TrendingDown,
@@ -15,7 +15,9 @@ import {
   Calendar,
   ArrowRight,
   Lightbulb,
-  Shield
+  Shield,
+  Globe,
+  RefreshCw
 } from 'lucide-react';
 
 interface UserProfile {
@@ -29,12 +31,17 @@ interface UserProfile {
 }
 
 interface SimpleMetrics {
-  currentValue: number;
-  monthlyGain: number;
+  currentValueBRL: number;
+  currentValueUSD: number;
+  monthlyGainBRL: number;
+  monthlyGainUSD: number;
   monthlyGainPercent: number;
   isOnTrack: boolean;
   monthsToGoal: number;
-  dollarImpact: number;
+  dollarExposure: number;
+  exchangeRate: number;
+  exchangeVariation: string;
+  exchangePctChange: string;
 }
 
 interface QuickAction {
@@ -50,6 +57,8 @@ export default function DashboardPage() {
   const [metrics, setMetrics] = useState<SimpleMetrics | null>(null);
   const [quickActions, setQuickActions] = useState<QuickAction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currencyDisplay, setCurrencyDisplay] = useState<'BRL' | 'USD'>('BRL');
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -84,31 +93,46 @@ export default function DashboardPage() {
     }
   };
 
-  const calculateSimpleMetrics = () => {
-    // Simulação de métricas baseada no perfil
-    const baseReturn = 0.08; // 8% ao ano
-    const currentValue = userProfile?.totalPatrimony || 50000;
-    const monthlyGain = currentValue * (baseReturn / 12);
-    const monthlyGainPercent = baseReturn / 12;
-    
-    // Cálculo simples se está no caminho
-    const monthlyNeeded = userProfile?.monthlyInvestment || 1000;
-    const targetAmount = userProfile?.targetAmount || 1000000;
-    const yearsToGoal = Math.log(targetAmount / currentValue) / Math.log(1 + baseReturn);
-    const monthsToGoal = Math.round(yearsToGoal * 12);
-    const isOnTrack = monthsToGoal <= 180; // 15 anos
+  const calculateSimpleMetrics = async () => {
+    try {
+      // Buscar informações da moeda
+      const currencyInfo = await currencyService.getCurrencyInfo();
+      
+      // Simulação de métricas baseada no perfil
+      const baseReturn = 0.08; // 8% ao ano
+      const currentValueBRL = userProfile?.totalPatrimony || 50000;
+      const currentValueUSD = await currencyService.convertBRLToUSD(currentValueBRL);
+      
+      const monthlyGainBRL = currentValueBRL * (baseReturn / 12);
+      const monthlyGainUSD = await currencyService.convertBRLToUSD(monthlyGainBRL);
+      const monthlyGainPercent = baseReturn / 12;
+      
+      // Cálculo simples se está no caminho
+      const monthlyNeeded = userProfile?.monthlyInvestment || 1000;
+      const targetAmount = userProfile?.targetAmount || 1000000;
+      const yearsToGoal = Math.log(targetAmount / currentValueBRL) / Math.log(1 + baseReturn);
+      const monthsToGoal = Math.round(yearsToGoal * 12);
+      const isOnTrack = monthsToGoal <= 180; // 15 anos
 
-    // Impacto do dólar (simulado)
-    const dollarImpact = currentValue * 0.02; // 2% de impacto cambial
+      // Exposição ao dólar (assumindo 70% em ETFs americanos)
+      const dollarExposure = currentValueUSD * 0.7;
 
-    setMetrics({
-      currentValue,
-      monthlyGain,
-      monthlyGainPercent,
-      isOnTrack,
-      monthsToGoal,
-      dollarImpact
-    });
+      setMetrics({
+        currentValueBRL,
+        currentValueUSD,
+        monthlyGainBRL,
+        monthlyGainUSD,
+        monthlyGainPercent,
+        isOnTrack,
+        monthsToGoal,
+        dollarExposure,
+        exchangeRate: currencyInfo.rate,
+        exchangeVariation: currencyInfo.variation,
+        exchangePctChange: currencyInfo.pctChange
+      });
+    } catch (error) {
+      console.error('Erro ao calcular métricas:', error);
+    }
   };
 
   const generateQuickActions = () => {
@@ -133,12 +157,22 @@ export default function DashboardPage() {
     }
 
     // Oportunidade baseada no dólar
-    actions.push({
-      type: 'opportunity',
-      title: 'Dólar em alta',
-      description: 'Momento favorável para aumentar exposição internacional',
-      action: 'Ver ETFs'
-    });
+    const dollarTrend = parseFloat(metrics?.exchangePctChange || '0');
+    if (dollarTrend > 1) {
+      actions.push({
+        type: 'opportunity',
+        title: 'Dólar em alta',
+        description: 'Momento favorável para aumentar exposição em ETFs americanos',
+        action: 'Ver ETFs'
+      });
+    } else if (dollarTrend < -1) {
+      actions.push({
+        type: 'opportunity',
+        title: 'Dólar em baixa',
+        description: 'Oportunidade para aportar mais em ETFs americanos',
+        action: 'Ver ETFs'
+      });
+    }
 
     if (metrics && metrics.isOnTrack) {
       actions.push({
@@ -153,13 +187,11 @@ export default function DashboardPage() {
     setLoading(false);
   };
 
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
+  const refreshData = async () => {
+    setRefreshing(true);
+    await calculateSimpleMetrics();
+    generateQuickActions();
+    setRefreshing(false);
   };
 
   const formatMonths = (months: number): string => {
@@ -169,6 +201,20 @@ export default function DashboardPage() {
     if (years === 0) return `${remainingMonths} meses`;
     if (remainingMonths === 0) return `${years} anos`;
     return `${years} anos e ${remainingMonths} meses`;
+  };
+
+  const getVariationColor = (variation: string): string => {
+    const num = parseFloat(variation);
+    if (num > 0) return 'text-green-600';
+    if (num < 0) return 'text-red-600';
+    return 'text-gray-600';
+  };
+
+  const getVariationIcon = (variation: string) => {
+    const num = parseFloat(variation);
+    if (num > 0) return <TrendingUp className="w-4 h-4" />;
+    if (num < 0) return <TrendingDown className="w-4 h-4" />;
+    return null;
   };
 
   if (loading) {
@@ -205,6 +251,52 @@ export default function DashboardPage() {
             <p className="text-gray-600 mt-2">
               Vamos verificar como está seu progresso para {userProfile?.objective.toLowerCase()}
             </p>
+            
+            {/* Aviso sobre ETFs */}
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Globe className="w-5 h-5 text-blue-600 mr-2" />
+                  <span className="text-sm text-blue-800">
+                    <strong>💡 Lembre-se:</strong> ETFs são negociados em dólares (USD)
+                  </span>
+                </div>
+                <button
+                  onClick={refreshData}
+                  disabled={refreshing}
+                  className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+                  Atualizar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Toggle de Moeda */}
+          <div className="mb-6 flex justify-center">
+            <div className="bg-white rounded-lg border border-gray-200 p-1 flex">
+              <button
+                onClick={() => setCurrencyDisplay('BRL')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  currencyDisplay === 'BRL'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Ver em Reais (R$)
+              </button>
+              <button
+                onClick={() => setCurrencyDisplay('USD')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  currencyDisplay === 'USD'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Ver em Dólares (US$)
+              </button>
+            </div>
           </div>
 
           {/* Métricas Principais - O que Realmente Importa */}
@@ -218,20 +310,38 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-2">
-                {formatCurrency(metrics?.currentValue || 0)}
+                {currencyDisplay === 'BRL' 
+                  ? currencyService.formatCurrency(metrics?.currentValueBRL || 0, 'BRL')
+                  : currencyService.formatCurrency(metrics?.currentValueUSD || 0, 'USD')
+                }
               </div>
-              <div className="flex items-center">
-                {metrics && metrics.monthlyGain > 0 ? (
-                  <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-                ) : (
-                  <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
-                )}
-                <span className={`text-sm font-medium ${
-                  metrics && metrics.monthlyGain > 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {metrics ? formatCurrency(Math.abs(metrics.monthlyGain)) : 'R$ 0'} este mês
-                </span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  {metrics && metrics.monthlyGainBRL > 0 ? (
+                    <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
+                  )}
+                  <span className={`text-sm font-medium ${
+                    metrics && metrics.monthlyGainBRL > 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {currencyDisplay === 'BRL'
+                      ? currencyService.formatCurrency(Math.abs(metrics?.monthlyGainBRL || 0), 'BRL')
+                      : currencyService.formatCurrency(Math.abs(metrics?.monthlyGainUSD || 0), 'USD')
+                    } este mês
+                  </span>
+                </div>
               </div>
+              {currencyDisplay === 'BRL' && (
+                <div className="text-xs text-gray-500 mt-2">
+                  ≈ {currencyService.formatCurrency(metrics?.currentValueUSD || 0, 'USD')} em dólares
+                </div>
+              )}
+              {currencyDisplay === 'USD' && (
+                <div className="text-xs text-gray-500 mt-2">
+                  ≈ {currencyService.formatCurrency(metrics?.currentValueBRL || 0, 'BRL')} em reais
+                </div>
+              )}
             </div>
 
             {/* Progresso para Meta */}
@@ -249,7 +359,7 @@ export default function DashboardPage() {
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-2">
                 {userProfile && metrics ? 
-                  Math.round((metrics.currentValue / userProfile.targetAmount) * 100) : 0}%
+                  Math.round((metrics.currentValueBRL / userProfile.targetAmount) * 100) : 0}%
               </div>
               <div className="text-sm text-gray-600">
                 Faltam {metrics ? formatMonths(metrics.monthsToGoal) : 'calculando...'}
@@ -259,13 +369,13 @@ export default function DashboardPage() {
                   className={`h-2 rounded-full ${metrics?.isOnTrack ? 'bg-green-600' : 'bg-yellow-600'}`}
                   style={{ 
                     width: `${userProfile && metrics ? 
-                      Math.min((metrics.currentValue / userProfile.targetAmount) * 100, 100) : 0}%` 
+                      Math.min((metrics.currentValueBRL / userProfile.targetAmount) * 100, 100) : 0}%` 
                   }}
                 ></div>
               </div>
             </div>
 
-            {/* Impacto do Dólar */}
+            {/* Exposição ao Dólar */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
@@ -274,13 +384,50 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-2">
-                {formatCurrency(metrics?.dollarImpact || 0)}
+                {currencyDisplay === 'BRL'
+                  ? currencyService.formatCurrency((metrics?.dollarExposure || 0) * (metrics?.exchangeRate || 5.5), 'BRL')
+                  : currencyService.formatCurrency(metrics?.dollarExposure || 0, 'USD')
+                }
               </div>
               <div className="text-sm text-gray-600">
-                Impacto cambial estimado
+                70% do patrimônio em ETFs
               </div>
               <div className="text-xs text-gray-500 mt-2">
-                💡 Diversifique com ETFs internacionais
+                💡 Diversificação internacional
+              </div>
+            </div>
+          </div>
+
+          {/* Informações do Câmbio */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                <Globe className="w-5 h-5 mr-2 text-blue-600" />
+                Câmbio USD/BRL
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">
+                  R$ {currencyService.formatNumber(metrics?.exchangeRate || 5.5)}
+                </div>
+                <div className="text-sm text-gray-600">Taxa atual</div>
+              </div>
+              
+              <div className="text-center">
+                <div className={`text-2xl font-bold flex items-center justify-center ${getVariationColor(metrics?.exchangeVariation || '0')}`}>
+                  {getVariationIcon(metrics?.exchangeVariation || '0')}
+                  <span className="ml-1">R$ {metrics?.exchangeVariation || '0.00'}</span>
+                </div>
+                <div className="text-sm text-gray-600">Variação</div>
+              </div>
+              
+              <div className="text-center">
+                <div className={`text-2xl font-bold ${getVariationColor(metrics?.exchangeVariation || '0')}`}>
+                  {metrics?.exchangePctChange || '0.00'}%
+                </div>
+                <div className="text-sm text-gray-600">Variação %</div>
               </div>
             </div>
           </div>
