@@ -7,40 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Check, Star, Crown, Globe, TrendingUp, User, AlertCircle } from 'lucide-react';
+import { Check, Star, Crown, Globe, TrendingUp, User, AlertCircle, Loader2 } from 'lucide-react';
 import { PLAN_CONFIGS, SubscriptionPlan, calculateAnnualFee } from '@/types/subscriptions';
 import { useAuth } from '@/hooks/useAuth';
-
-const handleSelectPlan = async (plan: SubscriptionPlan, assets?: number) => {
-  try {
-    const response = await fetch('/api/subscriptions/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        planId: plan, 
-        assetsUnderManagement: assets
-      })
-    });
-
-    const data = await response.json();
-    
-    if (data.success && data.checkout_url) {
-      window.location.href = data.checkout_url;
-    } else if (data.success && data.redirect) {
-      window.location.href = data.redirect;
-    } else if (data.success && data.message) {
-      alert(data.message);
-    } else {
-      throw new Error(data.error || 'Erro ao processar plano');
-    }
-  } catch (error) {
-    console.error('Erro:', error);
-    alert('Erro ao processar solicitação. Tente novamente.');
-  }
-};
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 export default function PricingPage() {
   const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [selectedAssets, setSelectedAssets] = useState<Record<string, number>>({
     WEALTH: 200000,
@@ -48,6 +23,8 @@ export default function PricingPage() {
   });
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<string | null>(null);
 
   // Carregar assinatura atual do usuário
   useEffect(() => {
@@ -57,13 +34,15 @@ export default function PricingPage() {
   }, [user, authLoading]);
 
   const loadCurrentSubscription = async () => {
+    if (!user?.id) return;
+    
     try {
       setLoadingSubscription(true);
-      const response = await fetch('/api/subscriptions/status');
+      const response = await fetch(`/api/subscriptions/status?userId=${user.id}`);
       const data = await response.json();
       
       if (data.success) {
-        setCurrentSubscription(data.subscription);
+        setCurrentSubscription(data.data.subscription);
       }
     } catch (error) {
       console.error('Erro ao carregar assinatura:', error);
@@ -72,11 +51,123 @@ export default function PricingPage() {
     }
   };
 
+  const handleUpgrade = async (planId: string) => {
+    if (!user) {
+      router.push('/auth/signin');
+      return;
+    }
+
+    setIsLoading(planId);
+    
+    try {
+      console.log(`🚀 Iniciando upgrade para plano: ${planId}`);
+      console.log('User ID:', user.id);
+
+      const requestData = {
+        planId: planId.toUpperCase(),
+        userId: user.id,
+        userEmail: user.email,
+        userName: user.user_metadata?.full_name || user.email
+      };
+
+      console.log('📤 Enviando dados:', requestData);
+
+      const response = await fetch('/api/subscriptions/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      const data = await response.json();
+      console.log('📥 Resposta recebida:', { status: response.status, data });
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      if (data.success) {
+        // Processar baseado no tipo de resposta
+        switch (data.type) {
+          case 'immediate':
+            // Plano gratuito ativado imediatamente
+            const immediateMessage = data.upgrade 
+              ? `🎉 ${data.message} Seu plano foi alterado com sucesso!`
+              : data.message || 'Plano ativado com sucesso!';
+            toast.success(immediateMessage);
+            setTimeout(() => router.push('/dashboard'), 1500);
+            break;
+
+          case 'contact':
+            // Planos que precisam de contato
+            const contactMessage = data.upgrade
+              ? `📞 ${data.message} Nossa equipe entrará em contato em breve.`
+              : data.message;
+            toast.success(contactMessage);
+            if (data.redirectUrl) {
+              setTimeout(() => router.push(data.redirectUrl), 2000);
+            }
+            break;
+
+          case 'payment':
+            // Planos pagos - redirecionar para checkout
+            const paymentMessage = data.upgrade
+              ? `💳 ${data.message} Finalize o pagamento para confirmar o upgrade.`
+              : data.message || 'Redirecionando para pagamento...';
+            toast.success(paymentMessage);
+            if (data.checkoutUrl) {
+              setTimeout(() => window.location.href = data.checkoutUrl, 1500);
+            } else {
+              throw new Error('URL de checkout não fornecida');
+            }
+            break;
+
+          default:
+            // Fallback para compatibilidade
+            if (data.checkout_url) {
+              window.location.href = data.checkout_url;
+            } else if (data.redirect) {
+              router.push(data.redirect);
+            } else {
+              toast.success(data.message || 'Operação realizada com sucesso!');
+              router.push('/dashboard');
+            }
+        }
+      } else {
+        throw new Error(data.error || 'Erro desconhecido');
+      }
+
+    } catch (error: any) {
+      console.error('❌ Erro no upgrade:', error);
+      
+      // Mensagens de erro específicas
+      let errorMessage = 'Erro ao processar solicitação';
+      
+      if (error.message.includes('409') || error.message.includes('já possui')) {
+        errorMessage = `⚠️ ${error.message}`;
+      } else if (error.message.includes('400')) {
+        errorMessage = '❌ Dados inválidos fornecidos';
+      } else if (error.message.includes('503')) {
+        errorMessage = '🔧 Serviço de pagamento temporariamente indisponível. Tente novamente em alguns minutos.';
+      } else if (error.message.includes('500')) {
+        errorMessage = '⚠️ Erro interno do servidor. Nossa equipe foi notificada.';
+      } else if (error.message) {
+        errorMessage = `❌ ${error.message}`;
+      }
+
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(null);
+    }
+  };
+
   // Função para renderizar botão baseado no estado do usuário
   const renderPlanButton = (plan: SubscriptionPlan, assets?: number) => {
     const config = PLAN_CONFIGS[plan];
     const isCurrentPlan = currentSubscription?.plan === plan;
     const isActive = currentSubscription?.status === 'ACTIVE';
+    const isProcessing = processingPlan === plan;
     
     // Se não está logado
     if (!user) {
@@ -87,8 +178,10 @@ export default function PricingPage() {
                      plan === 'OFFSHORE' ? 'bg-emerald-600 hover:bg-emerald-700' :
                      'bg-gray-600 hover:bg-gray-700'}`}
           size="lg"
-          onClick={() => handleSelectPlan(plan, assets)}
+          onClick={() => handleUpgrade(plan)}
+          disabled={isProcessing}
         >
+          {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           {plan === 'STARTER' ? 'Começar Grátis' :
            plan === 'PRO' ? (billingCycle === 'annual' ? 'Assinar Pro Anual' : 'Assinar Pro') :
            plan === 'WEALTH' ? 'Solicitar Análise' :
@@ -123,8 +216,10 @@ export default function PricingPage() {
                    plan === 'OFFSHORE' ? 'bg-emerald-600 hover:bg-emerald-700' :
                    'bg-gray-600 hover:bg-gray-700'}`}
         size="lg"
-        onClick={() => handleSelectPlan(plan, assets)}
+        onClick={() => handleUpgrade(plan)}
+        disabled={isProcessing}
       >
+        {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
         {plan === 'STARTER' ? 'Mudar para Starter' :
          plan === 'PRO' ? 'Fazer Upgrade para Pro' :
          plan === 'WEALTH' ? 'Fazer Upgrade para Wealth' :

@@ -84,53 +84,49 @@ class MercadoPagoService {
   // Planos de assinatura disponíveis
   static getSubscriptionPlans() {
     return {
-      basic: {
-        id: 'basic',
-        name: 'ETF Curator Basic',
-        description: 'Acesso às funcionalidades básicas de análise de ETFs',
-        price: 29.90,
+      pro: {
+        id: 'pro',
+        name: 'ETF Curator Pro',
+        description: 'Acesso completo às funcionalidades de análise de ETFs',
+        price: 39.90,
         currency: 'BRL',
         features: [
-          'Comparação de até 4 ETFs',
-          'Rankings atualizados',
-          'Análise básica de risco',
-          'Glossário contextual',
-          'Suporte por email'
+          'Screener avançado ilimitado',
+          'Rankings completos',
+          'Comparação detalhada',
+          'Análise de risco',
+          'Alertas personalizados',
+          'Suporte prioritário'
         ],
         period: 'monthly'
       },
-      premium: {
-        id: 'premium',
-        name: 'ETF Curator Premium',
-        description: 'Análise avançada com IA e recursos exclusivos',
-        price: 59.90,
+      wealth: {
+        id: 'wealth',
+        name: 'ETF Curator Wealth',
+        description: 'Consultoria personalizada para patrimônios altos',
+        price: 0, // Taxa baseada em patrimônio
         currency: 'BRL',
         features: [
-          'Tudo do plano Basic',
-          'Análise IA ilimitada',
-          'Assistente virtual 24/7',
-          'Alertas personalizados',
-          'Dashboard personalizado',
-          'Relatórios em PDF',
-          'Suporte prioritário'
+          'Tudo do plano Pro',
+          'Consultoria dedicada',
+          'Análise personalizada',
+          'Relatórios customizados',
+          'Suporte VIP'
         ],
-        period: 'monthly',
-        recommended: true
+        period: 'monthly'
       },
-      professional: {
-        id: 'professional',
-        name: 'ETF Curator Professional',
-        description: 'Para investidores profissionais e assessores',
-        price: 119.90,
+      offshore: {
+        id: 'offshore',
+        name: 'ETF Curator Offshore',
+        description: 'Aconselhamento para investimentos internacionais',
+        price: 0, // Taxa baseada em patrimônio
         currency: 'BRL',
         features: [
-          'Tudo do plano Premium',
-          'API de acesso aos dados',
-          'Simulador de carteiras',
-          'Backtesting avançado',
-          'White-label disponível',
-          'Consultoria mensal',
-          'Suporte dedicado'
+          'Tudo do plano Wealth',
+          'Estratégias offshore',
+          'Estruturação internacional',
+          'Rede de parceiros globais',
+          'Aconselhamento completo'
         ],
         period: 'monthly'
       }

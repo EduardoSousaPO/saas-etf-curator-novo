@@ -23,6 +23,7 @@ import {
   Crown,
   Star
 } from 'lucide-react';
+import { getPlanConfig } from '@/types/subscriptions';
 
 interface UserProfile {
   name: string;
@@ -57,7 +58,7 @@ interface QuickAction {
 
 export default function DashboardPage() {
   const { user, profile: authProfile, loading: authLoading } = useAuth();
-  const { currentPlan, planConfig, canAccessFeature } = useSubscription();
+  const { currentPlan, canAccessFeature } = useSubscription();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [metrics, setMetrics] = useState<SimpleMetrics | null>(null);
   const [quickActions, setQuickActions] = useState<QuickAction[]>([]);
@@ -272,7 +273,7 @@ export default function DashboardPage() {
                 >
                   {currentPlan === 'STARTER' && <Star className="w-4 h-4 mr-1" />}
                   {(currentPlan === 'WEALTH' || currentPlan === 'OFFSHORE') && <Crown className="w-4 h-4 mr-1" />}
-                  {planConfig?.name || currentPlan}
+                  {getPlanConfig(currentPlan).name}
                 </Badge>
                 
                 <button
@@ -326,7 +327,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">
-                        Plano {planConfig?.name || currentPlan} Ativo
+                        Plano {getPlanConfig(currentPlan).name} Ativo
                       </h3>
                       <p className="text-sm text-gray-600">
                         Você tem acesso completo a todas as funcionalidades premium
