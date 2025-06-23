@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,9 +13,7 @@ import {
   MessageCircle,
   DollarSign,
   Clock,
-  User,
   Target,
-  Calendar,
   RefreshCw
 } from 'lucide-react';
 
@@ -46,11 +44,7 @@ export default function AdminContatosPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('PENDENTE');
 
-  useEffect(() => {
-    loadContatos();
-  }, [statusFilter]);
-
-  const loadContatos = async () => {
+  const loadContatos = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/contato?status=${statusFilter}`);
@@ -66,7 +60,11 @@ export default function AdminContatosPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter]);
+
+  useEffect(() => {
+    loadContatos();
+  }, [loadContatos]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -177,7 +175,7 @@ export default function AdminContatosPage() {
                     Nenhum contato encontrado
                   </h3>
                   <p className="text-gray-600">
-                    Não há contatos com status "{statusFilter.replace('_', ' ')}"
+                    Não há contatos com status &quot;{statusFilter.replace('_', ' ')}&quot;
                   </p>
                 </CardContent>
               </Card>
