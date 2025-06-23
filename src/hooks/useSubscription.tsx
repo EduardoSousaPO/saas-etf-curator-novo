@@ -1,0 +1,251 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { SubscriptionService } from '@/lib/subscriptions/subscription-service';
+import { 
+  Subscription, 
+  SubscriptionPlan, 
+  PlanFeature, 
+  UsageLimits,
+  WealthOnboarding,
+  OffshoreOnboarding,
+  getPlanConfig
+} from '@/types/subscriptions';
+
+interface UseSubscriptionReturn {
+  // Estado atual
+  subscription: Subscription | null;
+  currentPlan: SubscriptionPlan;
+  features: PlanFeature[];
+  usageLimits: UsageLimits | null;
+  
+  // Estados de loading
+  loading: boolean;
+  featuresLoading: boolean;
+  
+  // Funções
+  createSubscription: (plan: SubscriptionPlan, assets?: number) => Promise<boolean>;
+  canAccessFeature: (featureKey: string) => boolean;
+  hasReachedLimit: (usageType: 'screener_queries' | 'export_reports' | 'portfolio_simulations') => Promise<boolean>;
+  incrementUsage: (usageType: 'screener_queries' | 'export_reports' | 'portfolio_simulations') => Promise<boolean>;
+  refreshSubscription: () => Promise<void>;
+  
+  // Wealth/Offshore onboarding
+  wealthOnboarding: WealthOnboarding | null;
+  offshoreOnboarding: OffshoreOnboarding | null;
+  createWealthOnboarding: () => Promise<boolean>;
+  createOffshoreOnboarding: () => Promise<boolean>;
+}
+
+export function useSubscription(): UseSubscriptionReturn {
+  const { user } = useAuth();
+  
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [features, setFeatures] = useState<PlanFeature[]>([]);
+  const [usageLimits, setUsageLimits] = useState<UsageLimits | null>(null);
+  const [wealthOnboarding, setWealthOnboarding] = useState<WealthOnboarding | null>(null);
+  const [offshoreOnboarding, setOffshoreOnboarding] = useState<OffshoreOnboarding | null>(null);
+  
+  const [loading, setLoading] = useState(true);
+  const [featuresLoading, setFeaturesLoading] = useState(true);
+
+  // Determinar plano atual (padrão STARTER se não tiver assinatura)
+  const currentPlan: SubscriptionPlan = subscription?.plan || 'STARTER';
+
+  // Carregar dados iniciais
+  const loadSubscriptionData = useCallback(async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Carregar assinatura ativa
+      const userSubscription = await SubscriptionService.getUserSubscription(user.id);
+      setSubscription(userSubscription);
+      
+      // Carregar limites de uso
+      const limits = await SubscriptionService.getCurrentUsageLimits(user.id);
+      setUsageLimits(limits);
+      
+      // Carregar onboarding se aplicável
+      if (userSubscription?.plan === 'WEALTH') {
+        const wealth = await SubscriptionService.getWealthOnboarding(user.id);
+        setWealthOnboarding(wealth);
+      }
+      
+      if (userSubscription?.plan === 'OFFSHORE') {
+        const offshore = await SubscriptionService.getOffshoreOnboarding(user.id);
+        setOffshoreOnboarding(offshore);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao carregar dados da assinatura:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  // Carregar features do plano atual
+  const loadPlanFeatures = useCallback(async () => {
+    try {
+      setFeaturesLoading(true);
+      const planFeatures = await SubscriptionService.getPlanFeatures(currentPlan);
+      setFeatures(planFeatures);
+    } catch (error) {
+      console.error('Erro ao carregar features do plano:', error);
+    } finally {
+      setFeaturesLoading(false);
+    }
+  }, [currentPlan]);
+
+  // Criar nova assinatura
+  const createSubscription = useCallback(async (
+    plan: SubscriptionPlan, 
+    assets?: number
+  ): Promise<boolean> => {
+    if (!user?.id) return false;
+
+    try {
+      const newSubscription = await SubscriptionService.createSubscription(
+        user.id, 
+        plan, 
+        assets
+      );
+      
+      if (newSubscription) {
+        setSubscription(newSubscription);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Erro ao criar assinatura:', error);
+      return false;
+    }
+  }, [user?.id]);
+
+  // Verificar se pode acessar funcionalidade
+  const canAccessFeature = useCallback((featureKey: string): boolean => {
+    const feature = features.find(f => f.feature_key === featureKey);
+    return feature?.is_enabled ?? false;
+  }, [features]);
+
+  // Verificar se atingiu limite
+  const hasReachedLimit = useCallback(async (
+    usageType: 'screener_queries' | 'export_reports' | 'portfolio_simulations'
+  ): Promise<boolean> => {
+    if (!user?.id) return false;
+    return await SubscriptionService.hasReachedLimit(user.id, usageType);
+  }, [user?.id]);
+
+  // Incrementar uso
+  const incrementUsage = useCallback(async (
+    usageType: 'screener_queries' | 'export_reports' | 'portfolio_simulations'
+  ): Promise<boolean> => {
+    if (!user?.id) return false;
+    
+    const success = await SubscriptionService.incrementUsage(user.id, usageType);
+    
+    // Atualizar limites localmente
+    if (success && usageLimits) {
+      const fieldName = `${usageType}_used` as keyof UsageLimits;
+      const currentValue = (usageLimits[fieldName] as number) || 0;
+      setUsageLimits({
+        ...usageLimits,
+        [fieldName]: currentValue + 1
+      });
+    }
+    
+    return success;
+  }, [user?.id, usageLimits]);
+
+  // Atualizar dados da assinatura
+  const refreshSubscription = useCallback(async () => {
+    await loadSubscriptionData();
+  }, [loadSubscriptionData]);
+
+  // Criar onboarding Wealth
+  const createWealthOnboarding = useCallback(async (): Promise<boolean> => {
+    if (!user?.id) return false;
+    
+    try {
+      const onboarding = await SubscriptionService.createWealthOnboarding(user.id);
+      if (onboarding) {
+        setWealthOnboarding(onboarding);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Erro ao criar onboarding Wealth:', error);
+      return false;
+    }
+  }, [user?.id]);
+
+  // Criar onboarding Offshore
+  const createOffshoreOnboarding = useCallback(async (): Promise<boolean> => {
+    if (!user?.id) return false;
+    
+    try {
+      const onboarding = await SubscriptionService.createOffshoreOnboarding(user.id);
+      if (onboarding) {
+        setOffshoreOnboarding(onboarding);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Erro ao criar onboarding Offshore:', error);
+      return false;
+    }
+  }, [user?.id]);
+
+  // Efeitos
+  useEffect(() => {
+    loadSubscriptionData();
+  }, [loadSubscriptionData]);
+
+  useEffect(() => {
+    loadPlanFeatures();
+  }, [loadPlanFeatures]);
+
+  return {
+    // Estado atual
+    subscription,
+    currentPlan,
+    features,
+    usageLimits,
+    
+    // Estados de loading
+    loading,
+    featuresLoading,
+    
+    // Funções
+    createSubscription,
+    canAccessFeature,
+    hasReachedLimit,
+    incrementUsage,
+    refreshSubscription,
+    
+    // Wealth/Offshore onboarding
+    wealthOnboarding,
+    offshoreOnboarding,
+    createWealthOnboarding,
+    createOffshoreOnboarding
+  };
+}
+
+// Hook auxiliar para verificar plano específico
+export function usePlanCheck() {
+  const { currentPlan } = useSubscription();
+  
+  return {
+    isStarter: currentPlan === 'STARTER',
+    isPro: currentPlan === 'PRO',
+    isWealth: currentPlan === 'WEALTH',
+    isOffshore: currentPlan === 'OFFSHORE',
+    isPaid: currentPlan !== 'STARTER',
+    isFeeBased: currentPlan === 'WEALTH' || currentPlan === 'OFFSHORE',
+    planConfig: getPlanConfig(currentPlan)
+  };
+} 

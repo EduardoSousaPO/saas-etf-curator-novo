@@ -8,7 +8,6 @@ datasource db {
   provider          = "postgresql"
   url               = env("DATABASE_URL")
   directUrl         = env("DIRECT_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
   extensions        = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
   schemas           = ["auth", "public"]
 }
@@ -324,6 +323,11 @@ model users {
   one_time_tokens             one_time_tokens[]
   sessions                    sessions[]
   user_profiles               user_profiles?
+  subscriptions               subscriptions[]
+  payments                    payments[]
+  usage_limits                usage_limits[]
+  wealth_onboarding           wealth_onboarding?
+  offshore_onboarding         offshore_onboarding?
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -536,5 +540,243 @@ enum alert_type {
   volume_spike
   dividend_announcement
 
+  @@schema("public")
+}
+
+// Enums para sistema de assinaturas
+enum subscription_plan {
+  STARTER
+  PRO
+  WEALTH
+  OFFSHORE
+
+  @@schema("public")
+}
+
+enum subscription_status {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PENDING
+  TRIAL
+
+  @@schema("public")
+}
+
+enum payment_status {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+
+  @@schema("public")
+}
+
+enum payment_method {
+  MERCADO_PAGO
+  CREDIT_CARD
+  PIX
+  BANK_TRANSFER
+
+  @@schema("public")
+}
+
+// Tabelas do sistema de assinaturas
+model subscriptions {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id               String              @db.Uuid
+  plan                  subscription_plan
+  status                subscription_status @default(PENDING)
+  started_at            DateTime            @default(now()) @db.Timestamptz(6)
+  expires_at            DateTime?           @db.Timestamptz(6)
+  cancelled_at          DateTime?           @db.Timestamptz(6)
+  trial_ends_at         DateTime?           @db.Timestamptz(6)
+  
+  // Campos específicos para planos Wealth e Offshore
+  assets_under_management Decimal?          @db.Decimal(15, 2) // Para cálculo do fee
+  annual_fee             Decimal?           @db.Decimal(10, 2) // Fee calculado anualmente
+  monthly_fee            Decimal?           @db.Decimal(10, 2) // Fee dividido por 12
+  
+  // Metadados
+  metadata              Json?               @db.Json
+  created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime            @updatedAt @db.Timestamptz(6)
+  
+  // Relacionamentos
+  user                  users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  payments              payments[]
+  usage_limits          usage_limits[]
+  
+  @@index([user_id])
+  @@index([status])
+  @@index([plan])
+  @@index([expires_at])
+  @@schema("public")
+}
+
+model payments {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscription_id       String              @db.Uuid
+  user_id               String              @db.Uuid
+  
+  // Dados do pagamento
+  amount                Decimal             @db.Decimal(10, 2)
+  currency              String              @default("BRL") @db.VarChar(3)
+  status                payment_status      @default(PENDING)
+  method                payment_method?
+  
+  // Dados do período
+  period_start          DateTime            @db.Timestamptz(6)
+  period_end            DateTime            @db.Timestamptz(6)
+  
+  // Integração com Mercado Pago
+  external_payment_id   String?             @unique @db.VarChar(255) // ID do Mercado Pago
+  external_data         Json?               @db.Json // Dados completos da resposta do MP
+  
+  // Metadados
+  description           String?             @db.Text
+  metadata              Json?               @db.Json
+  paid_at               DateTime?           @db.Timestamptz(6)
+  created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime            @updatedAt @db.Timestamptz(6)
+  
+  // Relacionamentos
+  subscription          subscriptions       @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
+  user                  users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([subscription_id])
+  @@index([user_id])
+  @@index([status])
+  @@index([external_payment_id])
+  @@index([created_at])
+  @@schema("public")
+}
+
+model usage_limits {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscription_id       String              @db.Uuid
+  user_id               String              @db.Uuid
+  
+  // Limites por funcionalidade
+  screener_queries_limit Int?               // Limite de consultas no screener por dia
+  screener_queries_used  Int                @default(0)
+  
+  export_reports_limit   Int?               // Limite de relatórios exportados por mês
+  export_reports_used    Int                @default(0)
+  
+  portfolio_simulations_limit Int?          // Limite de simulações por dia
+  portfolio_simulations_used   Int          @default(0)
+  
+  // Controle de período
+  period_start          DateTime            @db.Timestamptz(6)
+  period_end            DateTime            @db.Timestamptz(6)
+  
+  // Metadados
+  created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime            @updatedAt @db.Timestamptz(6)
+  
+  // Relacionamentos
+  subscription          subscriptions       @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
+  user                  users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@unique([subscription_id, period_start])
+  @@index([user_id])
+  @@index([period_start, period_end])
+  @@schema("public")
+}
+
+model plan_features {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan                  subscription_plan
+  feature_key           String              @db.VarChar(100) // Ex: "screener_advanced", "dashboard_widgets"
+  feature_name          String              @db.VarChar(255)
+  feature_description   String?             @db.Text
+  is_enabled            Boolean             @default(true)
+  limit_value           Int?                // Valor numérico do limite (se aplicável)
+  
+  // Metadados
+  created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime            @updatedAt @db.Timestamptz(6)
+  
+  @@unique([plan, feature_key])
+  @@index([plan])
+  @@index([feature_key])
+  @@schema("public")
+}
+
+model wealth_onboarding {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id               String              @unique @db.Uuid
+  
+  // Status do processo
+  status                String              @default("INITIAL") @db.VarChar(50) // INITIAL, DIAGNOSIS_SCHEDULED, DIAGNOSIS_COMPLETED, PRESENTATION_SCHEDULED, APPROVED, REJECTED
+  
+  // Dados do diagnóstico
+  current_portfolio_value Decimal?          @db.Decimal(15, 2)
+  investment_goals      Json?               @db.Json // Objetivos estruturados
+  risk_tolerance        String?             @db.VarChar(50)
+  investment_experience String?             @db.VarChar(50)
+  
+  // Agendamentos
+  diagnosis_scheduled_at DateTime?          @db.Timestamptz(6)
+  presentation_scheduled_at DateTime?       @db.Timestamptz(6)
+  
+  // Notas do consultor
+  consultant_notes      Json?               @db.Json
+  approval_reason       String?             @db.Text
+  rejection_reason      String?             @db.Text
+  
+  // Metadados
+  created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime            @updatedAt @db.Timestamptz(6)
+  
+  // Relacionamentos
+  user                  users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([status])
+  @@index([created_at])
+  @@schema("public")
+}
+
+model offshore_onboarding {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id               String              @unique @db.Uuid
+  
+  // Status do processo
+  status                String              @default("INITIAL") @db.VarChar(50) // INITIAL, DIAGNOSIS_SCHEDULED, DUE_DILIGENCE, STRUCTURE_PLANNED, APPROVED, REJECTED
+  
+  // Dados do diagnóstico offshore
+  total_assets          Decimal?            @db.Decimal(15, 2)
+  offshore_goals        Json?               @db.Json // Objetivos de estruturação
+  tax_residency         String?             @db.VarChar(100)
+  business_activities   Json?               @db.Json
+  
+  // Due diligence
+  compliance_check      Json?               @db.Json
+  documentation_status  Json?               @db.Json
+  
+  // Estruturação
+  recommended_structure Json?               @db.Json
+  estimated_costs       Decimal?            @db.Decimal(10, 2)
+  
+  // Agendamentos
+  diagnosis_scheduled_at DateTime?          @db.Timestamptz(6)
+  structure_meeting_at  DateTime?          @db.Timestamptz(6)
+  
+  // Notas do consultor
+  consultant_notes      Json?               @db.Json
+  approval_reason       String?             @db.Text
+  rejection_reason      String?             @db.Text
+  
+  // Metadados
+  created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime            @updatedAt @db.Timestamptz(6)
+  
+  // Relacionamentos
+  user                  users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([status])
+  @@index([created_at])
   @@schema("public")
 }

@@ -4,6 +4,7 @@ import { TrendingUp, Search, BarChart3, Shield, Award, ArrowRight } from "lucide
 import Navbar from "@/components/layout/Navbar";
 import HeroStats from "@/components/landing/HeroStats";
 import ETFShowcase from "@/components/landing/ETFShowcase";
+import { ROISection } from "@/components/landing/ROISection";
 
 export default function HomePage() {
   return (
@@ -134,9 +135,9 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Conservador</h3>
                 <div className="text-sm text-gray-600 mb-4">
-                  1.674 ETFs • Volatilidade média: 8.56%
+                  751 ETFs • Volatilidade média: 4.38%
                 </div>
-                <div className="text-2xl font-bold text-green-600 mb-2">7.40%</div>
+                <div className="text-2xl font-bold text-green-600 mb-2">4.55%</div>
                 <div className="text-sm text-gray-500">Retorno médio anual</div>
               </div>
 
@@ -147,9 +148,9 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Moderado</h3>
                 <div className="text-sm text-gray-600 mb-4">
-                  1.121 ETFs • Volatilidade média: 19.28%
+                  1.535 ETFs • Volatilidade média: 14.01%
                 </div>
-                <div className="text-2xl font-bold text-green-600 mb-2">8.77%</div>
+                <div className="text-2xl font-bold text-green-600 mb-2">9.55%</div>
                 <div className="text-sm text-gray-500">Retorno médio anual</div>
               </div>
 
@@ -160,9 +161,9 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Arrojado</h3>
                 <div className="text-sm text-gray-600 mb-4">
-                  337 ETFs • Volatilidade média: 28.98%
+                  698 ETFs • Volatilidade média: 23.25%
                 </div>
-                <div className="text-2xl font-bold text-green-600 mb-2">5.03%</div>
+                <div className="text-2xl font-bold text-green-600 mb-2">7.01%</div>
                 <div className="text-sm text-gray-500">Retorno médio anual</div>
               </div>
 
@@ -173,14 +174,162 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Especulativo</h3>
                 <div className="text-sm text-gray-600 mb-4">
-                  255 ETFs • Volatilidade média: 51.25%
+                  451 ETFs • Volatilidade média: 45.72%
                 </div>
-                <div className="text-2xl font-bold text-green-600 mb-2">8.98%</div>
+                <div className="text-2xl font-bold text-green-600 mb-2">0.24%</div>
                 <div className="text-sm text-gray-500">Retorno médio anual</div>
               </div>
             </div>
           </div>
         </section>
+
+        {/* Seção de Planos */}
+        <section className="py-20 px-6 bg-gradient-to-br from-gray-50 to-white">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                Planos Flexíveis para Todos os Investidores
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Desde análises básicas até consultoria especializada com estruturação offshore
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Plano Starter */}
+              <div className="bg-white p-8 rounded-2xl border border-gray-200 hover:shadow-lg transition-shadow">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Shield className="w-8 h-8 text-gray-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Starter</h3>
+                  <p className="text-gray-600 mb-4">Para começar sua jornada</p>
+                  <div className="text-3xl font-bold text-green-600 mb-6">Gratuito</div>
+                  
+                  <ul className="text-sm text-gray-600 space-y-2 mb-8">
+                    <li>• Dashboard básico (3 widgets)</li>
+                    <li>• Screener limitado (2 filtros)</li>
+                    <li>• Rankings top 5</li>
+                    <li>• Comparador (2 ETFs)</li>
+                    <li>• Dados 12 meses</li>
+                  </ul>
+                  
+                  <Link 
+                    href="/pricing"
+                    className="w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors inline-block text-center"
+                  >
+                    Começar Grátis
+                  </Link>
+                </div>
+              </div>
+
+              {/* Plano Pro - Destaque */}
+              <div className="bg-white p-8 rounded-2xl border-2 border-blue-500 hover:shadow-xl transition-shadow relative">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <span className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                    Mais Popular
+                  </span>
+                </div>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <TrendingUp className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Pro</h3>
+                  <p className="text-gray-600 mb-4">Para investidores ativos</p>
+                  <div className="text-3xl font-bold text-blue-600 mb-2">R$ 39,90</div>
+                  <div className="text-gray-500 mb-6">/mês</div>
+                  
+                  <ul className="text-sm text-gray-600 space-y-2 mb-8">
+                    <li>• Dashboard completo</li>
+                    <li>• Screener avançado (6 filtros)</li>
+                    <li>• Rankings top 10</li>
+                    <li>• Comparador (4 ETFs)</li>
+                    <li>• Simulador com cenários</li>
+                    <li>• Dados históricos completos</li>
+                  </ul>
+                  
+                  <Link 
+                    href="/pricing"
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors inline-block text-center"
+                  >
+                    Assinar Pro
+                  </Link>
+                </div>
+              </div>
+
+              {/* Plano Wealth */}
+              <div className="bg-white p-8 rounded-2xl border border-purple-200 hover:shadow-lg transition-shadow">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Award className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Wealth</h3>
+                  <p className="text-gray-600 mb-4">Consultoria personalizada</p>
+                  <div className="text-2xl font-bold text-purple-600 mb-2">1% a.a.</div>
+                  <div className="text-gray-500 mb-6">sobre patrimônio</div>
+                  
+                  <ul className="text-sm text-gray-600 space-y-2 mb-8">
+                    <li>• Tudo do Pro incluído</li>
+                    <li>• Consultoria especializada</li>
+                    <li>• Relatórios personalizados</li>
+                    <li>• Rebalanceamento assistido</li>
+                    <li>• Mínimo: R$ 200.000</li>
+                  </ul>
+                  
+                  <Link 
+                    href="/pricing"
+                    className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors inline-block text-center"
+                  >
+                    Solicitar Análise
+                  </Link>
+                </div>
+              </div>
+
+              {/* Plano Offshore */}
+              <div className="bg-white p-8 rounded-2xl border border-emerald-200 hover:shadow-lg transition-shadow">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <BarChart3 className="w-8 h-8 text-emerald-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Offshore</h3>
+                  <p className="text-gray-600 mb-4">Aconselhamento internacional</p>
+                  <div className="text-2xl font-bold text-emerald-600 mb-2">0.8% a.a.</div>
+                  <div className="text-gray-500 mb-6">sobre patrimônio</div>
+                  
+                  <ul className="text-sm text-gray-600 space-y-2 mb-8">
+                    <li>• Tudo do Wealth incluído</li>
+                    <li>• Aconselhamento em estruturação offshore</li>
+                    <li>• Rede de parceiros globais</li>
+                    <li>• Planejamento tributário</li>
+                    <li>• Mínimo: R$ 1.000.000</li>
+                  </ul>
+                  
+                  <Link 
+                    href="/pricing"
+                    className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors inline-block text-center"
+                  >
+                    Solicitar Contato
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center mt-12">
+              <p className="text-gray-600 mb-6">
+                Todos os planos incluem dados validados de 4.409 ETFs e atualizações em tempo real
+              </p>
+              <Link 
+                href="/pricing"
+                className="text-blue-600 font-semibold hover:text-blue-700 inline-flex items-center gap-2"
+              >
+                Ver Comparação Completa <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Seção de ROI */}
+        <ROISection />
 
         {/* CTA Final */}
         <section className="py-20 px-6 bg-gradient-to-r from-blue-600 to-purple-600">
@@ -192,10 +341,10 @@ export default function HomePage() {
               Descubra os melhores ETFs para seu perfil com base em dados reais de performance e risco
             </p>
             <Link 
-              href="/onboarding"
+              href="/pricing"
               className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-flex items-center gap-2"
             >
-              Iniciar Análise Gratuita
+              Ver Planos e Preços
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>

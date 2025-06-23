@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import RequireAuth from '@/components/auth/RequireAuth';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
+import { FeatureGate } from '@/components/subscriptions/FeatureGate';
+import { Badge } from '@/components/ui/badge';
 import { currencyService } from '@/lib/currency';
 import { 
   TrendingUp, 
@@ -16,7 +19,9 @@ import {
   Lightbulb,
   Shield,
   Globe,
-  RefreshCw
+  RefreshCw,
+  Crown,
+  Star
 } from 'lucide-react';
 
 interface UserProfile {
@@ -52,6 +57,7 @@ interface QuickAction {
 
 export default function DashboardPage() {
   const { user, profile: authProfile, loading: authLoading } = useAuth();
+  const { currentPlan, planConfig, canAccessFeature } = useSubscription();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [metrics, setMetrics] = useState<SimpleMetrics | null>(null);
   const [quickActions, setQuickActions] = useState<QuickAction[]>([]);
@@ -243,12 +249,42 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header Personalizado */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Olá, {userProfile?.name}! 👋
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Vamos verificar como está seu progresso para {userProfile?.objective.toLowerCase()}
-            </p>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Olá, {userProfile?.name}! 👋
+                </h1>
+                <p className="text-gray-600 mt-2">
+                  Vamos verificar como está seu progresso para {userProfile?.objective.toLowerCase()}
+                </p>
+              </div>
+              
+              {/* Badge do Plano */}
+              <div className="flex items-center space-x-3">
+                <Badge 
+                  variant="secondary" 
+                  className={`${
+                    currentPlan === 'STARTER' ? 'bg-gray-100 text-gray-800' :
+                    currentPlan === 'PRO' ? 'bg-blue-100 text-blue-800' :
+                    currentPlan === 'WEALTH' ? 'bg-purple-100 text-purple-800' :
+                    'bg-emerald-100 text-emerald-800'
+                  }`}
+                >
+                  {currentPlan === 'STARTER' && <Star className="w-4 h-4 mr-1" />}
+                  {(currentPlan === 'WEALTH' || currentPlan === 'OFFSHORE') && <Crown className="w-4 h-4 mr-1" />}
+                  {planConfig?.name || currentPlan}
+                </Badge>
+                
+                {currentPlan === 'STARTER' && (
+                  <button
+                    onClick={() => window.location.href = '/pricing'}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    Fazer Upgrade
+                  </button>
+                )}
+              </div>
+            </div>
             
             {/* Aviso sobre ETFs */}
             <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -299,7 +335,7 @@ export default function DashboardPage() {
 
           {/* Métricas Principais - O que Realmente Importa */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Patrimônio Atual */}
+            {/* Widget 1: Patrimônio Atual - Sempre disponível */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
@@ -342,7 +378,7 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Progresso para Meta */}
+            {/* Widget 2: Progresso para Meta - Sempre disponível */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
@@ -373,27 +409,40 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Exposição ao Dólar */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <Shield className="w-5 h-5 text-purple-600 mr-2" />
-                  <h3 className="text-sm font-medium text-gray-600">Exposição USD</h3>
+            {/* Widget 3: Exposição ao Dólar - Apenas PRO+ */}
+            <FeatureGate 
+              featureKey="dashboard_complete"
+              requiredPlan="PRO"
+              fallback={
+                <div className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center text-center">
+                  <Shield className="w-8 h-8 text-gray-400 mb-2" />
+                  <h3 className="text-sm font-medium text-gray-600 mb-1">Widget Premium</h3>
+                  <p className="text-xs text-gray-500 mb-3">Análise de exposição ao dólar</p>
+                  <Badge variant="outline" className="text-xs">PRO+</Badge>
+                </div>
+              }
+            >
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <Shield className="w-5 h-5 text-purple-600 mr-2" />
+                    <h3 className="text-sm font-medium text-gray-600">Exposição USD</h3>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">
+                  {currencyDisplay === 'BRL'
+                    ? currencyService.formatCurrency((metrics?.dollarExposure || 0) * (metrics?.exchangeRate || 5.5), 'BRL')
+                    : currencyService.formatCurrency(metrics?.dollarExposure || 0, 'USD')
+                  }
+                </div>
+                <div className="text-sm text-gray-600">
+                  70% do patrimônio em ETFs
+                </div>
+                <div className="text-xs text-gray-500 mt-2">
+                  💡 Diversificação internacional
                 </div>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">
-                {currencyDisplay === 'BRL'
-                  ? currencyService.formatCurrency((metrics?.dollarExposure || 0) * (metrics?.exchangeRate || 5.5), 'BRL')
-                  : currencyService.formatCurrency(metrics?.dollarExposure || 0, 'USD')
-                }
-              </div>
-              <div className="text-sm text-gray-600">
-                70% do patrimônio em ETFs
-              </div>
-              <div className="text-xs text-gray-500 mt-2">
-                💡 Diversificação internacional
-              </div>
-            </div>
+            </FeatureGate>
           </div>
 
           {/* Informações do Câmbio */}

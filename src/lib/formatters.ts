@@ -1,34 +1,38 @@
 /**
  * Funções utilitárias para formatação consistente de métricas de ETFs
  * 
- * Padrões de dados CONFIRMADOS pela análise técnica:
- * - Percentuais: Vêm em formato DECIMAL do banco (0.1234 = 12.34%)
+ * Padrões de dados CONFIRMADOS pela análise do banco:
+ * - Percentuais (returns, volatility, dividends): Vêm em formato DECIMAL (0.359224 = 35.92%)
  * - Valores monetários: Em dólares
- * - Sharpe Ratio: Número absoluto (não percentual)
+ * - Sharpe Ratio: Número absoluto (não percentual, não multiplicar por 100)
+ * - Expense Ratio: Já vem em formato percentual (4.42 = 4.42%)
  * 
- * CORREÇÃO CRÍTICA: Dados percentuais precisam ser multiplicados por 100 para exibição
+ * CORREÇÃO APLICADA: Dados percentuais do banco precisam ser multiplicados por 100
  */
 
 /**
- * VERSÃO UNIFICADA E CORRETA - Formata um valor percentual
- * @param value - Valor em formato decimal do banco (0.1234 = 12.34%)
+ * VERSÃO CORRIGIDA - Formata um valor percentual vindo como decimal do banco
+ * @param value - Valor em formato decimal do banco (0.359224 = 35.92%)
  * @returns String formatada com símbolo de porcentagem
  */
 export const formatPercentage = (value: number | null | undefined, decimals: number = 2): string => {
   if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-  // CORREÇÃO: Os dados vêm em formato decimal do banco (0.1234 = 12.34%)
-  // Multiplicar por 100 para converter para percentual
-  return `${(Number(value) * 100).toFixed(decimals)}%`;
+  
+  const numValue = Number(value);
+  
+  // CORREÇÃO BASEADA NA ANÁLISE REAL DO BANCO:
+  // Os dados vêm em formato DECIMAL e precisam ser multiplicados por 100
+  // Ex: 0.359224 = 35.92%, 2.9938 = 299.38%, 0.162 = 16.2%
+  return `${(numValue * 100).toFixed(decimals)}%`;
 };
 
 /**
- * DEPRECATED - Use formatPercentage() - Mantido para compatibilidade temporária
+ * Formata valores que já vêm em formato percentual (como expense_ratio)
  * @param value - Valor já em formato percentual (4.42 = 4.42%)
  * @returns String formatada com símbolo de porcentagem
- * @deprecated Use formatPercentage() que agora é a versão unificada
  */
 export const formatPercentageAlready = (value: number | null | undefined, decimals: number = 2): string => {
-  if (value === null || value === undefined) return 'N/A';
+  if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
   // Para valores como expense_ratio que já vêm em formato percentual (4.42 = 4.42%)
   return `${Number(value).toFixed(decimals)}%`;
 };
@@ -39,18 +43,20 @@ export const formatPercentageAlready = (value: number | null | undefined, decima
  * @returns String formatada com símbolo de dólar e sufixo (B/M)
  */
 export const formatCurrency = (value: number | null | undefined): string => {
-  if (value === null || value === undefined) return 'N/A';
+  if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
   
-  if (value >= 1_000_000_000) {
-    return `$${(value / 1_000_000_000).toFixed(2)}B`;
+  const numValue = Number(value);
+  
+  if (numValue >= 1_000_000_000) {
+    return `$${(numValue / 1_000_000_000).toFixed(2)}B`;
   }
-  if (value >= 1_000_000) {
-    return `$${(value / 1_000_000).toFixed(2)}M`;
+  if (numValue >= 1_000_000) {
+    return `$${(numValue / 1_000_000).toFixed(2)}M`;
   }
-  if (value >= 1_000) {
-    return `$${(value / 1_000).toFixed(2)}K`;
+  if (numValue >= 1_000) {
+    return `$${(numValue / 1_000).toFixed(2)}K`;
   }
-  return `$${value.toFixed(2)}`;
+  return `$${numValue.toFixed(2)}`;
 };
 
 /**
@@ -60,8 +66,8 @@ export const formatCurrency = (value: number | null | undefined): string => {
  * @returns String formatada
  */
 export const formatNumber = (value: number | null | undefined, decimals: number = 2): string => {
-  if (value === null || value === undefined) return 'N/A';
-  return value.toFixed(decimals);
+  if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
+  return Number(value).toFixed(decimals);
 };
 
 /**
@@ -70,15 +76,17 @@ export const formatNumber = (value: number | null | undefined, decimals: number 
  * @returns String formatada com sufixo (M/K)
  */
 export const formatVolume = (value: number | null | undefined): string => {
-  if (value === null || value === undefined) return 'N/A';
+  if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
   
-  if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(1)}M`;
+  const numValue = Number(value);
+  
+  if (numValue >= 1_000_000) {
+    return `${(numValue / 1_000_000).toFixed(1)}M`;
   }
-  if (value >= 1_000) {
-    return `${(value / 1_000).toFixed(1)}K`;
+  if (numValue >= 1_000) {
+    return `${(numValue / 1_000).toFixed(1)}K`;
   }
-  return value.toFixed(0);
+  return numValue.toFixed(0);
 };
 
 /**
@@ -115,12 +123,14 @@ export const getValueColor = (value: number | null | undefined): string => {
  * @param type - Tipo de métrica
  * @returns String formatada apropriadamente
  */
-export type MetricType = 'percentage' | 'currency' | 'number' | 'volume' | 'sharpe';
+export type MetricType = 'percentage' | 'percentage_already' | 'currency' | 'number' | 'volume' | 'sharpe';
 
 export const formatMetric = (value: number | null | undefined, type: MetricType): string => {
   switch (type) {
     case 'percentage':
-      return formatPercentage(value);
+      return formatPercentage(value); // Para dados decimais do banco
+    case 'percentage_already':
+      return formatPercentageAlready(value); // Para dados já em formato percentual
     case 'currency':
       return formatCurrency(value);
     case 'volume':
@@ -156,15 +166,15 @@ export const METRIC_TYPES: Record<string, MetricType> = {
   sharpe_36m: 'sharpe',
   ten_year_sharpe: 'sharpe',
   
-  // Dividendos
+  // Dividendos - CORRIGIDO: dividends_12m é percentual, não currency
   dividend_yield: 'percentage',
-  dividends_12m: 'currency',
-  dividends_24m: 'currency',
-  dividends_36m: 'currency',
-  dividends_all_time: 'currency',
+  dividends_12m: 'percentage', // CORRIGIDO: era currency, agora é percentage
+  dividends_24m: 'percentage', // CORRIGIDO: era currency, agora é percentage
+  dividends_36m: 'percentage', // CORRIGIDO: era currency, agora é percentage
+  dividends_all_time: 'percentage', // CORRIGIDO: era currency, agora é percentage
   
   // Outros
-  expense_ratio: 'percentage',
+  expense_ratio: 'percentage_already', // Expense ratio já vem em formato percentual
   total_assets: 'currency',
   volume: 'volume',
   max_drawdown: 'percentage',

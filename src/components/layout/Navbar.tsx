@@ -7,13 +7,20 @@ import { useAuth } from "@/hooks/useAuth";
 import React, { useState } from "react";
 import { Menu, X, LogOut, Settings } from "lucide-react";
 
-const navItems = [
+// Navegação para usuários não autenticados (público)
+const publicNavItems = [
+  { href: "/", label: "Início" },
+  { href: "/pricing", label: "Preços" },
+];
+
+// Navegação para usuários autenticados (privado)
+const privateNavItems = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/comparador", label: "Comparador" },
   { href: "/simulador", label: "Simulador" },
   { href: "/rankings", label: "Rankings" },
   { href: "/screener", label: "Screener" },
-  { href: "/onboarding", label: "Perfil" },
+  { href: "/profile", label: "Perfil" },
 ];
 
 export default function Navbar() {
@@ -21,6 +28,9 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, profile, signOut, loading } = useAuth();
+  
+  // Escolher navegação baseada no status de autenticação
+  const navItems = user ? privateNavItems : publicNavItems;
 
   const handleSignOut = async () => {
     try {

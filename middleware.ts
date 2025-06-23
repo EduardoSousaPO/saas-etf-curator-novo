@@ -58,6 +58,7 @@ export async function middleware(request: NextRequest) {
   // Rotas públicas que não precisam de autenticação
   const publicRoutes = [
     '/',
+    '/pricing',
     '/auth/login',
     '/auth/register',
     '/auth/callback',
