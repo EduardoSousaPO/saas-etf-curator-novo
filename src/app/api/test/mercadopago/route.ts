@@ -14,7 +14,9 @@ export async function GET(request: NextRequest) {
       hasAppUrl: !!appUrl,
       accessTokenPreview: accessToken ? `${accessToken.substring(0, 10)}...` : null,
       publicKeyPreview: publicKey ? `${publicKey.substring(0, 10)}...` : null,
-      appUrl
+      appUrl,
+      environment: accessToken?.startsWith('APP_USR') ? 'PRODUÇÃO' : 'TESTE',
+      isProduction: accessToken?.startsWith('APP_USR') || false
     };
     
     // Tentar criar uma instância do serviço
