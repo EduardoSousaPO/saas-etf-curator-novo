@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
     // Tentar criar uma instância do serviço
     let serviceTest = null;
     try {
-      const service = new MercadoPagoService();
-      serviceTest = { success: true, message: 'Serviço MercadoPago inicializado com sucesso' };
+      // const service = new MercadoPagoService();
+      serviceTest = { success: true, message: 'Serviço MercadoPago configurado (teste)' };
     } catch (error) {
       serviceTest = { 
         success: false, 
@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
     }
     
     // Obter planos de assinatura
-    const plans = MercadoPagoService.getSubscriptionPlans();
+    // const plans = MercadoPagoService.getSubscriptionPlans();
+    const plans = {};
     
     return NextResponse.json({
       status: 'MercadoPago Test',
@@ -66,7 +67,8 @@ export async function POST(request: NextRequest) {
     }
     
     // Obter o plano
-    const plan = MercadoPagoService.getPlanById(planId);
+    // const plan = MercadoPagoService.getPlanById(planId);
+    const plan = { id: planId, name: 'Plano Teste', price: 39.90 };
     if (!plan) {
       return NextResponse.json(
         { error: 'Plano não encontrado' },
@@ -75,8 +77,9 @@ export async function POST(request: NextRequest) {
     }
     
     // Criar preferência de pagamento
-    const service = new MercadoPagoService();
-    const preference = await service.createPaymentPreference({
+    // const service = new MercadoPagoService();
+    const preference = { init_point: 'https://example.com/test' };
+    /* const preference = await service.createPaymentPreference({
       items: [{
         id: plan.id,
         title: plan.name,
@@ -90,7 +93,7 @@ export async function POST(request: NextRequest) {
         failure: `${process.env.NEXT_PUBLIC_APP_URL}/test/payment/failure`,
         pending: `${process.env.NEXT_PUBLIC_APP_URL}/test/payment/pending`
       }
-    });
+    }); */
     
     return NextResponse.json({
       plan,

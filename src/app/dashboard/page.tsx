@@ -58,7 +58,7 @@ interface QuickAction {
 
 export default function DashboardPage() {
   const { user, profile: authProfile, loading: authLoading } = useAuth();
-  const { currentPlan, canAccessFeature } = useSubscription();
+  const { currentPlan } = useSubscription();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [metrics, setMetrics] = useState<SimpleMetrics | null>(null);
   const [quickActions, setQuickActions] = useState<QuickAction[]>([]);

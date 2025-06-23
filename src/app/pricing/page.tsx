@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Check, Star, Crown, Globe, TrendingUp, User, AlertCircle, Loader2 } from 'lucide-react';
+import { Check, Star, Crown, Globe, TrendingUp, User, Loader2 } from 'lucide-react';
 import { PLAN_CONFIGS, SubscriptionPlan, calculateAnnualFee } from '@/types/subscriptions';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
