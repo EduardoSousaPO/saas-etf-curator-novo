@@ -23,6 +23,7 @@
 - **Backend**: Next.js API Routes, Prisma ORM
 - **Banco de Dados**: Supabase (PostgreSQL)
 - **Autenticação**: Supabase Auth
+- **Pagamentos**: MercadoPago (ver [Sistema de Pagamentos](docs/SISTEMA_PAGAMENTOS.md))
 - **UI Components**: Radix UI, Lucide React
 - **Charts**: Recharts
 - **Deploy**: Vercel

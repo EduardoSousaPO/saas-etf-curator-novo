@@ -29,7 +29,7 @@ const PLANS: Record<string, PlanConfig> = {
   pro: {
     id: 'pro', 
     name: 'PRO',
-    price: 29.90,
+    price: 39.90,
     type: 'paid',
     features: ['Tudo do STARTER', 'IA Avançada', 'Alertas', 'Dashboard']
   },
@@ -77,8 +77,16 @@ function createSupabaseClient() {
 // Função para criar checkout no MercadoPago
 async function createMercadoPagoCheckout(plan: PlanConfig, userId: string, userEmail: string) {
   try {
+    console.log('💳 Iniciando criação de checkout MercadoPago...');
+    console.log('📊 Dados do plano:', JSON.stringify(plan, null, 2));
+    console.log('👤 User ID:', userId);
+    console.log('📧 Email:', userEmail);
+    
     const { default: MercadoPagoService } = await import('@/lib/payments/mercadopago');
+    console.log('✅ Classe MercadoPagoService importada com sucesso');
+    
     const mercadopagoService = new MercadoPagoService();
+    console.log('✅ Instância MercadoPagoService criada');
     
     const preferenceData = {
       items: [{
@@ -96,20 +104,43 @@ async function createMercadoPagoCheckout(plan: PlanConfig, userId: string, userE
         success: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?payment=success`,
         failure: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?payment=failed`,
         pending: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?payment=pending`
-      },
-      auto_return: 'approved' as 'approved'
+      }
     };
+
+    console.log('📋 Dados da preferência:', JSON.stringify(preferenceData, null, 2));
+    console.log('🚀 Chamando createPaymentPreference...');
 
     const result = await mercadopagoService.createPaymentPreference(preferenceData);
     
-    if (!result.success || !result.init_point) {
-      throw new Error('Falha ao criar preferência de pagamento');
+    console.log('📥 Resultado do MercadoPago:', JSON.stringify(result, null, 2));
+    
+    if (!result.success) {
+      console.error('❌ MercadoPago retornou falha:', result.error);
+      throw new Error(`MercadoPago falhou: ${result.error}`);
+    }
+    
+    if (!result.init_point) {
+      console.error('❌ MercadoPago não retornou init_point');
+      throw new Error('MercadoPago não retornou URL de checkout');
     }
 
+    console.log('✅ Checkout URL criada com sucesso:', result.init_point);
     return result.init_point;
-  } catch (error) {
-    console.error('Erro ao criar checkout MercadoPago:', error);
-    throw new Error('Falha na integração com MercadoPago');
+    
+  } catch (error: unknown) {
+    console.error('❌ Erro detalhado na criação do checkout MercadoPago:');
+    
+    if (error instanceof Error) {
+      console.error('   - Tipo:', error.constructor.name);
+      console.error('   - Mensagem:', error.message);
+      console.error('   - Stack:', error.stack);
+    } else {
+      console.error('   - Erro desconhecido:', error);
+    }
+    
+    // Re-lançar o erro com mais contexto
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    throw new Error(`Falha na integração com MercadoPago: ${errorMessage}`);
   }
 }
 
@@ -187,25 +218,63 @@ async function createSubscription(supabase: any, userId: string, plan: PlanConfi
 
 // Função para criar limites de uso
 async function createUsageLimits(supabase: any, userId: string, plan: PlanConfig) {
+  // Primeiro, precisamos criar uma assinatura para referenciar
+  const { data: subscription } = await supabase
+    .from('subscriptions')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('status', 'ACTIVE')
+    .single();
+
+  if (!subscription) {
+    console.error('Nenhuma assinatura ativa encontrada para criar limites de uso');
+    return; // Não é crítico, pode continuar sem limites
+  }
+
   const limits = {
-    starter: { comparisons: 10, ai_analyses: 5, alerts: 2 },
-    pro: { comparisons: -1, ai_analyses: -1, alerts: -1 }, // -1 = ilimitado
-    wealth: { comparisons: -1, ai_analyses: -1, alerts: -1 },
-    offshore: { comparisons: -1, ai_analyses: -1, alerts: -1 }
+    starter: { 
+      screener_queries: 10, 
+      export_reports: 2, 
+      portfolio_simulations: 5,
+      ai_analyses: 5 
+    },
+    pro: { 
+      screener_queries: -1, 
+      export_reports: -1, 
+      portfolio_simulations: -1,
+      ai_analyses: -1 
+    }, // -1 = ilimitado
+    wealth: { 
+      screener_queries: -1, 
+      export_reports: -1, 
+      portfolio_simulations: -1,
+      ai_analyses: -1 
+    },
+    offshore: { 
+      screener_queries: -1, 
+      export_reports: -1, 
+      portfolio_simulations: -1,
+      ai_analyses: -1 
+    }
   };
 
   const planLimits = limits[plan.id as keyof typeof limits] || limits.starter;
+  const periodStart = new Date();
+  const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   const usageLimitData = {
+    subscription_id: subscription.id,
     user_id: userId,
-    period: 'monthly',
-    max_comparisons: planLimits.comparisons,
-    max_ai_analyses: planLimits.ai_analyses,
-    max_alerts: planLimits.alerts,
-    current_comparisons: 0,
+    screener_queries_limit: planLimits.screener_queries === -1 ? null : planLimits.screener_queries,
+    screener_queries_used: 0,
+    export_reports_limit: planLimits.export_reports === -1 ? null : planLimits.export_reports,
+    export_reports_used: 0,
+    portfolio_simulations_limit: planLimits.portfolio_simulations === -1 ? null : planLimits.portfolio_simulations,
+    portfolio_simulations_used: 0,
+    ai_analyses_limit: planLimits.ai_analyses === -1 ? null : planLimits.ai_analyses,
     current_ai_analyses: 0,
-    current_alerts: 0,
-    reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    period_start: periodStart.toISOString(),
+    period_end: periodEnd.toISOString(),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
@@ -216,7 +285,8 @@ async function createUsageLimits(supabase: any, userId: string, plan: PlanConfig
 
   if (error) {
     console.error('Erro ao criar limites de uso:', error);
-    throw new Error('Erro ao configurar limites de uso');
+    // Não vamos mais lançar erro aqui para não bloquear o checkout
+    console.warn('Continuando sem limites de uso configurados');
   }
 }
 
@@ -342,7 +412,12 @@ export async function POST(request: NextRequest) {
       await createUsageLimits(supabase, userId, plan);
 
       // Criar checkout no MercadoPago
+      console.log('🚀 CHAMANDO createMercadoPagoCheckout...');
+      console.log('📊 Parâmetros:', { plan: plan.name, userId, email: finalUserEmail });
+      
       const checkoutUrl = await createMercadoPagoCheckout(plan, userId, finalUserEmail);
+      
+      console.log('✅ createMercadoPagoCheckout retornou:', checkoutUrl);
 
       const paymentMessage = existingSubscription
         ? `Upgrade para ${plan.name} iniciado! Redirecionando para pagamento...`
