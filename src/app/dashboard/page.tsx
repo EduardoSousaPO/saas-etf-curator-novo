@@ -275,16 +275,73 @@ export default function DashboardPage() {
                   {planConfig?.name || currentPlan}
                 </Badge>
                 
-                {currentPlan === 'STARTER' && (
-                  <button
-                    onClick={() => window.location.href = '/pricing'}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    Fazer Upgrade
-                  </button>
-                )}
+                <button
+                  onClick={() => window.location.href = '/pricing'}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    currentPlan === 'STARTER' 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {currentPlan === 'STARTER' ? '⚡ Fazer Upgrade' : '⚙️ Gerenciar Plano'}
+                </button>
               </div>
             </div>
+
+            {/* Seção de Assinatura para usuários Starter */}
+            {currentPlan === 'STARTER' && (
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200 p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="bg-blue-100 p-2 rounded-full mr-3">
+                      <TrendingUp className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Desbloqueie todo o potencial do ETF Curator
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Acesse screener avançado, rankings completos e comparações detalhadas
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="text-right">
+                      <div className="text-sm text-gray-500">A partir de</div>
+                      <div className="text-xl font-bold text-blue-600">R$ 39,90/mês</div>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Seção de Assinatura para usuários Premium */}
+            {currentPlan !== 'STARTER' && (
+              <div className="bg-green-50 rounded-lg border border-green-200 p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="bg-green-100 p-2 rounded-full mr-3">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Plano {planConfig?.name || currentPlan} Ativo
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Você tem acesso completo a todas as funcionalidades premium
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge className="bg-green-100 text-green-800">
+                      ✓ Ativo
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
             
             {/* Aviso sobre ETFs */}
             <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">

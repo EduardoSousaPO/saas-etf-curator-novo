@@ -1,36 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Check, Star, Crown, Globe, TrendingUp } from 'lucide-react';
+import { Check, Star, Crown, Globe, TrendingUp, User, AlertCircle } from 'lucide-react';
 import { PLAN_CONFIGS, SubscriptionPlan, calculateAnnualFee } from '@/types/subscriptions';
+import { useAuth } from '@/hooks/useAuth';
 
 const handleSelectPlan = async (plan: SubscriptionPlan, assets?: number) => {
   try {
-    // Verificar se o usuário está autenticado
-    const authResponse = await fetch('/api/auth/status');
-    const authData = await authResponse.json();
-    
-    if (!authData.success || !authData.session) {
-      alert('Você precisa estar logado para assinar um plano. Redirecionando para login...');
-      window.location.href = '/auth/login';
-      return;
-    }
-
     const response = await fetch('/api/subscriptions/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         planId: plan, 
-        userId: authData.session.user_id,
-        assetsUnderManagement: assets,
-        userEmail: authData.session.email,
-        userName: authData.session.email // Usar email como nome por enquanto
+        assetsUnderManagement: assets
       })
     });
 
@@ -52,11 +40,98 @@ const handleSelectPlan = async (plan: SubscriptionPlan, assets?: number) => {
 };
 
 export default function PricingPage() {
+  const { user, loading: authLoading } = useAuth();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [selectedAssets, setSelectedAssets] = useState<Record<string, number>>({
     WEALTH: 200000,
     OFFSHORE: 1000000
   });
+  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
+  const [loadingSubscription, setLoadingSubscription] = useState(false);
+
+  // Carregar assinatura atual do usuário
+  useEffect(() => {
+    if (user && !authLoading) {
+      loadCurrentSubscription();
+    }
+  }, [user, authLoading]);
+
+  const loadCurrentSubscription = async () => {
+    try {
+      setLoadingSubscription(true);
+      const response = await fetch('/api/subscriptions/status');
+      const data = await response.json();
+      
+      if (data.success) {
+        setCurrentSubscription(data.subscription);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar assinatura:', error);
+    } finally {
+      setLoadingSubscription(false);
+    }
+  };
+
+  // Função para renderizar botão baseado no estado do usuário
+  const renderPlanButton = (plan: SubscriptionPlan, assets?: number) => {
+    const config = PLAN_CONFIGS[plan];
+    const isCurrentPlan = currentSubscription?.plan === plan;
+    const isActive = currentSubscription?.status === 'ACTIVE';
+    
+    // Se não está logado
+    if (!user) {
+      return (
+        <Button 
+          className={`w-full ${plan === 'PRO' ? 'bg-blue-600 hover:bg-blue-700' : 
+                     plan === 'WEALTH' ? 'bg-purple-600 hover:bg-purple-700' :
+                     plan === 'OFFSHORE' ? 'bg-emerald-600 hover:bg-emerald-700' :
+                     'bg-gray-600 hover:bg-gray-700'}`}
+          size="lg"
+          onClick={() => handleSelectPlan(plan, assets)}
+        >
+          {plan === 'STARTER' ? 'Começar Grátis' :
+           plan === 'PRO' ? (billingCycle === 'annual' ? 'Assinar Pro Anual' : 'Assinar Pro') :
+           plan === 'WEALTH' ? 'Solicitar Análise' :
+           'Solicitar Contato'}
+        </Button>
+      );
+    }
+
+    // Se é o plano atual e está ativo
+    if (isCurrentPlan && isActive) {
+      return (
+        <div className="space-y-2">
+          <Button 
+            className="w-full bg-green-600 hover:bg-green-700" 
+            size="lg"
+            disabled
+          >
+            ✓ Plano Atual
+          </Button>
+          <p className="text-xs text-center text-green-600 font-medium">
+            Você já possui este plano
+          </p>
+        </div>
+      );
+    }
+
+    // Se está logado mas não tem este plano
+    return (
+      <Button 
+        className={`w-full ${plan === 'PRO' ? 'bg-blue-600 hover:bg-blue-700' : 
+                   plan === 'WEALTH' ? 'bg-purple-600 hover:bg-purple-700' :
+                   plan === 'OFFSHORE' ? 'bg-emerald-600 hover:bg-emerald-700' :
+                   'bg-gray-600 hover:bg-gray-700'}`}
+        size="lg"
+        onClick={() => handleSelectPlan(plan, assets)}
+      >
+        {plan === 'STARTER' ? 'Mudar para Starter' :
+         plan === 'PRO' ? 'Fazer Upgrade para Pro' :
+         plan === 'WEALTH' ? 'Fazer Upgrade para Wealth' :
+         'Fazer Upgrade para Offshore'}
+      </Button>
+    );
+  };
 
   // Renderização de preços com desconto anual
   const renderPrice = (plan: SubscriptionPlan) => {
@@ -119,6 +194,43 @@ export default function PricingPage() {
       <Navbar />
       
       <main className="pt-16">
+        {/* Informações do usuário logado */}
+        {user && (
+          <section className="py-8 px-6 bg-blue-50 border-b">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-blue-100 p-2 rounded-full">
+                    <User className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Olá, {user.email}!
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {loadingSubscription ? 'Carregando plano atual...' :
+                       currentSubscription ? 
+                         `Plano atual: ${currentSubscription.plan} (${currentSubscription.status})` :
+                         'Nenhum plano ativo'}
+                    </p>
+                  </div>
+                </div>
+                {currentSubscription && (
+                  <Badge 
+                    className={`${currentSubscription.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
+                                currentSubscription.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'}`}
+                  >
+                    {currentSubscription.status === 'ACTIVE' ? 'Ativo' :
+                     currentSubscription.status === 'PENDING' ? 'Pendente' :
+                     currentSubscription.status}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Hero Section - Minimalista */}
         <section className="py-20 px-6">
           <div className="max-w-6xl mx-auto">
@@ -127,8 +239,8 @@ export default function PricingPage() {
                 Planos & Preços
               </h1>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Escolha o plano ideal para seu perfil de investimento. 
-                Desde análises básicas até consultoria especializada.
+                {user ? 'Gerencie sua assinatura ou faça upgrade para um plano superior.' :
+                        'Escolha o plano ideal para seu perfil de investimento. Desde análises básicas até consultoria especializada.'}
               </p>
             </div>
           </div>
@@ -195,13 +307,7 @@ export default function PricingPage() {
                       </div>
                     ))}
                   </div>
-                  <Button 
-                    className="w-full bg-gray-600 hover:bg-gray-700" 
-                    size="lg"
-                    onClick={() => handleSelectPlan('STARTER')}
-                  >
-                    Começar Grátis
-                  </Button>
+                  {renderPlanButton('STARTER')}
                   <p className="text-xs text-center text-gray-500">
                     Sem compromisso • Ative em 30 segundos
                   </p>
@@ -238,13 +344,7 @@ export default function PricingPage() {
                       </div>
                     ))}
                   </div>
-                  <Button 
-                    className="w-full bg-blue-600 hover:bg-blue-700" 
-                    size="lg"
-                    onClick={() => handleSelectPlan('PRO')}
-                  >
-                    {billingCycle === 'annual' ? 'Assinar Pro Anual' : 'Assinar Pro'}
-                  </Button>
+                  {renderPlanButton('PRO')}
                   <p className="text-xs text-center text-gray-500">
                     Cancele quando quiser • Garantia de 7 dias
                   </p>
@@ -302,13 +402,7 @@ export default function PricingPage() {
                     />
                   </div>
                   
-                  <Button 
-                    className="w-full bg-purple-600 hover:bg-purple-700" 
-                    size="lg"
-                    onClick={() => handleSelectPlan('WEALTH', selectedAssets.WEALTH)}
-                  >
-                    Solicitar Análise
-                  </Button>
+                  {renderPlanButton('WEALTH', selectedAssets.WEALTH)}
                   <p className="text-xs text-center text-gray-500">
                     Diagnóstico gratuito • Processo seletivo
                   </p>
@@ -366,13 +460,7 @@ export default function PricingPage() {
                     />
                   </div>
                   
-                  <Button 
-                    className="w-full bg-emerald-600 hover:bg-emerald-700" 
-                    size="lg"
-                    onClick={() => handleSelectPlan('OFFSHORE', selectedAssets.OFFSHORE)}
-                  >
-                    Solicitar Contato
-                  </Button>
+                  {renderPlanButton('OFFSHORE', selectedAssets.OFFSHORE)}
                   <p className="text-xs text-center text-gray-500">
                     Aconselhamento completo • Rede de parceiros
                   </p>
