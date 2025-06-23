@@ -343,24 +343,23 @@ export default function DashboardPage() {
             )}
           </div>
             
-            {/* Aviso sobre ETFs */}
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Globe className="w-5 h-5 text-blue-600 mr-2" />
-                  <span className="text-sm text-blue-800">
-                    <strong>💡 Lembre-se:</strong> ETFs são negociados em dólares (USD)
-                  </span>
-                </div>
-                <button
-                  onClick={refreshData}
-                  disabled={refreshing}
-                  className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
-                >
-                  <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
-                  Atualizar
-                </button>
+          {/* Aviso sobre ETFs */}
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Globe className="w-5 h-5 text-blue-600 mr-2" />
+                <span className="text-sm text-blue-800">
+                  <strong>💡 Lembre-se:</strong> ETFs são negociados em dólares (USD)
+                </span>
               </div>
+              <button
+                onClick={refreshData}
+                disabled={refreshing}
+                className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
+              >
+                <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+                Atualizar
+              </button>
             </div>
           </div>
 
