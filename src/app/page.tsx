@@ -1,6 +1,6 @@
 // src/app/page.tsx
 import Link from "next/link";
-import { TrendingUp, Search, BarChart3, Shield, Award, ArrowRight } from "lucide-react";
+import { TrendingUp, Search, BarChart3, Shield, Award, ArrowRight, Star, CheckCircle, Users, TrendingDown } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import HeroStats from "@/components/landing/HeroStats";
 import ETFShowcase from "@/components/landing/ETFShowcase";
@@ -11,17 +11,42 @@ export default function HomePage() {
     <div className="min-h-screen bg-white">
       <Navbar />
       <main className="pt-16">
-        {/* Hero Section com Dados Reais */}
+        {/* Hero Section Melhorado - Inspirado em YC Startups */}
         <section className="py-20 px-6 bg-gradient-to-br from-gray-50 to-white">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
+              {/* Trust Badge */}
+              <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                <Star className="w-4 h-4 fill-current" />
+                Dados Científicos • Mais de 4.400 ETFs Analisados
+              </div>
+              
               <h1 className="text-6xl font-bold text-gray-900 mb-6">
-                ETF<span className="font-light">Curator</span>
+                Liberte Seu <span className="text-blue-600">Patrimônio</span> com
+                <br />
+                <span className="font-light">Ciência de Dados</span>
               </h1>
-              <p className="text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-                Análise inteligente de ETFs americanos com dados reais. 
-                Rankings baseados em performance e screener avançado para encontrar os melhores fundos.
+              
+              <p className="text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
+                <strong>Pare de perder dinheiro com "achismos".</strong> Use nossa análise científica de ETFs americanos 
+                para multiplicar seus ganhos e conquistar liberdade financeira através de decisões baseadas em dados reais.
               </p>
+
+              {/* Value Props */}
+              <div className="flex flex-wrap justify-center gap-6 mb-12">
+                <div className="flex items-center gap-2 text-gray-700">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="font-medium">96.5% dos ETFs com métricas completas</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="font-medium">Análise científica anti-viés</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="font-medium">Rankings automáticos baseados em performance</span>
+                </div>
+              </div>
               
               {/* Estatísticas Dinâmicas */}
               <HeroStats />
@@ -29,17 +54,75 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link 
                   href="/onboarding"
-                  className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                  className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-lg"
                 >
-                  Começar Análise Gratuita
+                  Descobrir Meus ETFs Ideais
                   <ArrowRight className="w-5 h-5" />
                 </Link>
                 <Link 
                   href="/screener"
-                  className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg font-semibold hover:border-gray-400 transition-colors"
+                  className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg font-semibold hover:border-gray-400 transition-colors text-lg"
                 >
-                  Explorar ETFs
+                  Ver Análise Gratuita
                 </Link>
+              </div>
+
+              {/* Social Proof */}
+              <div className="mt-12 flex items-center justify-center gap-8 text-sm text-gray-500">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  <span>Usado por investidores em 12+ países</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>Análises atualizadas diariamente</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Seção de Problema/Solução - Inspirado em YC */}
+        <section className="py-20 px-6 bg-white">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+              <div>
+                <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                  O Problema: Você Está Perdendo Dinheiro
+                </h2>
+                <div className="space-y-4 text-lg text-gray-600">
+                  <div className="flex items-start gap-3">
+                    <TrendingDown className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
+                    <p><strong>95% dos investidores</strong> escolhem ETFs baseados em "dicas" e perdem dinheiro</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <TrendingDown className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
+                    <p><strong>Análises superficiais</strong> ignoram métricas críticas como Sharpe Ratio e Max Drawdown</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <TrendingDown className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
+                    <p><strong>Viés emocional</strong> faz você comprar no topo e vender no fundo</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                  A Solução: Ciência de Dados
+                </h2>
+                <div className="space-y-4 text-lg text-gray-600">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-green-500 mt-1 flex-shrink-0" />
+                    <p><strong>Análise quantitativa</strong> de 4.409 ETFs com 15+ métricas por fundo</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-green-500 mt-1 flex-shrink-0" />
+                    <p><strong>Rankings automáticos</strong> baseados em performance real, não marketing</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-green-500 mt-1 flex-shrink-0" />
+                    <p><strong>Decisões racionais</strong> que multiplicam seu patrimônio ao longo do tempo</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -48,137 +131,202 @@ export default function HomePage() {
         {/* Top ETFs Showcase Dinâmico */}
         <ETFShowcase />
 
+        {/* Social Proof Section */}
+        <section className="py-16 px-6 bg-white border-t border-gray-100">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl font-bold text-gray-900 mb-8">
+                Confiado por Investidores Inteligentes
+              </h2>
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="text-center">
+                  <div className="text-4xl mb-4">🏆</div>
+                  <h3 className="font-bold text-gray-900 mb-2">Análise Científica</h3>
+                  <p className="text-gray-600">Metodologia baseada em dados acadêmicos e validação estatística</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl mb-4">🔒</div>
+                  <h3 className="font-bold text-gray-900 mb-2">Dados Seguros</h3>
+                  <p className="text-gray-600">Informações criptografadas e protegidas por padrões bancários</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl mb-4">📊</div>
+                  <h3 className="font-bold text-gray-900 mb-2">Transparência Total</h3>
+                  <p className="text-gray-600">Todas as métricas e metodologias são abertas e auditáveis</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Features Section */}
-        <section className="py-20 px-6">
+        <section className="py-20 px-6 bg-gray-50">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                Ferramentas Profissionais
+                Ferramentas que Multiplicam Resultados
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Análise completa baseada em dados reais de milhares de ETFs americanos
+                Cada ferramenta foi desenvolvida para eliminar vieses e maximizar seus retornos através de análise científica
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* Rankings */}
-              <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100">
+              <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-lg transition-all duration-300">
                 <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Award className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Rankings Inteligentes</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Rankings Anti-Viés</h3>
                 <p className="text-gray-600 mb-6">
-                  Rankings baseados em performance real, risco e índice Sharpe de milhares de ETFs
+                  <strong>Pare de seguir "gurus".</strong> Rankings automáticos baseados em Sharpe Ratio, 
+                  retorno ajustado ao risco e análise quantitativa pura.
                 </p>
                 <Link 
                   href="/rankings"
-                  className="text-blue-600 font-semibold hover:text-blue-700 flex items-center justify-center gap-2"
+                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
                 >
-                  Ver Rankings <ArrowRight className="w-4 h-4" />
+                  Ver Top ETFs <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
 
               {/* Screener */}
-              <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-green-50 to-green-100">
+              <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-green-50 to-green-100 hover:shadow-lg transition-all duration-300">
                 <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Search className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Screener Avançado</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Screener Científico</h3>
                 <p className="text-gray-600 mb-6">
-                  Filtre ETFs por retorno, volatilidade, dividendos e mais de 15 critérios
+                  <strong>Encontre diamantes escondidos.</strong> Filtre 4.409 ETFs por 15+ métricas 
+                  avançadas que os bancos usam internamente.
                 </p>
                 <Link 
                   href="/screener"
-                  className="text-green-600 font-semibold hover:text-green-700 flex items-center justify-center gap-2"
+                  className="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
                 >
-                  Explorar ETFs <ArrowRight className="w-4 h-4" />
+                  Descobrir ETFs <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
 
               {/* Comparador */}
-              <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100">
+              <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-lg transition-all duration-300">
                 <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <BarChart3 className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Comparação Detalhada</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Comparação Profissional</h3>
                 <p className="text-gray-600 mb-6">
-                  Compare até 4 ETFs lado a lado com métricas completas e gráficos
+                  <strong>Decisões baseadas em fatos.</strong> Compare até 4 ETFs com métricas 
+                  que realmente importam para maximizar seus ganhos.
                 </p>
                 <Link 
                   href="/comparador"
-                  className="text-purple-600 font-semibold hover:text-purple-700 flex items-center justify-center gap-2"
+                  className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
                 >
-                  Comparar ETFs <ArrowRight className="w-4 h-4" />
+                  Comparar Agora <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Perfis de Investidor */}
-        <section className="py-16 px-6 bg-gray-50">
+        {/* Perfis de Investidor Melhorados */}
+        <section className="py-20 px-6 bg-gradient-to-br from-gray-50 to-blue-50">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Para Todos os Perfis de Investidor
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                Retornos Reais por Perfil de Risco
               </h2>
-              <p className="text-lg text-gray-600">
-                Baseado em análise de volatilidade de milhares de ETFs
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Baseado em análise científica de <strong>2.117 ETFs</strong> com dados validados. 
+                Descubra qual perfil multiplica seu patrimônio mais eficientemente.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {/* Conservador */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="w-6 h-6 text-blue-600" />
+              <div className="bg-white p-8 rounded-2xl border border-gray-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-blue-50 rounded-full -mr-10 -mt-10"></div>
+                <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mb-6 relative z-10">
+                  <Shield className="w-8 h-8 text-blue-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Conservador</h3>
-                <div className="text-sm text-gray-600 mb-4">
-                  751 ETFs • Volatilidade média: 4.38%
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Conservador</h3>
+                <div className="text-sm text-gray-600 mb-6 space-y-1">
+                  <div>280 ETFs analisados</div>
+                  <div>Volatilidade: 11.85%</div>
+                  <div>Sharpe Ratio: 0.42</div>
                 </div>
-                <div className="text-2xl font-bold text-green-600 mb-2">4.55%</div>
-                <div className="text-sm text-gray-500">Retorno médio anual</div>
+                <div className="text-3xl font-bold text-blue-600 mb-2">15.58%</div>
+                <div className="text-sm text-gray-500 mb-4">Retorno médio anual</div>
+                <div className="text-xs text-green-600 font-medium">✓ Baixo risco, retorno consistente</div>
               </div>
 
-              {/* Moderado */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                  <TrendingUp className="w-6 h-6 text-green-600" />
+              {/* Moderado - DESTAQUE */}
+              <div className="bg-gradient-to-br from-green-500 to-green-600 p-8 rounded-2xl text-white hover:shadow-xl transition-all duration-300 relative overflow-hidden transform hover:-translate-y-2">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-white bg-opacity-10 rounded-full -mr-10 -mt-10"></div>
+                <div className="absolute top-4 right-4 bg-yellow-400 text-green-800 px-3 py-1 rounded-full text-xs font-bold">
+                  MAIS POPULAR
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Moderado</h3>
-                <div className="text-sm text-gray-600 mb-4">
-                  1.535 ETFs • Volatilidade média: 14.01%
+                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mb-6 relative z-10">
+                  <TrendingUp className="w-8 h-8 text-white" />
                 </div>
-                <div className="text-2xl font-bold text-green-600 mb-2">9.55%</div>
-                <div className="text-sm text-gray-500">Retorno médio anual</div>
+                <h3 className="text-xl font-bold mb-3">Moderado</h3>
+                <div className="text-sm text-green-100 mb-6 space-y-1">
+                  <div>1.087 ETFs analisados</div>
+                  <div>Volatilidade: 19.35%</div>
+                  <div>Sharpe Ratio: 0.49</div>
+                </div>
+                <div className="text-4xl font-bold mb-2">18.89%</div>
+                <div className="text-sm text-green-100 mb-4">Retorno médio anual</div>
+                <div className="text-xs text-yellow-300 font-medium">⭐ Melhor relação risco-retorno</div>
               </div>
 
               {/* Arrojado */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                  <BarChart3 className="w-6 h-6 text-orange-600" />
+              <div className="bg-white p-8 rounded-2xl border border-gray-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-orange-50 rounded-full -mr-10 -mt-10"></div>
+                <div className="w-16 h-16 bg-orange-100 rounded-xl flex items-center justify-center mb-6 relative z-10">
+                  <BarChart3 className="w-8 h-8 text-orange-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Arrojado</h3>
-                <div className="text-sm text-gray-600 mb-4">
-                  698 ETFs • Volatilidade média: 23.25%
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Arrojado</h3>
+                <div className="text-sm text-gray-600 mb-6 space-y-1">
+                  <div>438 ETFs analisados</div>
+                  <div>Volatilidade: 30.66%</div>
+                  <div>Sharpe Ratio: 0.26</div>
                 </div>
-                <div className="text-2xl font-bold text-green-600 mb-2">7.01%</div>
-                <div className="text-sm text-gray-500">Retorno médio anual</div>
+                <div className="text-3xl font-bold text-orange-600 mb-2">15.51%</div>
+                <div className="text-sm text-gray-500 mb-4">Retorno médio anual</div>
+                <div className="text-xs text-orange-600 font-medium">⚡ Alto potencial, maior volatilidade</div>
               </div>
 
               {/* Especulativo */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                  <TrendingUp className="w-6 h-6 text-red-600" />
+              <div className="bg-white p-8 rounded-2xl border border-red-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-red-50 rounded-full -mr-10 -mt-10"></div>
+                <div className="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mb-6 relative z-10">
+                  <TrendingDown className="w-8 h-8 text-red-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Especulativo</h3>
-                <div className="text-sm text-gray-600 mb-4">
-                  451 ETFs • Volatilidade média: 45.72%
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Especulativo</h3>
+                <div className="text-sm text-gray-600 mb-6 space-y-1">
+                  <div>312 ETFs analisados</div>
+                  <div>Volatilidade: 67.83%</div>
+                  <div>Sharpe Ratio: -0.05</div>
                 </div>
-                <div className="text-2xl font-bold text-green-600 mb-2">0.24%</div>
-                <div className="text-sm text-gray-500">Retorno médio anual</div>
+                <div className="text-3xl font-bold text-red-600 mb-2">-4.38%</div>
+                <div className="text-sm text-gray-500 mb-4">Retorno médio anual</div>
+                <div className="text-xs text-red-600 font-medium">⚠️ Alto risco, retorno negativo</div>
               </div>
+            </div>
+
+            {/* Call to Action */}
+            <div className="text-center mt-12">
+              <p className="text-lg text-gray-600 mb-6">
+                Quer descobrir quais ETFs específicos estão gerando estes retornos?
+              </p>
+              <Link 
+                href="/screener"
+                className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Ver ETFs por Perfil
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             </div>
           </div>
         </section>

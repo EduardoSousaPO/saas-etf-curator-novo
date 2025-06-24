@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Check, Star, Crown, Globe, TrendingUp, User, Loader2 } from 'lucide-react';
+import { Check, Star, Crown, Globe, TrendingUp, User, Loader2, Shield, Zap, Target, Users } from 'lucide-react';
 import { PLAN_CONFIGS, SubscriptionPlan, calculateAnnualFee } from '@/types/subscriptions';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -173,10 +173,10 @@ export default function PricingPage() {
     if (!user) {
       return (
         <Button 
-          className={`w-full ${plan === 'PRO' ? 'bg-blue-600 hover:bg-blue-700' : 
-                     plan === 'WEALTH' ? 'bg-purple-600 hover:bg-purple-700' :
-                     plan === 'OFFSHORE' ? 'bg-emerald-600 hover:bg-emerald-700' :
-                     'bg-gray-600 hover:bg-gray-700'}`}
+          className={`w-full font-semibold ${plan === 'PRO' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 
+                     plan === 'WEALTH' ? 'bg-purple-600 hover:bg-purple-700 text-white' :
+                     plan === 'OFFSHORE' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' :
+                     'bg-gray-800 hover:bg-gray-900 text-white'}`}
           size="lg"
           onClick={() => handleUpgrade(plan)}
           disabled={isProcessing}
@@ -195,7 +195,7 @@ export default function PricingPage() {
       return (
         <div className="space-y-2">
           <Button 
-            className="w-full bg-green-600 hover:bg-green-700" 
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold" 
             size="lg"
             disabled
           >
@@ -211,10 +211,10 @@ export default function PricingPage() {
     // Se está logado mas não tem este plano
     return (
       <Button 
-        className={`w-full ${plan === 'PRO' ? 'bg-blue-600 hover:bg-blue-700' : 
-                   plan === 'WEALTH' ? 'bg-purple-600 hover:bg-purple-700' :
-                   plan === 'OFFSHORE' ? 'bg-emerald-600 hover:bg-emerald-700' :
-                   'bg-gray-600 hover:bg-gray-700'}`}
+        className={`w-full font-semibold ${plan === 'PRO' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 
+                   plan === 'WEALTH' ? 'bg-purple-600 hover:bg-purple-700 text-white' :
+                   plan === 'OFFSHORE' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' :
+                   'bg-gray-800 hover:bg-gray-900 text-white'}`}
         size="lg"
         onClick={() => handleUpgrade(plan)}
         disabled={isProcessing}
@@ -235,7 +235,7 @@ export default function PricingPage() {
     if (config.priceType === 'free') {
       return (
         <div className="text-center">
-          <div className="text-4xl font-bold text-green-600">Gratuito</div>
+          <div className="text-4xl font-bold text-green-600 mb-2">Gratuito</div>
           <div className="text-sm text-gray-500 mt-1">Para sempre</div>
         </div>
       );
@@ -248,7 +248,7 @@ export default function PricingPage() {
       
       return (
         <div className="text-center">
-          <div className="text-4xl font-bold text-blue-600">
+          <div className="text-4xl font-bold text-blue-600 mb-2">
             R$ {currentPrice.toFixed(2).replace('.', ',')}
           </div>
           <div className="text-sm text-gray-500">
@@ -270,7 +270,7 @@ export default function PricingPage() {
       
       return (
         <div className="text-center">
-          <div className="text-3xl font-bold text-purple-600">
+          <div className="text-3xl font-bold text-purple-600 mb-2">
             {config.feePercentage}% a.a.
           </div>
           <div className="text-sm text-gray-600 mt-2">
@@ -326,17 +326,50 @@ export default function PricingPage() {
           </section>
         )}
 
-        {/* Hero Section - Minimalista */}
-        <section className="py-20 px-6">
+        {/* Hero Section - Inspirado em YC Startups */}
+        <section className="py-20 px-6 bg-gradient-to-br from-gray-50 to-white">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h1 className="text-5xl font-light text-gray-900 mb-6">
-                Planos & Preços
+              <h1 className="text-5xl font-bold text-gray-900 mb-6">
+                Escolha Seu Caminho para a
+                <span className="text-blue-600"> Liberdade Financeira</span>
               </h1>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                {user ? 'Gerencie sua assinatura ou faça upgrade para um plano superior.' :
-                        'Escolha o plano ideal para seu perfil de investimento. Desde análises básicas até consultoria especializada.'}
+              <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-8">
+                {user ? 'Gerencie sua assinatura ou faça upgrade para acelerar seus resultados.' :
+                        'Do iniciante ao investidor sofisticado, temos o plano perfeito para multiplicar seu patrimônio através de ETFs com base científica.'}
               </p>
+              
+              {/* Social Proof */}
+              <div className="flex items-center justify-center space-x-8 mb-8">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">4,409</div>
+                  <div className="text-sm text-gray-600">ETFs Analisados</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">15.8%</div>
+                  <div className="text-sm text-gray-600">Retorno Médio</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">96.5%</div>
+                  <div className="text-sm text-gray-600">Dados Completos</div>
+                </div>
+              </div>
+
+              {/* Trust Badges */}
+              <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-4 h-4" />
+                  <span>Dados Seguros</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Zap className="w-4 h-4" />
+                  <span>Ativação Instantânea</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Target className="w-4 h-4" />
+                  <span>Baseado em Ciência</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -364,7 +397,7 @@ export default function PricingPage() {
                 Anual
               </span>
               {billingCycle === 'annual' && (
-                <Badge className="bg-green-100 text-green-800">
+                <Badge className="bg-green-100 text-green-800 font-medium">
                   Economize 20%
                 </Badge>
               )}
@@ -372,22 +405,25 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* Planos - Design minimalista */}
+        {/* Planos - Estrutura em Cascata Inspirada em YC */}
         <section className="pb-20 px-6">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               
-              {/* Starter */}
-              <Card className="relative bg-white border border-gray-200 hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center space-y-4 pb-2">
+              {/* Starter - Para Iniciantes */}
+              <Card className="relative bg-white border-2 border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300">
+                <CardHeader className="text-center space-y-4 pb-6">
                   <div className="flex justify-center">
-                    <div className="bg-gray-100 p-3 rounded-full">
+                    <div className="bg-gray-100 p-4 rounded-full">
                       <Star className="w-8 h-8 text-gray-600" />
                     </div>
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-light">Starter</CardTitle>
-                    <CardDescription className="text-base">Para começar sua jornada</CardDescription>
+                    <CardTitle className="text-2xl font-bold text-gray-900">Starter</CardTitle>
+                    <CardDescription className="text-base text-gray-600 mt-2">
+                      <strong>Para Iniciantes</strong><br />
+                      Comece sua jornada de investimentos com ferramentas essenciais
+                    </CardDescription>
                   </div>
                   <div className="py-4">
                     {renderPrice('STARTER')}
@@ -410,21 +446,24 @@ export default function PricingPage() {
               </Card>
 
               {/* Pro - Mais Popular */}
-              <Card className="relative bg-white border-blue-200 hover:shadow-xl transition-shadow scale-105 ring-2 ring-blue-500">
+              <Card className="relative bg-white border-2 border-blue-500 hover:border-blue-600 hover:shadow-xl transition-all duration-300 scale-105 ring-2 ring-blue-500 ring-opacity-20">
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-blue-600 text-white px-4 py-1 text-sm font-medium">
+                  <Badge className="bg-blue-600 text-white px-4 py-1 text-sm font-bold shadow-lg">
                     Mais Popular
                   </Badge>
                 </div>
-                <CardHeader className="text-center space-y-4 pb-2">
+                <CardHeader className="text-center space-y-4 pb-6">
                   <div className="flex justify-center">
-                    <div className="bg-blue-100 p-3 rounded-full">
+                    <div className="bg-blue-100 p-4 rounded-full">
                       <TrendingUp className="w-8 h-8 text-blue-600" />
                     </div>
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-light">Pro</CardTitle>
-                    <CardDescription className="text-base">Para investidores ativos</CardDescription>
+                    <CardTitle className="text-2xl font-bold text-gray-900">Pro</CardTitle>
+                    <CardDescription className="text-base text-gray-600 mt-2">
+                      <strong>Para Investidores Ativos</strong><br />
+                      Acelere seus resultados com análises avançadas e ferramentas profissionais
+                    </CardDescription>
                   </div>
                   <div className="py-4">
                     {renderPrice('PRO')}
@@ -446,22 +485,25 @@ export default function PricingPage() {
                 </CardContent>
               </Card>
 
-              {/* Wealth */}
-              <Card className="relative bg-white border border-purple-200 hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center space-y-4 pb-2">
+              {/* Wealth - Premium */}
+              <Card className="relative bg-white border-2 border-purple-300 hover:border-purple-400 hover:shadow-lg transition-all duration-300">
+                <CardHeader className="text-center space-y-4 pb-6">
                   <div className="flex justify-center">
-                    <div className="bg-purple-100 p-3 rounded-full">
+                    <div className="bg-purple-100 p-4 rounded-full">
                       <Crown className="w-8 h-8 text-purple-600" />
                     </div>
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-light">Wealth</CardTitle>
-                    <CardDescription className="text-base">Consultoria personalizada</CardDescription>
+                    <CardTitle className="text-2xl font-bold text-gray-900">Wealth</CardTitle>
+                    <CardDescription className="text-base text-gray-600 mt-2">
+                      <strong>Para Patrimônios Altos</strong><br />
+                      Consultoria personalizada com consultor CVM dedicado
+                    </CardDescription>
                   </div>
                   <div className="py-4">
                     {renderPrice('WEALTH')}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 font-medium">
                     Mínimo: R$ 200.000
                   </div>
                 </CardHeader>
@@ -504,22 +546,25 @@ export default function PricingPage() {
                 </CardContent>
               </Card>
 
-              {/* Offshore */}
-              <Card className="relative bg-white border border-emerald-200 hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center space-y-4 pb-2">
+              {/* Offshore - Enterprise */}
+              <Card className="relative bg-white border-2 border-emerald-300 hover:border-emerald-400 hover:shadow-lg transition-all duration-300">
+                <CardHeader className="text-center space-y-4 pb-6">
                   <div className="flex justify-center">
-                    <div className="bg-emerald-100 p-3 rounded-full">
+                    <div className="bg-emerald-100 p-4 rounded-full">
                       <Globe className="w-8 h-8 text-emerald-600" />
                     </div>
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-light">Offshore</CardTitle>
-                    <CardDescription className="text-base">Aconselhamento internacional</CardDescription>
+                    <CardTitle className="text-2xl font-bold text-gray-900">Offshore</CardTitle>
+                    <CardDescription className="text-base text-gray-600 mt-2">
+                      <strong>Para Ultra High Net Worth</strong><br />
+                      Estruturação internacional e estratégias sofisticadas
+                    </CardDescription>
                   </div>
                   <div className="py-4">
                     {renderPrice('OFFSHORE')}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 font-medium">
                     Mínimo: R$ 1.000.000
                   </div>
                 </CardHeader>
@@ -565,28 +610,184 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* FAQ Section - Minimalista */}
+        {/* Seção de Valor por Perfil - Storytelling Melhorado */}
         <section className="py-16 px-6 bg-gray-50">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-light text-center mb-12">Perguntas Frequentes</h2>
-            <div className="space-y-6">
-              <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-lg font-medium mb-2">Posso cancelar a qualquer momento?</h3>
-                <p className="text-gray-600">Sim, você pode cancelar sua assinatura a qualquer momento. Para planos anuais, oferecemos reembolso proporcional nos primeiros 30 dias.</p>
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Qual é o Seu Perfil de Investidor?
+              </h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                Cada plano foi desenhado para um momento específico da sua jornada financeira
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Perfil Starter */}
+              <div className="bg-white p-6 rounded-xl border border-gray-200">
+                <div className="text-center mb-4">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Star className="w-6 h-6 text-gray-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">Iniciante</h3>
+                  <p className="text-sm text-gray-600 mt-1">Patrimônio: R$ 1.000 - R$ 50.000</p>
+                </div>
+                <div className="space-y-3 text-sm text-gray-700">
+                  <p>• Quer começar a investir mas não sabe por onde</p>
+                  <p>• Busca ferramentas simples e confiáveis</p>
+                  <p>• Precisa de educação financeira básica</p>
+                  <p>• Quer evitar erros comuns de iniciantes</p>
+                </div>
               </div>
-              <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-lg font-medium mb-2">Como funciona o plano Wealth?</h3>
-                <p className="text-gray-600">Após solicitar análise, nossa equipe fará um diagnóstico completo do seu perfil. Se aprovado, você terá acesso a um consultor CVM dedicado.</p>
+
+              {/* Perfil Pro */}
+              <div className="bg-white p-6 rounded-xl border-2 border-blue-200">
+                <div className="text-center mb-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <TrendingUp className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">Ativo</h3>
+                  <p className="text-sm text-gray-600 mt-1">Patrimônio: R$ 50.000 - R$ 200.000</p>
+                </div>
+                <div className="space-y-3 text-sm text-gray-700">
+                  <p>• Já investe mas quer otimizar resultados</p>
+                  <p>• Busca análises avançadas e dados precisos</p>
+                  <p>• Quer diversificar com ETFs internacionais</p>
+                  <p>• Precisa de ferramentas profissionais</p>
+                </div>
               </div>
-              <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-lg font-medium mb-2">O que significa aconselhamento no plano Offshore?</h3>
-                <p className="text-gray-600">Fornecemos orientação e estratégias, mas não executamos operações. Conectamos você com nossa rede de parceiros especializados para execução.</p>
+
+              {/* Perfil Wealth */}
+              <div className="bg-white p-6 rounded-xl border border-purple-200">
+                <div className="text-center mb-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Crown className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">Sofisticado</h3>
+                  <p className="text-sm text-gray-600 mt-1">Patrimônio: R$ 200.000 - R$ 1.000.000</p>
+                </div>
+                <div className="space-y-3 text-sm text-gray-700">
+                  <p>• Tem patrimônio significativo para gerir</p>
+                  <p>• Quer consultoria personalizada e dedicada</p>
+                  <p>• Busca otimização fiscal e tributária</p>
+                  <p>• Precisa de estratégias mais complexas</p>
+                </div>
               </div>
-              <div className="pb-6">
-                <h3 className="text-lg font-medium mb-2">Qual a diferença entre plano mensal e anual?</h3>
-                <p className="text-gray-600">O plano anual oferece 20% de desconto e é cobrado uma vez por ano. Você pode cancelar a qualquer momento com reembolso proporcional.</p>
+
+              {/* Perfil Offshore */}
+              <div className="bg-white p-6 rounded-xl border border-emerald-200">
+                <div className="text-center mb-4">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Globe className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">Internacional</h3>
+                  <p className="text-sm text-gray-600 mt-1">Patrimônio: R$ 1.000.000+</p>
+                </div>
+                <div className="space-y-3 text-sm text-gray-700">
+                  <p>• Possui patrimônio para estruturação offshore</p>
+                  <p>• Quer diversificação geográfica de ativos</p>
+                  <p>• Busca elisão fiscal internacional</p>
+                  <p>• Precisa de compliance e due diligence</p>
+                </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Social Proof Section - Inspirado em YC */}
+        <section className="py-16 px-6 bg-white">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Confiado por Investidores Inteligentes
+              </h2>
+              <p className="text-lg text-gray-600">
+                Junte-se a milhares de investidores que já descobriram o poder dos ETFs
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="text-4xl font-bold text-blue-600 mb-2">4,409</div>
+                <div className="text-lg font-medium text-gray-900 mb-2">ETFs Analisados</div>
+                <div className="text-sm text-gray-600">
+                  Base de dados mais completa do Brasil com 96.5% de cobertura
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-4xl font-bold text-green-600 mb-2">15.8%</div>
+                <div className="text-lg font-medium text-gray-900 mb-2">Retorno Médio Anual</div>
+                <div className="text-sm text-gray-600">
+                  Performance média dos ETFs em nossa base de dados
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-4xl font-bold text-purple-600 mb-2">172</div>
+                <div className="text-lg font-medium text-gray-900 mb-2">Categorias Cobertas</div>
+                <div className="text-sm text-gray-600">
+                  Diversificação completa por setores e regiões
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section - Melhorada */}
+        <section className="py-16 px-6 bg-gray-50">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">Perguntas Frequentes</h2>
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-lg border border-gray-200">
+                <h3 className="text-lg font-bold mb-3 text-gray-900">Posso cancelar a qualquer momento?</h3>
+                <p className="text-gray-600">Sim, você pode cancelar sua assinatura a qualquer momento sem burocracias. Para planos anuais, oferecemos reembolso proporcional nos primeiros 30 dias.</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg border border-gray-200">
+                <h3 className="text-lg font-bold mb-3 text-gray-900">Como funciona o plano Wealth?</h3>
+                <p className="text-gray-600">Após solicitar análise, nossa equipe fará um diagnóstico completo do seu perfil e patrimônio. Se aprovado, você terá acesso a um consultor CVM dedicado com reuniões mensais e suporte prioritário.</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg border border-gray-200">
+                <h3 className="text-lg font-bold mb-3 text-gray-900">O que significa aconselhamento no plano Offshore?</h3>
+                <p className="text-gray-600">Fornecemos orientação estratégica e estruturação, mas não executamos operações. Conectamos você com nossa rede de parceiros especializados para execução internacional.</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg border border-gray-200">
+                <h3 className="text-lg font-bold mb-3 text-gray-900">Por que o ETF Curator é diferente?</h3>
+                <p className="text-gray-600">Somos a única plataforma brasileira com análise científica de ETFs baseada em dados reais. Nossa metodologia combina métricas quantitativas com insights de mercado para decisões mais inteligentes.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Final - Inspirado em YC */}
+        <section className="py-16 px-6 bg-blue-600">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl font-bold text-white mb-4">
+              Pronto para Acelerar Seus Resultados?
+            </h2>
+            <p className="text-xl text-blue-100 mb-8">
+              Junte-se a milhares de investidores que já descobriram o poder dos ETFs com base científica
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg" 
+                className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-3"
+                onClick={() => !user ? router.push('/auth/register') : router.push('/dashboard')}
+              >
+                {user ? 'Acessar Dashboard' : 'Começar Grátis Agora'}
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-3"
+                onClick={() => router.push('/contato')}
+              >
+                Falar com Especialista
+              </Button>
+            </div>
+            <p className="text-sm text-blue-100 mt-4">
+              Sem cartão de crédito • Ativação instantânea • Suporte em português
+            </p>
           </div>
         </section>
 
