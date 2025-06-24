@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast';
 import { UserProfile } from '@/lib/auth';
 
 interface AuthContextType {
-  user: User | null;
+  user: (User & { access_token?: string }) | null;
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
@@ -79,7 +79,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } else if (isMounted) {
           setSession(session);
-          setUser(session?.user ?? null);
+          const userWithToken = session?.user ? {
+            ...session.user,
+            access_token: session.access_token
+          } : null;
+          setUser(userWithToken);
           setIsEmailConfirmed(session?.user?.email_confirmed_at ? true : false);
           
           // Carregar perfil se usuário estiver autenticado
@@ -106,7 +110,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('Auth state changed:', event, session?.user?.email);
 
         setSession(session);
-        setUser(session?.user ?? null);
+        const userWithToken = session?.user ? {
+          ...session.user,
+          access_token: session.access_token
+        } : null;
+        setUser(userWithToken);
         setIsEmailConfirmed(session?.user?.email_confirmed_at ? true : false);
 
         // Carregar perfil se usuário estiver autenticado

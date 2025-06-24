@@ -18,11 +18,21 @@ export async function GET(request: NextRequest) {
     const assetclass = searchParams.get("assetclass_filter");
     const onlyComplete = searchParams.get("onlyComplete") === "true";
     
+    // Filtros avançados PRO
+    const totalAssetsMin = searchParams.get("totalAssetsMin") ? parseFloat(searchParams.get("totalAssetsMin")!) : null;
+    const totalAssetsMax = searchParams.get("totalAssetsMax") ? parseFloat(searchParams.get("totalAssetsMax")!) : null;
+    const returns12mMin = searchParams.get("returns_12m_min") ? parseFloat(searchParams.get("returns_12m_min")!) : null;
+    const sharpe12mMin = searchParams.get("sharpe_12m_min") ? parseFloat(searchParams.get("sharpe_12m_min")!) : null;
+    const dividendYieldMin = searchParams.get("dividend_yield_min") ? parseFloat(searchParams.get("dividend_yield_min")!) : null;
+    
     // Parâmetros de ordenação
     const sortBy = searchParams.get("sort_by") || "symbol";
     const sortOrder = searchParams.get("sort_order") || "asc";
     
-    console.log('📊 Parâmetros:', { limit, page, searchTerm, assetclass, onlyComplete, sortBy, sortOrder });
+    console.log('📊 Parâmetros:', { 
+      limit, page, searchTerm, assetclass, onlyComplete, sortBy, sortOrder,
+      totalAssetsMin, totalAssetsMax, returns12mMin, sharpe12mMin, dividendYieldMin
+    });
 
     // Calcular paginação
     const offset = (page - 1) * limit;
@@ -130,6 +140,11 @@ export async function GET(request: NextRequest) {
         (${safeSearchTerm} = '' OR e.symbol ILIKE CONCAT('%', ${safeSearchTerm}, '%') OR e.name ILIKE CONCAT('%', ${safeSearchTerm}, '%'))
         AND (${safeAssetClass} = '' OR ${safeAssetClass} = 'all' OR e.assetclass ILIKE CONCAT('%', ${safeAssetClass}, '%'))
         ${onlyComplete ? Prisma.sql`AND e.name IS NOT NULL AND e.assetclass IS NOT NULL AND e.inceptiondate IS NOT NULL` : Prisma.empty}
+        ${totalAssetsMin !== null ? Prisma.sql`AND e.totalasset >= ${totalAssetsMin}` : Prisma.empty}
+        ${totalAssetsMax !== null ? Prisma.sql`AND e.totalasset <= ${totalAssetsMax}` : Prisma.empty}
+        ${returns12mMin !== null ? Prisma.sql`AND m.returns_12m >= ${returns12mMin / 100}` : Prisma.empty}
+        ${sharpe12mMin !== null ? Prisma.sql`AND m.sharpe_12m >= ${sharpe12mMin}` : Prisma.empty}
+        ${dividendYieldMin !== null ? Prisma.sql`AND (m.dividends_12m / e.nav * 100) >= ${dividendYieldMin}` : Prisma.empty}
       ${getOrderByClause(sortBy, sortOrder)}
       LIMIT ${limit} OFFSET ${offset}
       `

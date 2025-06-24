@@ -72,6 +72,23 @@ export default function ScreenerPage() {
         params.append('assetclass_filter', filters.assetclass);
       }
 
+      // Filtros avançados PRO
+      if (filters.totalAssetsMin !== undefined) {
+        params.append('totalAssetsMin', filters.totalAssetsMin.toString());
+      }
+      if (filters.totalAssetsMax !== undefined) {
+        params.append('totalAssetsMax', filters.totalAssetsMax.toString());
+      }
+      if (filters.returns_12m_min !== undefined) {
+        params.append('returns_12m_min', filters.returns_12m_min.toString());
+      }
+      if (filters.sharpe_12m_min !== undefined) {
+        params.append('sharpe_12m_min', filters.sharpe_12m_min.toString());
+      }
+      if (filters.dividend_yield_min !== undefined) {
+        params.append('dividend_yield_min', filters.dividend_yield_min.toString());
+      }
+
       // Adicionar parâmetros de ordenação
       if (sortBy) {
         params.append('sort_by', sortBy);
@@ -192,12 +209,30 @@ export default function ScreenerPage() {
             <FeatureGate 
               featureKey="screener_advanced" 
               fallback={
-                <Alert className="mt-6 max-w-md mx-auto">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Filtros avançados disponíveis apenas no plano PRO.
-                  </AlertDescription>
-                </Alert>
+                <div className="mt-6 max-w-md mx-auto space-y-4">
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Plano Starter:</strong> Filtros básicos disponíveis
+                      <br />
+                      <span className="text-blue-600 underline cursor-pointer" onClick={() => window.location.href = '/pricing'}>
+                        Upgrade para PRO para acessar filtros avançados como Total Assets, Returns, Sharpe Ratio e Dividend Yield.
+                      </span>
+                    </AlertDescription>
+                  </Alert>
+                  
+                  {/* Debug: Botão para forçar atualização */}
+                  <div className="text-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.location.reload()}
+                      className="text-xs"
+                    >
+                      🔄 Atualizar Plano
+                    </Button>
+                  </div>
+                </div>
               }
             >
               <div className="mt-6">

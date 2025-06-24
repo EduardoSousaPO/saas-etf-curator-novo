@@ -10,17 +10,47 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-    // Verificar autenticação
+    // Criar cliente Supabase para o request
+    const supabaseClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
+    // Verificar autenticação via header ou cookie
+    let user: any = null;
+    let authError: any = null;
+
+    // Tentar via Authorization header
     const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Token de autorização requerido' }, { status: 401 });
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const result = await supabase.auth.getUser(token);
+      user = result.data.user;
+      authError = result.error;
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    // Se não funcionou via header, tentar via cookie de sessão
+    if (!user) {
+      const result = await supabaseClient.auth.getUser();
+      user = result.data.user;
+      authError = result.error;
+    }
     
     if (authError || !user) {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
+      console.error('Erro de autenticação:', authError);
+      return NextResponse.json({ 
+        error: 'Usuário não autenticado',
+        debug: {
+          hasAuthHeader: !!authHeader,
+          authError: authError?.message
+        }
+      }, { status: 401 });
     }
 
     // Buscar assinatura do usuário

@@ -11,6 +11,54 @@ import {
   getPlanConfig
 } from '@/types/subscriptions';
 
+// Verificação de acesso baseada no plano (fallback)
+function getPlanBasedAccess(plan: SubscriptionPlan, featureKey: string): boolean {
+  const planFeatures: Record<SubscriptionPlan, string[]> = {
+    STARTER: [
+      'screener_basic',
+      'rankings_limited',
+      'dashboard_basic'
+    ],
+    PRO: [
+      'screener_advanced',
+      'screener_queries_daily', 
+      'screener_all_etfs',
+      'rankings_top10',
+      'export_reports',
+      'dashboard_complete',
+      'comparator_advanced',
+      'portfolio_optimization'
+    ],
+    WEALTH: [
+      'screener_advanced',
+      'screener_queries_daily', 
+      'screener_all_etfs',
+      'rankings_top10',
+      'export_reports',
+      'dashboard_complete',
+      'comparator_advanced',
+      'portfolio_optimization',
+      'consultant_dedicated',
+      'wealth_planning'
+    ],
+    OFFSHORE: [
+      'screener_advanced',
+      'screener_queries_daily', 
+      'screener_all_etfs',
+      'rankings_top10',
+      'export_reports',
+      'dashboard_complete',
+      'comparator_advanced',
+      'portfolio_optimization',
+      'consultant_dedicated',
+      'wealth_planning',
+      'offshore_structuring'
+    ]
+  };
+  
+  return planFeatures[plan]?.includes(featureKey) ?? false;
+}
+
 interface UseSubscriptionReturn {
   // Estado atual
   subscription: Subscription | null;
@@ -61,12 +109,16 @@ export function useSubscription(): UseSubscriptionReturn {
     try {
       setLoading(true);
       
+      console.log('🔄 Carregando dados da assinatura para usuário:', user.id);
+      
       // Carregar assinatura ativa
       const userSubscription = await SubscriptionService.getUserSubscription(user.id);
+      console.log('📋 Assinatura encontrada:', userSubscription);
       setSubscription(userSubscription);
       
       // Carregar limites de uso
       const limits = await SubscriptionService.getCurrentUsageLimits(user.id);
+      console.log('📊 Limites de uso:', limits);
       setUsageLimits(limits);
       
       // Carregar onboarding se aplicável
@@ -81,7 +133,7 @@ export function useSubscription(): UseSubscriptionReturn {
       }
       
     } catch (error) {
-      console.error('Erro ao carregar dados da assinatura:', error);
+      console.error('❌ Erro ao carregar dados da assinatura:', error);
     } finally {
       setLoading(false);
     }
@@ -91,10 +143,12 @@ export function useSubscription(): UseSubscriptionReturn {
   const loadPlanFeatures = useCallback(async () => {
     try {
       setFeaturesLoading(true);
+      console.log('🔧 Carregando features do plano:', currentPlan);
       const planFeatures = await SubscriptionService.getPlanFeatures(currentPlan);
+      console.log('✨ Features carregadas:', planFeatures.length, 'features');
       setFeatures(planFeatures);
     } catch (error) {
-      console.error('Erro ao carregar features do plano:', error);
+      console.error('❌ Erro ao carregar features do plano:', error);
     } finally {
       setFeaturesLoading(false);
     }
@@ -128,9 +182,28 @@ export function useSubscription(): UseSubscriptionReturn {
 
   // Verificar se pode acessar funcionalidade
   const canAccessFeature = useCallback((featureKey: string): boolean => {
-    const feature = features.find(f => f.feature_key === featureKey);
-    return feature?.is_enabled ?? false;
-  }, [features]);
+    // Verificação baseada no plano atual (mais confiável)
+    const planBasedAccess = getPlanBasedAccess(currentPlan, featureKey);
+    
+    console.log(`🔐 canAccessFeature("${featureKey}"):`, {
+      currentPlan,
+      planBasedAccess,
+      featuresCount: features.length,
+      features: features.map(f => ({ key: f.feature_key, enabled: f.is_enabled }))
+    });
+    
+    // Se temos features carregadas, usar elas
+    if (features.length > 0) {
+      const feature = features.find(f => f.feature_key === featureKey);
+      const result = feature?.is_enabled ?? planBasedAccess;
+      console.log(`✅ Resultado via features: ${result}`);
+      return result;
+    }
+    
+    // Fallback para verificação baseada no plano
+    console.log(`✅ Resultado via plano: ${planBasedAccess}`);
+    return planBasedAccess;
+  }, [features, currentPlan]);
 
   // Verificar se atingiu limite
   const hasReachedLimit = useCallback(async (

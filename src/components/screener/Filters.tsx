@@ -209,14 +209,14 @@ export default function Filters({
           </div>
 
           <div>
-            <Label htmlFor="returns_12m_min" className="dark:text-gray-200">12m Return (Min: {filters.returns_12m_min || -50}%)</Label>
+            <Label htmlFor="returns_12m_min" className="dark:text-gray-200">12m Return (Min: {filters.returns_12m_min || -95}%)</Label>
             <Slider
               id="returns_12m_min"
               name="returns_12m_min"
-              min={-50}
-              max={100}
+              min={-95}
+              max={300}
               step={1}
-              defaultValue={[filters.returns_12m_min || -50]}
+              defaultValue={[filters.returns_12m_min || -95]}
               onValueChange={(value) => handleSingleSliderChange("returns_12m_min", value)}
               className="mt-2"
             />
@@ -242,7 +242,7 @@ export default function Filters({
               id="dividend_yield_min"
               name="dividend_yield_min"
               min={0}
-              max={15}
+              max={25}
               step={0.1}
               defaultValue={[filters.dividend_yield_min || 0]}
               onValueChange={(value) => handleSingleSliderChange("dividend_yield_min", value)}

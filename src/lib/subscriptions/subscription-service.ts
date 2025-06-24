@@ -17,6 +17,8 @@ export class SubscriptionService {
   // Buscar assinatura ativa do usuário
   static async getUserSubscription(userId: string): Promise<Subscription | null> {
     try {
+      console.log('🔍 Buscando assinatura para usuário:', userId);
+      
       const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
@@ -25,12 +27,19 @@ export class SubscriptionService {
         .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('❌ Erro na query de assinatura:', error);
         throw error;
+      }
+
+      if (error && error.code === 'PGRST116') {
+        console.log('⚠️ Nenhuma assinatura ativa encontrada para o usuário');
+      } else {
+        console.log('✅ Assinatura encontrada:', data?.plan, data?.status);
       }
 
       return data;
     } catch (error) {
-      console.error('Erro ao buscar assinatura:', error);
+      console.error('❌ Erro ao buscar assinatura:', error);
       return null;
     }
   }
