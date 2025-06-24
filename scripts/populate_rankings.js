@@ -3,15 +3,14 @@ const prisma = new PrismaClient();
 
 async function populateRankings() {
   try {
-    console.log('🔄 Iniciando população da tabela etf_rankings com filtros aprimorados...');
+    console.log('🔄 Iniciando população da tabela etf_rankings com filtros flexibilizados...');
     
     // Limpar dados antigos
     await prisma.$executeRaw`DELETE FROM etf_rankings`;
     console.log('🧹 Dados antigos removidos');
     
-    // 1. TOP RETURNS 12M (filtros rigorosos: -95% a +50%)
-    // CORREÇÃO CRÍTICA: dados vêm em formato decimal do banco (0.1234 = 12.34%)
-    // Multiplicar por 100 para percentage_value para exibição correta
+    // 1. TOP RETURNS 12M - FILTROS FLEXIBILIZADOS: -98% a +1000%
+    // Permitir retornos extremos válidos (alguns ETFs podem ter 200%+ em anos excepcionais)
     console.log('📈 Calculando top returns 12m...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
@@ -23,13 +22,13 @@ async function populateRankings() {
         cm.returns_12m * 100 as percentage_value
       FROM calculated_metrics_teste cm
       WHERE cm.returns_12m IS NOT NULL 
-        AND cm.returns_12m >= -0.95 
-        AND cm.returns_12m <= 0.5
+        AND cm.returns_12m >= -0.98 
+        AND cm.returns_12m <= 10.0
       ORDER BY cm.returns_12m DESC
       LIMIT 10
     `;
     
-    // 2. TOP SHARPE 12M (filtros: -10 a +10)
+    // 2. TOP SHARPE 12M - FILTROS FLEXIBILIZADOS: -15 a +15
     console.log('🏆 Calculando top sharpe 12m...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
@@ -41,16 +40,13 @@ async function populateRankings() {
         NULL as percentage_value
       FROM calculated_metrics_teste cm
       WHERE cm.sharpe_12m IS NOT NULL 
-        AND cm.sharpe_12m >= -10.0 
-        AND cm.sharpe_12m <= 10.0
-        AND cm.returns_12m IS NOT NULL
-        AND cm.returns_12m >= -0.95 
-        AND cm.returns_12m <= 0.5
+        AND cm.sharpe_12m >= -15.0 
+        AND cm.sharpe_12m <= 15.0
       ORDER BY cm.sharpe_12m DESC
       LIMIT 10
     `;
     
-    // 3. TOP DIVIDEND YIELD (calculado com filtros mais restritivos: máximo 15%)
+    // 3. TOP DIVIDEND YIELD - FILTROS FLEXIBILIZADOS: até 25% (REITs podem ter yields altos)
     console.log('💰 Calculando top dividend yield...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
@@ -73,18 +69,18 @@ async function populateRankings() {
         JOIN etf_list el ON cm.symbol = el.symbol
         WHERE cm.dividends_12m IS NOT NULL 
           AND cm.dividends_12m > 0 
-          AND cm.dividends_12m <= 50
+          AND cm.dividends_12m <= 500
           AND el.nav IS NOT NULL 
-          AND el.nav > 5
+          AND el.nav > 1
       ) ranked_dividends
       WHERE dividend_yield IS NOT NULL
-        AND dividend_yield >= 0.1
-        AND dividend_yield <= 15
+        AND dividend_yield >= 0.05
+        AND dividend_yield <= 25.0
       ORDER BY dividend_yield DESC
       LIMIT 10
     `;
     
-    // 4. HIGHEST VOLUME (filtro: deve ser positivo)
+    // 4. HIGHEST VOLUME - SEM LIMITE SUPERIOR RÍGIDO
     console.log('📊 Calculando highest volume...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
@@ -97,13 +93,11 @@ async function populateRankings() {
       FROM etf_list el
       WHERE el.avgvolume IS NOT NULL 
         AND el.avgvolume > 0
-        AND el.avgvolume < 1000000000
       ORDER BY el.avgvolume DESC
       LIMIT 10
     `;
     
-    // 5. LOWEST MAX DRAWDOWN (filtros: entre -50% e 0%, ordenar por DESC para pegar os menores drawdowns)
-    // CORREÇÃO: max_drawdown em formato decimal (-0.1234 = -12.34%)
+    // 5. LOWEST MAX DRAWDOWN - FILTROS FLEXIBILIZADOS: até -99%
     console.log('🛡️ Calculando lowest max drawdown...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
@@ -115,15 +109,13 @@ async function populateRankings() {
         cm.max_drawdown * 100 as percentage_value
       FROM calculated_metrics_teste cm
       WHERE cm.max_drawdown IS NOT NULL 
-        AND cm.max_drawdown >= -0.5
-        AND cm.max_drawdown < 0
-        AND cm.max_drawdown != 0
+        AND cm.max_drawdown >= -0.99
+        AND cm.max_drawdown <= 0
       ORDER BY cm.max_drawdown DESC
       LIMIT 10
     `;
     
-    // 6. LOWEST VOLATILITY 12M (filtros: entre 0.1% e 100%, não pode ser zero)
-    // CORREÇÃO: volatilidade em formato decimal (0.1234 = 12.34%)
+    // 6. LOWEST VOLATILITY 12M - FILTROS FLEXIBILIZADOS: até 300%
     console.log('📉 Calculando lowest volatility 12m...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
@@ -135,8 +127,8 @@ async function populateRankings() {
         cm.volatility_12m * 100 as percentage_value
       FROM calculated_metrics_teste cm
       WHERE cm.volatility_12m IS NOT NULL 
-        AND cm.volatility_12m >= 0.001
-        AND cm.volatility_12m <= 1.0
+        AND cm.volatility_12m >= 0.0001
+        AND cm.volatility_12m <= 3.0
       ORDER BY cm.volatility_12m ASC
       LIMIT 10
     `;
@@ -162,7 +154,7 @@ async function populateRankings() {
       GROUP BY category
     `;
     
-    console.log('✅ Rankings populados com sucesso usando filtros aprimorados!');
+    console.log('✅ Rankings populados com sucesso usando filtros flexibilizados!');
     console.log('📊 Estatísticas por categoria:');
     totalRankings.forEach(stat => {
       console.log(`   ${stat.category}: ${stat.count} ETFs`);
@@ -171,7 +163,9 @@ async function populateRankings() {
     console.log('\n🔍 Verificação de qualidade dos dados:');
     suspiciousData.forEach(check => {
       console.log(`   ${check.category}:`);
-      console.log(`     - Valores extremos (>1000%): ${check.extreme_percentages}`);
+      if (check.extreme_percentages > 0) {
+        console.log(`     - Valores extremos (>1000%): ${check.extreme_percentages} - PRESERVADOS`);
+      }
       if (check.category === 'lowest_volatility_12m') {
         console.log(`     - Volatilidade zero: ${check.zero_volatility}`);
       }
