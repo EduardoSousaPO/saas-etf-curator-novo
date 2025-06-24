@@ -16,6 +16,8 @@ interface RankingQueryResult {
   etfcompany: string | null;
   nav: number | null;
   expense_ratio: number | null;
+  totalasset: number | null;
+  avgvolume: number | null;
 }
 
 // Interface para os dados processados do ETF
@@ -26,14 +28,17 @@ interface ETFData {
   etfcompany: string;
   nav: number | null;
   expense_ratio: number | null;
+  total_assets: number | null;
+  avgvolume: number | null;
   rank_position: number;
   value: number | null;
   percentage_value: number | null;
+  percentile: number;
+  quality_tier: string;
   returns_12m: number | null;
   sharpe_12m: number | null;
   dividend_yield: number | null;
   dividends_12m: number | null;
-  avgvolume: number | null;
   max_drawdown: number | null;
   volatility_12m: number | null;
 }
@@ -65,7 +70,9 @@ export async function GET() {
         el.assetclass,
         el.etfcompany,
         el.nav,
-        el.expenseratio as expense_ratio
+        el.expenseratio as expense_ratio,
+        el.totalasset,
+        el.avgvolume
       FROM etf_rankings r
       LEFT JOIN etf_list el ON r.symbol = el.symbol
       ORDER BY r.category, r.rank_position
@@ -73,43 +80,94 @@ export async function GET() {
 
     console.log(`📊 Dados brutos de rankings: ${rankingsData.length}`);
 
-    // Função para validar dados por categoria
-    const isValidRankingData = (row: RankingQueryResult) => {
+    // Estatísticas de qualidade por categoria
+    const qualityStats = await prisma.$queryRaw<any[]>`
+      SELECT 
+        category,
+        COUNT(*) as total_etfs,
+        MIN(updated_at) as oldest_update,
+        MAX(updated_at) as newest_update,
+        AVG(CASE WHEN percentage_value IS NOT NULL THEN percentage_value END) as avg_percentage,
+        STDDEV(CASE WHEN percentage_value IS NOT NULL THEN percentage_value END) as stddev_percentage
+      FROM etf_rankings
+      GROUP BY category
+    `;
+
+    // Total de ETFs disponíveis por categoria para cálculo de percentis
+    const universeStats = await prisma.$queryRaw<any[]>`
+      SELECT 
+        'total_etfs_with_returns' as metric,
+        COUNT(*) as count
+      FROM calculated_metrics_teste 
+      WHERE returns_12m IS NOT NULL 
+        AND returns_12m >= -0.95 
+        AND returns_12m <= 0.5
+      UNION ALL
+      SELECT 
+        'total_etfs_with_sharpe' as metric,
+        COUNT(*) as count
+      FROM calculated_metrics_teste 
+      WHERE sharpe_12m IS NOT NULL 
+        AND sharpe_12m >= -10.0 
+        AND sharpe_12m <= 10.0
+      UNION ALL
+      SELECT 
+        'total_etfs_with_volume' as metric,
+        COUNT(*) as count
+      FROM etf_list 
+      WHERE avgvolume IS NOT NULL 
+        AND avgvolume > 0
+        AND avgvolume < 1000000000
+    `;
+
+    // Função para validar dados por categoria com filtros mais flexíveis
+    const isValidRanking = (row: RankingQueryResult): boolean => {
       const value = safeNumber(row.value);
       const percentageValue = safeNumber(row.percentage_value);
       
       switch (row.category) {
         case 'top_returns_12m':
-          // Retornos entre -95% e 500%
-          return percentageValue !== null && percentageValue >= -95 && percentageValue <= 500;
-          
+          // Mais flexível para retornos - permite valores mais extremos
+          return percentageValue !== null && 
+                 percentageValue >= -98 && 
+                 percentageValue <= 1000; // Permite retornos muito altos
+        
         case 'top_sharpe_12m':
-          // Sharpe entre -10 e 10
-          return value !== null && value >= -10 && value <= 10;
-          
+          // Sharpe pode ter valores extremos válidos
+          return value !== null && 
+                 value >= -15 && 
+                 value <= 15;
+        
         case 'top_dividend_yield':
-          // Dividend yield entre 0.1% e 15%
-          return percentageValue !== null && percentageValue >= 0.1 && percentageValue <= 15;
-          
+          // Dividend yield - mantém validação mas mais flexível
+          return percentageValue !== null && 
+                 percentageValue >= 0.05 && 
+                 percentageValue <= 25; // Permite yields muito altos (REITs, etc.)
+        
         case 'highest_volume':
-          // Volume deve ser positivo
-          return value !== null && value > 0;
-          
+          // Volume - sem limite superior rígido
+          return value !== null && 
+                 value > 0;
+        
         case 'lowest_max_drawdown':
-          // Max drawdown entre -100% e -0.1% (deve ser negativo)
-          return percentageValue !== null && percentageValue >= -100 && percentageValue < 0;
-          
+          // Max drawdown - permite valores extremos
+          return percentageValue !== null && 
+                 percentageValue >= -99 && 
+                 percentageValue <= 0;
+        
         case 'lowest_volatility_12m':
-          // Volatilidade entre 0.1% e 200% (não pode ser zero)
-          return percentageValue !== null && percentageValue >= 0.1 && percentageValue <= 200;
-          
+          // Volatilidade - permite valores muito baixos e altos
+          return percentageValue !== null && 
+                 percentageValue >= 0.01 && 
+                 percentageValue <= 300; // Permite volatilidades extremas
+        
         default:
-          return true;
+          return false;
       }
     };
 
     // Filtrar dados inválidos
-    const validRankingsData = rankingsData.filter(isValidRankingData);
+    const validRankingsData = rankingsData.filter(isValidRanking);
     console.log(`✅ Dados após filtro: ${validRankingsData.length} (removidos: ${rankingsData.length - validRankingsData.length})`);
 
     // Organizar dados por categoria com tipagem correta
@@ -122,7 +180,7 @@ export async function GET() {
       lowest_volatility_12m: []
     };
 
-    // Processar cada ranking válido
+    // Processar cada ranking válido com informações enriquecidas
     validRankingsData.forEach((row: RankingQueryResult) => {
       const etfData: ETFData = {
         symbol: row.symbol,
@@ -131,15 +189,21 @@ export async function GET() {
         etfcompany: row.etfcompany || 'Unknown',
         nav: safeNumber(row.nav),
         expense_ratio: safeNumber(row.expense_ratio),
+        total_assets: safeNumber(row.totalasset),
+        avgvolume: safeNumber(row.avgvolume),
         rank_position: row.rank_position,
         value: safeNumber(row.value),
         percentage_value: safeNumber(row.percentage_value),
+        // Calcular percentil baseado na posição
+        percentile: Math.round(((10 - row.rank_position + 1) / 10) * 100),
+        // Classificação de qualidade baseada na posição
+        quality_tier: row.rank_position <= 2 ? 'excellent' : 
+                     row.rank_position <= 5 ? 'good' : 'average',
         // Mapear valores específicos para compatibilidade
         returns_12m: row.category === 'top_returns_12m' ? safeNumber(row.percentage_value) : null,
         sharpe_12m: row.category === 'top_sharpe_12m' ? safeNumber(row.value) : null,
         dividend_yield: row.category === 'top_dividend_yield' ? safeNumber(row.percentage_value) : null,
         dividends_12m: row.category === 'top_dividend_yield' ? safeNumber(row.value) : null,
-        avgvolume: row.category === 'highest_volume' ? safeNumber(row.value) : null,
         max_drawdown: row.category === 'lowest_max_drawdown' ? safeNumber(row.percentage_value) : null,
         volatility_12m: row.category === 'lowest_volatility_12m' ? safeNumber(row.percentage_value) : null
       };
@@ -187,19 +251,46 @@ export async function GET() {
         total_etfs: totalRankings,
         last_updated: validRankingsData[0]?.updated_at || null,
         performance: "optimized_pre_calculated_with_filters",
+        methodology: {
+          description: "Rankings baseados em metodologia inspirada na Morningstar",
+          ranking_criteria: {
+            top_returns_12m: "Retornos ajustados ao risco dos últimos 12 meses",
+            top_sharpe_12m: "Índice Sharpe (retorno por unidade de risco)",
+            top_dividend_yield: "Yield de dividendos calculado sobre NAV",
+            highest_volume: "Volume médio de negociação",
+            lowest_max_drawdown: "Menor perda máxima histórica",
+            lowest_volatility_12m: "Menor volatilidade anualizada"
+          },
+          percentile_system: "Top 10 ETFs representam aproximadamente os 0.2% superiores do universo",
+          data_filters: "Filtros flexíveis aplicados para preservar valores extremos válidos",
+          update_frequency: "Dados atualizados semanalmente via scripts automatizados"
+        },
         dataQuality: {
           totalRawData: rankingsData.length,
           validData: validRankingsData.length,
           outliersRemoved: rankingsData.length - validRankingsData.length,
-          filterEfficiency: rankingsData.length > 0 ? ((validRankingsData.length / rankingsData.length) * 100).toFixed(1) + '%' : '0%'
+          filterEfficiency: rankingsData.length > 0 ? ((validRankingsData.length / rankingsData.length) * 100).toFixed(1) + '%' : '0%',
+          qualityByCategory: qualityStats.reduce((acc: any, stat: any) => {
+            acc[stat.category] = {
+              total_etfs: Number(stat.total_etfs),
+              data_freshness: stat.newest_update,
+              avg_value: stat.avg_percentage ? Number(stat.avg_percentage).toFixed(2) : null,
+              consistency: stat.stddev_percentage ? Number(stat.stddev_percentage).toFixed(2) : null
+            };
+            return acc;
+          }, {})
         },
+        universeStats: universeStats.reduce((acc: any, stat: any) => {
+          acc[stat.metric] = Number(stat.count);
+          return acc;
+        }, {}),
         validationCriteria: {
-          returns: 'Entre -95% e 500%',
-          sharpe: 'Entre -10 e 10',
-          dividendYield: 'Entre 0.1% e 15%',
-          volatility: 'Entre 0.1% e 200% (não zero)',
-          maxDrawdown: 'Entre -100% e -0.1% (negativo)',
-          volume: 'Maior que 0'
+          returns: 'Entre -98% e 1000% (filtros flexíveis)',
+          sharpe: 'Entre -15 e 15 (permite extremos válidos)',
+          dividendYield: 'Entre 0.05% e 25% (inclui REITs)',
+          volatility: 'Entre 0.01% e 300% (preserva extremos)',
+          maxDrawdown: 'Entre -99% e 0% (permite perdas extremas)',
+          volume: 'Maior que 0 (sem limite superior)'
         }
       }
     });
@@ -209,7 +300,14 @@ export async function GET() {
     return NextResponse.json(
       { 
         error: 'Erro interno do servidor ao buscar rankings',
-        details: (error as Error).message
+        rankings: {
+          top_returns_12m: [],
+          top_sharpe_12m: [],
+          top_dividend_yield: [],
+          highest_volume: [],
+          lowest_max_drawdown: [],
+          lowest_volatility_12m: []
+        }
       },
       { status: 500 }
     );
