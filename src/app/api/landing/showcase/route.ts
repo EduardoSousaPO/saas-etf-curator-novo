@@ -5,46 +5,101 @@ export async function GET() {
   try {
     console.log('🔍 Carregando ETFs de destaque para showcase...');
 
-    // Verificar se há dados na tabela calculated_metrics_teste
-    const metricsCount = await prisma.calculated_metrics_teste.count();
-    console.log(`📊 Total de métricas na tabela: ${metricsCount}`);
+    // Verificar se há dados na view active_etfs
+    const activeETFsCount = await prisma.$queryRaw<[{count: string}]>`SELECT COUNT(*) as count FROM active_etfs`;
+    const totalCount = parseInt(activeETFsCount[0].count);
+    console.log(`📊 Total de ETFs ativos na view: ${totalCount}`);
 
-    if (metricsCount === 0) {
-      console.error('❌ ERRO CRÍTICO: Nenhuma métrica encontrada no banco de dados');
+    if (totalCount === 0) {
+      console.error('❌ ERRO CRÍTICO: Nenhum ETF encontrado na view active_etfs');
       return NextResponse.json({
         success: false,
-        error: 'Banco de dados vazio - nenhuma métrica encontrada',
-        message: 'Produção deve sempre ter dados reais. Verificar processo de enriquecimento de dados.',
+        error: 'View active_etfs vazia - nenhum ETF ativo encontrado',
+        message: 'Verificar view active_etfs e critérios de filtragem.',
         timestamp: new Date().toISOString()
       }, { status: 500 });
     }
 
-    // Buscar ETFs com métricas válidas usando raw SQL com filtros básicos
+    // Buscar ETFs com métricas válidas usando a nova view active_etfs
     const etfsWithMetrics = await prisma.$queryRaw<any[]>`
       SELECT 
-        e.symbol, e.name, e.assetclass, e.etfcompany, e.nav,
-        m.returns_12m, m.volatility_12m, m.sharpe_12m, m.dividends_12m
-      FROM etf_list e
-      INNER JOIN calculated_metrics_teste m ON e.symbol = m.symbol
-      WHERE m.sharpe_12m IS NOT NULL 
-        AND m.returns_12m IS NOT NULL
-        AND m.returns_12m BETWEEN -0.95 AND 5.0
-        AND m.volatility_12m BETWEEN 0 AND 2.0
-        AND m.sharpe_12m BETWEEN -10 AND 10
+        symbol, name, assetclass, etfcompany, nav,
+        returns_12m, volatility_12m, sharpe_12m, dividends_12m
+      FROM active_etfs
+      WHERE sharpe_12m IS NOT NULL 
+        AND returns_12m IS NOT NULL
+        AND returns_12m BETWEEN -0.95 AND 5.0
+        AND volatility_12m BETWEEN 0 AND 2.0
+        AND sharpe_12m BETWEEN -10 AND 10
       LIMIT 100
     `;
 
     console.log(`📊 ETFs com métricas válidas encontrados: ${etfsWithMetrics.length}`);
 
     if (etfsWithMetrics.length === 0) {
-      console.error('❌ ERRO CRÍTICO: Nenhum ETF com métricas válidas encontrado');
+      console.error('❌ ERRO: Nenhum ETF com métricas válidas encontrado');
       return NextResponse.json({
         success: false,
-        error: 'Nenhum ETF com métricas válidas encontrado no banco',
-        message: 'Dados existem mas não passaram nos filtros de qualidade. Verificar processo de enriquecimento.',
+        error: 'Nenhum ETF com métricas válidas encontrado',
+        message: 'Verificar se existem dados de performance na view active_etfs',
         timestamp: new Date().toISOString()
-      }, { status: 500 });
+      }, { status: 404 });
     }
+
+    // 1. TOP PERFORMERS (Maior retorno 12m)
+    const topPerformers = await prisma.$queryRaw<any[]>`
+      SELECT 
+        symbol, name, assetclass, etfcompany,
+        returns_12m, volatility_12m, sharpe_12m
+      FROM active_etfs
+      WHERE returns_12m IS NOT NULL 
+        AND returns_12m BETWEEN -0.95 AND 5.0
+        AND sharpe_12m IS NOT NULL
+        AND sharpe_12m BETWEEN -10 AND 10
+      ORDER BY returns_12m DESC
+      LIMIT 5
+    `;
+
+    // 2. BEST SHARPE RATIO (Melhor relação risco/retorno)
+    const bestSharpe = await prisma.$queryRaw<any[]>`
+      SELECT 
+        symbol, name, assetclass, etfcompany,
+        returns_12m, volatility_12m, sharpe_12m
+      FROM active_etfs
+      WHERE sharpe_12m IS NOT NULL 
+        AND sharpe_12m BETWEEN -10 AND 10
+        AND returns_12m IS NOT NULL
+        AND returns_12m BETWEEN -0.95 AND 5.0
+      ORDER BY sharpe_12m DESC
+      LIMIT 5
+    `;
+
+    // 3. LOW VOLATILITY (Menor volatilidade)
+    const lowVolatility = await prisma.$queryRaw<any[]>`
+      SELECT 
+        symbol, name, assetclass, etfcompany,
+        returns_12m, volatility_12m, sharpe_12m
+      FROM active_etfs
+      WHERE volatility_12m IS NOT NULL 
+        AND volatility_12m BETWEEN 0.01 AND 2.0
+        AND returns_12m IS NOT NULL
+        AND returns_12m BETWEEN -0.95 AND 5.0
+      ORDER BY volatility_12m ASC
+      LIMIT 5
+    `;
+
+    // 4. HIGH DIVIDEND (Maiores dividendos)
+    const highDividend = await prisma.$queryRaw<any[]>`
+      SELECT 
+        symbol, name, assetclass, etfcompany,
+        returns_12m, volatility_12m, dividends_12m
+      FROM active_etfs
+      WHERE dividends_12m IS NOT NULL 
+        AND dividends_12m > 0
+        AND dividends_12m < 1.0
+      ORDER BY dividends_12m DESC
+      LIMIT 5
+    `;
 
     // Processar ETFs encontrados
     const processETFs = (etfs: any[]) => {
@@ -68,83 +123,16 @@ export async function GET() {
       });
     };
 
-    // Buscar diferentes categorias usando raw SQL com filtros de outliers
-    const [
-      topSharpeETFs,
-      topReturnETFs,
-      lowVolatilityETFs,
-      highDividendETFs
-    ] = await Promise.all([
-      // Top Sharpe (filtrado)
-      prisma.$queryRaw<any[]>`
-        SELECT 
-          e.symbol, e.name, e.assetclass, e.etfcompany, e.nav,
-          m.returns_12m, m.volatility_12m, m.sharpe_12m, m.dividends_12m
-        FROM etf_list e
-        INNER JOIN calculated_metrics_teste m ON e.symbol = m.symbol
-        WHERE m.sharpe_12m IS NOT NULL 
-          AND m.sharpe_12m BETWEEN 0 AND 10
-          AND m.returns_12m BETWEEN -0.50 AND 2.0
-          AND m.volatility_12m BETWEEN 0 AND 1.0
-        ORDER BY m.sharpe_12m DESC
-        LIMIT 6
-      `,
-      
-      // Top Return (filtrado)
-      prisma.$queryRaw<any[]>`
-        SELECT 
-          e.symbol, e.name, e.assetclass, e.etfcompany, e.nav,
-          m.returns_12m, m.volatility_12m, m.sharpe_12m, m.dividends_12m
-        FROM etf_list e
-        INNER JOIN calculated_metrics_teste m ON e.symbol = m.symbol
-        WHERE m.returns_12m IS NOT NULL 
-          AND m.returns_12m BETWEEN 0 AND 2.0
-          AND m.volatility_12m BETWEEN 0 AND 1.0
-        ORDER BY m.returns_12m DESC
-        LIMIT 6
-      `,
-      
-      // Low Volatility (filtrado)
-      prisma.$queryRaw<any[]>`
-        SELECT 
-          e.symbol, e.name, e.assetclass, e.etfcompany, e.nav,
-          m.returns_12m, m.volatility_12m, m.sharpe_12m, m.dividends_12m
-        FROM etf_list e
-        INNER JOIN calculated_metrics_teste m ON e.symbol = m.symbol
-        WHERE m.volatility_12m IS NOT NULL 
-          AND m.volatility_12m BETWEEN 0 AND 0.30
-          AND m.returns_12m BETWEEN 0 AND 1.0
-        ORDER BY m.volatility_12m ASC
-        LIMIT 6
-      `,
-      
-      // High Dividend (filtrado)
-      prisma.$queryRaw<any[]>`
-        SELECT 
-          e.symbol, e.name, e.assetclass, e.etfcompany, e.nav,
-          m.returns_12m, m.volatility_12m, m.sharpe_12m, m.dividends_12m
-        FROM etf_list e
-        INNER JOIN calculated_metrics_teste m ON e.symbol = m.symbol
-        WHERE m.dividends_12m IS NOT NULL 
-          AND m.dividends_12m BETWEEN 0 AND 100
-          AND e.nav IS NOT NULL 
-          AND e.nav > 0
-          AND m.returns_12m BETWEEN -0.20 AND 1.0
-        ORDER BY m.dividends_12m DESC
-        LIMIT 6
-      `
-    ]);
-
-    console.log(`📊 Categorias encontradas - Sharpe: ${topSharpeETFs.length}, Return: ${topReturnETFs.length}, Low Vol: ${lowVolatilityETFs.length}, High Div: ${highDividendETFs.length}`);
+    console.log(`📊 Categorias encontradas - Performers: ${topPerformers.length}, Sharpe: ${bestSharpe.length}, Low Vol: ${lowVolatility.length}, High Div: ${highDividend.length}`);
 
     // Processar dados de cada categoria
     const processedData = {
-      featured: processETFs(topSharpeETFs.slice(0, 4)), // ETFs em destaque baseados no Sharpe
+      featured: processETFs(bestSharpe.slice(0, 4)), // ETFs em destaque baseados no Sharpe
       categories: {
-        topSharpe: processETFs(topSharpeETFs),
-        topReturn: processETFs(topReturnETFs),
-        lowVolatility: processETFs(lowVolatilityETFs),
-        highDividend: processETFs(highDividendETFs)
+        topSharpe: processETFs(bestSharpe),
+        topReturn: processETFs(topPerformers),
+        lowVolatility: processETFs(lowVolatility),
+        highDividend: processETFs(highDividend)
       }
     };
 

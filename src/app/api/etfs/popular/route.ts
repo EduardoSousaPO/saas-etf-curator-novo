@@ -11,20 +11,16 @@ export async function GET() {
       'SPY', 'VOO', 'VEA', 'VWO', 'IEFA', 'AGG', 'TLT'
     ];
 
-    // Buscar ETFs na base de dados
-    const etfList = await prisma.etf_list.findMany({
-      where: { 
-        symbol: { in: popularSymbols }
-      },
-      select: {
-        symbol: true,
-        name: true,
-        assetclass: true,
-        expenseratio: true,
-        totalasset: true,
-        avgvolume: true
-      }
-    });
+    // Buscar ETFs populares usando a view active_etfs
+    const etfList = await prisma.$queryRaw<any[]>`
+      SELECT 
+        symbol, name, assetclass, expenseratio, totalasset, avgvolume,
+        returns_12m, volatility_12m, sharpe_12m,
+        size_category, liquidity_category, etf_type
+      FROM active_etfs
+      WHERE symbol = ANY(${popularSymbols})
+      ORDER BY totalasset DESC
+    `;
 
     console.log(`📊 ETFs encontrados no banco: ${etfList.length} de ${popularSymbols.length} solicitados`);
 
@@ -38,75 +34,42 @@ export async function GET() {
       }, { status: 500 });
     }
 
-    // Buscar métricas calculadas
-    const metrics = await prisma.calculated_metrics_teste.findMany({
-      where: { 
-        symbol: { in: etfList.map(etf => etf.symbol) }
-      },
-      select: {
-        symbol: true,
-        returns_12m: true,
-        volatility_12m: true,
-        sharpe_12m: true
-      }
-    });
+    console.log(`📊 Métricas encontradas: ${etfList.filter(etf => etf.returns_12m).length} de ${etfList.length} ETFs`);
 
-    console.log(`📊 Métricas encontradas: ${metrics.length} de ${etfList.length} ETFs`);
+    // Processar dados dos ETFs
+    const processedETFs = etfList.map(etf => ({
+      symbol: etf.symbol,
+      name: etf.name || `${etf.symbol} ETF`,
+      assetclass: etf.assetclass || 'Unknown',
+      expense_ratio: Number(etf.expenseratio) || 0,
+      total_assets: Number(etf.totalasset) || 0,
+      volume: Number(etf.avgvolume) || 0,
+      returns_12m: etf.returns_12m ? Number(etf.returns_12m) : null,
+      volatility_12m: etf.volatility_12m ? Number(etf.volatility_12m) : null,
+      sharpe_12m: etf.sharpe_12m ? Number(etf.sharpe_12m) : null,
+      size_category: etf.size_category,
+      liquidity_category: etf.liquidity_category,
+      etf_type: etf.etf_type
+    }));
 
-    // Combinar dados - APENAS ETFs que existem no banco
-    const popularETFs = etfList.map(etf => {
-      const metric = metrics.find(m => m.symbol === etf.symbol);
-      return {
-        symbol: etf.symbol,
-        name: etf.name || `${etf.symbol} ETF`,
-        assetclass: etf.assetclass || 'Unknown',
-        returns_12m: metric?.returns_12m ? Number(metric.returns_12m) : 0,
-        volatility_12m: metric?.volatility_12m ? Number(metric.volatility_12m) : 0,
-        sharpe_12m: metric?.sharpe_12m ? Number(metric.sharpe_12m) : 0,
-        expense_ratio: etf.expenseratio ? Number(etf.expenseratio) : 0,
-        total_assets: etf.totalasset ? Number(etf.totalasset) : null,
-        volume: etf.avgvolume ? Number(etf.avgvolume) : null
-      };
-    });
+    console.log(`✅ Processamento concluído: ${processedETFs.length} ETFs populares`);
 
-    // Verificar se temos dados suficientes
-    if (popularETFs.length < 5) {
-      console.error('❌ ERRO CRÍTICO: Poucos ETFs populares encontrados no banco');
-      return NextResponse.json({
-        success: false,
-        error: `Apenas ${popularETFs.length} ETFs populares encontrados, mínimo necessário: 5`,
-        message: 'Banco deve conter mais ETFs populares. Verificar processo de importação.',
-        timestamp: new Date().toISOString()
-      }, { status: 500 });
-    }
-
-    const foundSymbols = popularETFs.map(etf => etf.symbol);
-    const missingSymbols = popularSymbols.filter(symbol => !foundSymbols.includes(symbol));
-
-    console.log(`✅ ${popularETFs.length} ETFs populares carregados do banco de dados`);
-    if (missingSymbols.length > 0) {
-      console.log(`⚠️ ETFs não encontrados no banco: ${missingSymbols.join(', ')}`);
-    }
-    
     return NextResponse.json({
       success: true,
-      etfs: popularETFs,
-      _source: "real_database_only",
-      _message: `${foundSymbols.length} ETFs reais do banco Supabase`,
-      _timestamp: new Date().toISOString(),
-      _found_in_db: foundSymbols,
-      _missing_from_db: missingSymbols
+      data: processedETFs,
+      count: processedETFs.length,
+      source: 'active_etfs_view',
+      message: 'ETFs populares carregados com sucesso',
+      timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error("❌ ERRO CRÍTICO ao buscar ETFs populares:", error);
-    console.error('🚨 PRODUÇÃO DEVE SEMPRE USAR DADOS REAIS - Verificar conexão com Supabase');
+    console.error("❌ Erro crítico ao buscar ETFs populares:", error);
     
-    // NUNCA usar fallback - sempre retornar erro para forçar correção
     return NextResponse.json({
       success: false,
-      error: `Falha ao conectar com banco de dados: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      message: 'Produção deve sempre usar dados reais do Supabase. Verificar variáveis de ambiente e conexão.',
+      error: `Erro ao buscar ETFs populares: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      message: 'Falha na consulta ao banco de dados. Verificar conexão e estrutura.',
       timestamp: new Date().toISOString()
     }, { status: 500 });
   }

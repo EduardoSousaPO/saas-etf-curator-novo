@@ -31,16 +31,23 @@ export class DatabaseDataSource implements DataSource {
     try {
       const { PrismaClient } = await import('@prisma/client');
       const prisma = new PrismaClient();
-      const etf = await prisma.etf_list.findUnique({ where: { symbol } });
-      const metrics = await prisma.calculated_metrics_teste.findUnique({ where: { symbol } });
+      
+      // Usar a view active_etfs que já tem todos os dados unidos
+      const etf = await prisma.$queryRaw`
+        SELECT * FROM active_etfs WHERE symbol = ${symbol} LIMIT 1
+      `;
+      
       await prisma.$disconnect();
-      if (!etf) return null;
+      
+      if (!etf || (etf as any[]).length === 0) return null;
+      
+      const etfData = (etf as any[])[0];
+      
       return {
-        ...etf,
-        ...metrics,
+        ...etfData,
         data_source: 'database',
         last_updated: new Date(),
-        quality_score: this.calculateQualityScore({ ...etf, ...metrics })
+        quality_score: this.calculateQualityScore(etfData)
       };
     } catch (error) {
       console.error('Database data source error:', error);
@@ -52,20 +59,25 @@ export class DatabaseDataSource implements DataSource {
     try {
       const { PrismaClient } = await import('@prisma/client');
       const prisma = new PrismaClient();
-      const etfList = await prisma.etf_list.findMany({ where: { symbol: { in: symbols } } });
-      const metricsList = await prisma.calculated_metrics_teste.findMany({ where: { symbol: { in: symbols } } });
+      
+      // Usar a view active_etfs para buscar múltiplos ETFs
+      const etfList = await prisma.$queryRaw`
+        SELECT * FROM active_etfs WHERE symbol = ANY(${symbols})
+      `;
+      
       await prisma.$disconnect();
+      
       const result: Record<string, any> = {};
-      etfList.forEach(etf => {
-        const metrics = metricsList.find(m => m.symbol === etf.symbol);
+      
+      (etfList as any[]).forEach(etf => {
         result[etf.symbol] = {
           ...etf,
-          ...metrics,
           data_source: 'database',
           last_updated: new Date(),
-          quality_score: this.calculateQualityScore({ ...etf, ...metrics })
+          quality_score: this.calculateQualityScore(etf)
         };
       });
+      
       return result;
     } catch (error) {
       console.error('Database bulk data source error:', error);

@@ -188,9 +188,9 @@ export async function GET(request: NextRequest) {
 
     const symbolsUpper = symbols.map(s => s.toUpperCase());
 
-    // Verificar se os símbolos existem no nosso banco
+    // Verificar se os símbolos existem no nosso banco usando active_etfs
     const { data: etfData, error: etfError } = await supabase
-      .from('etf_list')
+      .from('active_etfs')
       .select('symbol, name, nav')
       .in('symbol', symbolsUpper);
 

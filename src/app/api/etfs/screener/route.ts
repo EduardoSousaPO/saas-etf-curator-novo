@@ -64,32 +64,32 @@ export async function GET(request: NextRequest) {
       const validSortOrders = ['asc', 'desc'];
       const order = validSortOrders.includes(sortOrder.toLowerCase()) ? sortOrder.toUpperCase() : 'ASC';
       
-      // Mapear campos para as tabelas corretas
+      // Mapear campos para a view active_etfs
       const fieldMapping: { [key: string]: string } = {
-        'symbol': 'e.symbol',
-        'name': 'e.name',
-        'assetclass': 'e.assetclass',
-        'totalasset': 'e.totalasset',
-        'returns_12m': 'm.returns_12m',
-        'returns_24m': 'm.returns_24m',
-        'returns_36m': 'm.returns_36m',
-        'ten_year_return': 'm.ten_year_return',
-        'volatility_12m': 'm.volatility_12m',
-        'volatility_24m': 'm.volatility_24m',
-        'volatility_36m': 'm.volatility_36m',
-        'ten_year_volatility': 'm.ten_year_volatility',
-        'sharpe_12m': 'm.sharpe_12m',
-        'sharpe_24m': 'm.sharpe_24m',
-        'sharpe_36m': 'm.sharpe_36m',
-        'ten_year_sharpe': 'm.ten_year_sharpe',
-        'max_drawdown': 'm.max_drawdown',
-        'dividends_12m': 'm.dividends_12m',
-        'dividends_24m': 'm.dividends_24m',
-        'dividends_36m': 'm.dividends_36m',
-        'dividends_all_time': 'm.dividends_all_time'
+        'symbol': 'symbol',
+        'name': 'name',
+        'assetclass': 'assetclass',
+        'totalasset': 'totalasset',
+        'returns_12m': 'returns_12m',
+        'returns_24m': 'returns_24m',
+        'returns_36m': 'returns_36m',
+        'ten_year_return': 'returns_5y',
+        'volatility_12m': 'volatility_12m',
+        'volatility_24m': 'volatility_24m',
+        'volatility_36m': 'volatility_36m',
+        'ten_year_volatility': 'ten_year_volatility',
+        'sharpe_12m': 'sharpe_12m',
+        'sharpe_24m': 'sharpe_24m',
+        'sharpe_36m': 'sharpe_36m',
+        'ten_year_sharpe': 'ten_year_sharpe',
+        'max_drawdown': 'max_drawdown',
+        'dividends_12m': 'dividends_12m',
+        'dividends_24m': 'dividends_24m',
+        'dividends_36m': 'dividends_36m',
+        'dividends_all_time': 'dividends_all_time'
       };
       
-      const sqlField = fieldMapping[sortBy] || 'e.symbol';
+      const sqlField = fieldMapping[sortBy] || 'symbol';
       
       if (order === 'ASC') {
         return Prisma.sql`ORDER BY ${Prisma.raw(sqlField)} ASC NULLS LAST`;
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
       }
     };
     
-    // OTIMIZAÇÃO: Buscar ETFs e métricas em uma única query usando SQL raw SEGURO
+    // OTIMIZAÇÃO: Buscar ETFs usando a view active_etfs (dados já filtrados e unidos)
     // Garantir que os parâmetros não sejam null/undefined para o Prisma
     const safeSearchTerm = searchTerm || '';
     const safeAssetClass = assetclass || '';
@@ -106,45 +106,47 @@ export async function GET(request: NextRequest) {
     const result = await prisma.$queryRaw<any[]>(
       Prisma.sql`
       SELECT 
-        e.symbol,
-        e.name,
-        e.description,
-        e.assetclass,
-        e.etfcompany,
-        e.expenseratio,
-        e.totalasset,
-        e.avgvolume,
-        e.nav,
-        e.holdingscount,
-        e.inceptiondate,
-        m.returns_12m,
-        m.returns_24m,
-        m.returns_36m,
-        m.ten_year_return,
-        m.volatility_12m,
-        m.volatility_24m,
-        m.volatility_36m,
-        m.ten_year_volatility,
-        m.sharpe_12m,
-        m.sharpe_24m,
-        m.sharpe_36m,
-        m.ten_year_sharpe,
-        m.max_drawdown,
-        m.dividends_12m,
-        m.dividends_24m,
-        m.dividends_36m,
-        m.dividends_all_time
-      FROM etf_list e
-      LEFT JOIN calculated_metrics_teste m ON e.symbol = m.symbol
+        symbol,
+        name,
+        description,
+        assetclass,
+        etfcompany,
+        expenseratio,
+        totalasset,
+        avgvolume,
+        nav,
+        holdingscount,
+        inceptiondate,
+        returns_12m,
+        returns_24m,
+        returns_36m,
+        returns_5y as ten_year_return,
+        volatility_12m,
+        volatility_24m,
+        volatility_36m,
+        ten_year_volatility,
+        sharpe_12m,
+        sharpe_24m,
+        sharpe_36m,
+        ten_year_sharpe,
+        max_drawdown,
+        dividends_12m,
+        dividends_24m,
+        dividends_36m,
+        dividends_all_time,
+        size_category,
+        liquidity_category,
+        etf_type
+      FROM active_etfs
       WHERE 
-        (${safeSearchTerm} = '' OR e.symbol ILIKE CONCAT('%', ${safeSearchTerm}, '%') OR e.name ILIKE CONCAT('%', ${safeSearchTerm}, '%'))
-        AND (${safeAssetClass} = '' OR ${safeAssetClass} = 'all' OR e.assetclass ILIKE CONCAT('%', ${safeAssetClass}, '%'))
-        ${onlyComplete ? Prisma.sql`AND e.name IS NOT NULL AND e.assetclass IS NOT NULL AND e.inceptiondate IS NOT NULL` : Prisma.empty}
-        ${totalAssetsMin !== null ? Prisma.sql`AND e.totalasset >= ${totalAssetsMin}` : Prisma.empty}
-        ${totalAssetsMax !== null ? Prisma.sql`AND e.totalasset <= ${totalAssetsMax}` : Prisma.empty}
-        ${returns12mMin !== null ? Prisma.sql`AND m.returns_12m >= ${returns12mMin / 100}` : Prisma.empty}
-        ${sharpe12mMin !== null ? Prisma.sql`AND m.sharpe_12m >= ${sharpe12mMin}` : Prisma.empty}
-        ${dividendYieldMin !== null ? Prisma.sql`AND (m.dividends_12m / e.nav * 100) >= ${dividendYieldMin}` : Prisma.empty}
+        (${safeSearchTerm} = '' OR symbol ILIKE CONCAT('%', ${safeSearchTerm}, '%') OR name ILIKE CONCAT('%', ${safeSearchTerm}, '%'))
+        AND (${safeAssetClass} = '' OR ${safeAssetClass} = 'all' OR assetclass ILIKE CONCAT('%', ${safeAssetClass}, '%'))
+        ${onlyComplete ? Prisma.sql`AND name IS NOT NULL AND assetclass IS NOT NULL AND inceptiondate IS NOT NULL` : Prisma.empty}
+        ${totalAssetsMin !== null ? Prisma.sql`AND totalasset >= ${totalAssetsMin}` : Prisma.empty}
+        ${totalAssetsMax !== null ? Prisma.sql`AND totalasset <= ${totalAssetsMax}` : Prisma.empty}
+        ${returns12mMin !== null ? Prisma.sql`AND returns_12m >= ${returns12mMin / 100}` : Prisma.empty}
+        ${sharpe12mMin !== null ? Prisma.sql`AND sharpe_12m >= ${sharpe12mMin}` : Prisma.empty}
+        ${dividendYieldMin !== null ? Prisma.sql`AND (dividends_12m / nav * 100) >= ${dividendYieldMin}` : Prisma.empty}
       ${getOrderByClause(sortBy, sortOrder)}
       LIMIT ${limit} OFFSET ${offset}
       `
@@ -217,12 +219,11 @@ export async function GET(request: NextRequest) {
     const countResult = await prisma.$queryRaw<[{ count: bigint }]>(
       Prisma.sql`
       SELECT COUNT(*) as count
-      FROM etf_list e
-      LEFT JOIN calculated_metrics_teste m ON e.symbol = m.symbol
+      FROM active_etfs
       WHERE 
-        (${safeSearchTerm} = '' OR e.symbol ILIKE CONCAT('%', ${safeSearchTerm}, '%') OR e.name ILIKE CONCAT('%', ${safeSearchTerm}, '%'))
-        AND (${safeAssetClass} = '' OR ${safeAssetClass} = 'all' OR e.assetclass ILIKE CONCAT('%', ${safeAssetClass}, '%'))
-        ${onlyComplete ? Prisma.sql`AND e.name IS NOT NULL AND e.assetclass IS NOT NULL AND e.inceptiondate IS NOT NULL` : Prisma.empty}
+        (${safeSearchTerm} = '' OR symbol ILIKE CONCAT('%', ${safeSearchTerm}, '%') OR name ILIKE CONCAT('%', ${safeSearchTerm}, '%'))
+        AND (${safeAssetClass} = '' OR ${safeAssetClass} = 'all' OR assetclass ILIKE CONCAT('%', ${safeAssetClass}, '%'))
+        ${onlyComplete ? Prisma.sql`AND name IS NOT NULL AND assetclass IS NOT NULL AND inceptiondate IS NOT NULL` : Prisma.empty}
       `
     );
 

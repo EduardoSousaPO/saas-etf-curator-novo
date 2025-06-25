@@ -57,7 +57,7 @@ export async function GET() {
   try {
     console.log('🔗 Buscando rankings da tabela pré-calculada...');
 
-    // Buscar todos os rankings da tabela etf_rankings
+    // Buscar todos os rankings da tabela etf_rankings com dados da view active_etfs
     const rankingsData = await prisma.$queryRaw<RankingQueryResult[]>`
       SELECT 
         r.category,
@@ -66,15 +66,15 @@ export async function GET() {
         r.value,
         r.percentage_value,
         r.updated_at,
-        el.name,
-        el.assetclass,
-        el.etfcompany,
-        el.nav,
-        el.expenseratio as expense_ratio,
-        el.totalasset,
-        el.avgvolume
+        ae.name,
+        ae.assetclass,
+        ae.etfcompany,
+        ae.nav,
+        ae.expenseratio as expense_ratio,
+        ae.totalasset,
+        ae.avgvolume
       FROM etf_rankings r
-      LEFT JOIN etf_list el ON r.symbol = el.symbol
+      LEFT JOIN active_etfs ae ON r.symbol = ae.symbol
       ORDER BY r.category, r.rank_position
     `;
 
@@ -93,12 +93,12 @@ export async function GET() {
       GROUP BY category
     `;
 
-    // Total de ETFs disponíveis por categoria para cálculo de percentis
+    // Total de ETFs disponíveis por categoria para cálculo de percentis usando active_etfs
     const universeStats = await prisma.$queryRaw<any[]>`
       SELECT 
         'total_etfs_with_returns' as metric,
         COUNT(*) as count
-      FROM calculated_metrics_teste 
+      FROM active_etfs 
       WHERE returns_12m IS NOT NULL 
         AND returns_12m >= -0.95 
         AND returns_12m <= 0.5
@@ -106,7 +106,7 @@ export async function GET() {
       SELECT 
         'total_etfs_with_sharpe' as metric,
         COUNT(*) as count
-      FROM calculated_metrics_teste 
+      FROM active_etfs 
       WHERE sharpe_12m IS NOT NULL 
         AND sharpe_12m >= -10.0 
         AND sharpe_12m <= 10.0
@@ -114,7 +114,7 @@ export async function GET() {
       SELECT 
         'total_etfs_with_volume' as metric,
         COUNT(*) as count
-      FROM etf_list 
+      FROM active_etfs 
       WHERE avgvolume IS NOT NULL 
         AND avgvolume > 0
         AND avgvolume < 1000000000
