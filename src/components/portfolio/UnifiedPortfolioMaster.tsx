@@ -523,46 +523,49 @@ export default function UnifiedPortfolioMaster() {
     }))
 
     return (
-      <div className="space-y-6">
-        {/* Header com Ações */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <CardTitle>Sua Carteira Está Pronta!</CardTitle>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(1)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nova Simulação
-                </Button>
-                <Button>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Carteira
-                </Button>
-              </div>
-            </div>
-            <CardDescription>
-              Portfolio otimizado com base nos seus objetivos
-            </CardDescription>
-          </CardHeader>
-        </Card>
+      <div className="space-y-16">
+        {/* Header Tesla-style */}
+        <div className="text-center">
+          <div className="flex justify-center mb-6">
+            <CheckCircle className="h-16 w-16 text-green-600" />
+          </div>
+          <h2 className="text-4xl font-light text-gray-900 mb-4">
+            Sua Carteira Está Pronta!
+          </h2>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Portfolio otimizado com base científica nos seus objetivos de investimento
+          </p>
+          
+          {/* Action Buttons */}
+          <div className="flex justify-center gap-6 mt-12">
+            <Button variant="outline" onClick={() => setStep(1)} className="px-8 py-3 rounded-xl border-gray-300">
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Simulação
+            </Button>
+            <Button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-xl">
+              <Save className="mr-2 h-4 w-4" />
+              Salvar Carteira
+            </Button>
+          </div>
+        </div>
 
-        {/* Controles de Personalização - SIMPLIFICADO */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Personalizar Carteira</CardTitle>
-            <CardDescription>
+        {/* Controles de Personalização - Tesla Style */}
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h3 className="text-2xl font-light text-gray-900 mb-2">
+              Personalizar Carteira
+            </h3>
+            <p className="text-gray-600">
               Ajuste sua carteira buscando novos ETFs ou recalculando a otimização
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-3 justify-center">
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <div className="flex flex-wrap gap-6 justify-center">
               <Button 
                 variant="outline" 
                 onClick={() => setCompositionMode(compositionMode === 'auto' ? 'manual' : 'auto')}
-                className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                className="border-gray-300 px-8 py-3 rounded-xl"
               >
                 <Search className="mr-2 h-4 w-4" />
                 {compositionMode === 'auto' ? 'Buscar ETFs' : 'Modo Automático'}
@@ -570,7 +573,7 @@ export default function UnifiedPortfolioMaster() {
               <Button 
                 onClick={() => recalculatePortfolio(selectedETFs)}
                 disabled={recalculating || selectedETFs.length < 2}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+                className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-xl disabled:bg-gray-400"
               >
                 {recalculating ? (
                   <>
@@ -584,19 +587,20 @@ export default function UnifiedPortfolioMaster() {
                   </>
                 )}
               </Button>
-              {selectedETFs.length < 2 && (
-                <div className="flex items-center gap-2 text-orange-600 text-sm">
-                  <AlertCircle className="h-4 w-4" />
-                  Selecione pelo menos 2 ETFs para otimizar
-                </div>
-              )}
             </div>
+            
+            {selectedETFs.length < 2 && (
+              <div className="flex items-center justify-center gap-2 text-orange-600 text-sm mt-4">
+                <AlertCircle className="h-4 w-4" />
+                Selecione pelo menos 2 ETFs para otimizar
+              </div>
+            )}
 
             {/* Busca Manual de ETFs */}
             {compositionMode === 'manual' && (
-              <div className="mt-6 p-4 border rounded-lg bg-gray-50">
-                <div className="flex items-center gap-2 mb-4">
-                  <Label className="text-base font-medium">Buscar ETFs</Label>
+              <div className="mt-8 p-6 border rounded-2xl bg-gray-50">
+                <div className="flex items-center gap-2 mb-6">
+                  <Label className="text-lg font-medium text-gray-900">Buscar ETFs</Label>
                   <CustomTooltip text="Pesquise ETFs na nossa base de 1.370+ ativos para adicionar à sua carteira">
                     <Info className="h-4 w-4 text-gray-400" />
                   </CustomTooltip>
@@ -651,66 +655,63 @@ export default function UnifiedPortfolioMaster() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Layout Principal: Gráfico + Lista ETFs */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Gráfico de Pizza */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <CardTitle>Distribuição da Carteira</CardTitle>
-                <CustomTooltip text="Visualização da alocação percentual de cada ETF na sua carteira">
-                  <Info className="h-4 w-4 text-gray-400" />
-                </CustomTooltip>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={120}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip 
-                      formatter={(value: number, name: string) => [
-                        `${value.toFixed(1)}%`,
-                        name
-                      ]}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Layout Principal: Gráfico + Lista ETFs - Tesla Style */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Gráfico de Pizza - Tesla Style */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-medium text-gray-900 mb-2">Distribuição da Carteira</h3>
+              <CustomTooltip text="Visualização da alocação percentual de cada ETF na sua carteira">
+                <p className="text-gray-600 text-sm cursor-help">
+                  Visualização da alocação percentual de cada ETF
+                </p>
+              </CustomTooltip>
+            </div>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={120}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip 
+                    formatter={(value: number, name: string) => [
+                      `${value.toFixed(1)}%`,
+                      name
+                    ]}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-          {/* ETFs da Carteira - MELHORADO */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CardTitle>ETFs da Carteira</CardTitle>
-                  <Badge variant="outline">{selectedETFs.length} ativos</Badge>
-                </div>
-                <CustomTooltip text="Clique nos ETFs para ver detalhes ou usar as checkboxes para remover">
-                  <Info className="h-4 w-4 text-gray-400" />
-                </CustomTooltip>
+          {/* ETFs da Carteira - Tesla Style */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <div className="text-center mb-6">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <h3 className="text-xl font-medium text-gray-900">ETFs da Carteira</h3>
+                <Badge variant="outline" className="bg-gray-100">{selectedETFs.length} ativos</Badge>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 max-h-80 overflow-y-auto">
+              <CustomTooltip text="Clique nos ETFs para ver detalhes ou usar as checkboxes para remover">
+                <p className="text-gray-600 text-sm cursor-help">
+                  Clique para ver detalhes ou desmarque para remover
+                </p>
+              </CustomTooltip>
+            </div>
+            <div className="space-y-4 max-h-80 overflow-y-auto">
                 {results.portfolio.map((etf, index) => (
                   <div
                     key={etf.symbol}
@@ -753,157 +754,113 @@ export default function UnifiedPortfolioMaster() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Métricas da Carteira */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2">
-                <CustomTooltip text="Retorno anual esperado baseado em dados históricos">
-                  <TrendingUp className="h-5 w-5" style={{ color: DESIGN_COLORS.green }} />
-                </CustomTooltip>
-                <div>
-                  <div className="text-2xl font-bold" style={{ color: DESIGN_COLORS.green }}>
-                    {results.expected_return.toFixed(1)}%
-                  </div>
-                  <div className="text-sm" style={{ color: DESIGN_COLORS.gray }}>Retorno Esperado</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2">
-                <CustomTooltip text="Medida de risco - oscilação dos retornos">
-                  <Shield className="h-5 w-5" style={{ color: DESIGN_COLORS.blue }} />
-                </CustomTooltip>
-                <div>
-                  <div className="text-2xl font-bold" style={{ color: DESIGN_COLORS.blue }}>
-                    {results.expected_volatility.toFixed(1)}%
-                  </div>
-                  <div className="text-sm" style={{ color: DESIGN_COLORS.gray }}>Volatilidade</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2">
-                <CustomTooltip text="Retorno ajustado pelo risco - quanto maior, melhor">
-                  <BarChart3 className="h-5 w-5" style={{ color: DESIGN_COLORS.purple }} />
-                </CustomTooltip>
-                <div>
-                  <div className="text-2xl font-bold" style={{ color: DESIGN_COLORS.purple }}>
-                    {results.sharpe_ratio.toFixed(2)}
-                  </div>
-                  <div className="text-sm" style={{ color: DESIGN_COLORS.gray }}>Sharpe Ratio</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2">
-                <CustomTooltip text="Valor total investido na carteira">
-                  <DollarSign className="h-5 w-5" style={{ color: DESIGN_COLORS.green }} />
-                </CustomTooltip>
-                <div>
-                  <div className="text-2xl font-bold" style={{ color: DESIGN_COLORS.green }}>
-                    ${onboardingData.initialAmount?.toLocaleString() || '0'}
-                  </div>
-                  <div className="text-sm" style={{ color: DESIGN_COLORS.gray }}>Valor Investido</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Backtesting vs Benchmarks - MELHORADO */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <CardTitle>Backtesting vs. Benchmarks (10 anos)</CardTitle>
-              <CustomTooltip text="Comparação da performance histórica da sua carteira contra os principais benchmarks do mercado">
-                <Info className="h-4 w-4 text-gray-400" />
-              </CustomTooltip>
             </div>
-            <CardDescription>
+        </div>
+
+        {/* Métricas da Carteira - Tesla Style */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+            <div className="flex justify-center mb-4">
+              <TrendingUp className="h-8 w-8 text-green-600" />
+            </div>
+            <div className="text-3xl font-light text-gray-900 mb-2">
+              {results.expected_return.toFixed(1)}%
+            </div>
+            <div className="text-gray-600">Retorno Esperado</div>
+          </div>
+          
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+            <div className="flex justify-center mb-4">
+              <Shield className="h-8 w-8 text-blue-600" />
+            </div>
+            <div className="text-3xl font-light text-gray-900 mb-2">
+              {results.expected_volatility.toFixed(1)}%
+            </div>
+            <div className="text-gray-600">Volatilidade</div>
+          </div>
+          
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+            <div className="flex justify-center mb-4">
+              <BarChart3 className="h-8 w-8 text-purple-600" />
+            </div>
+            <div className="text-3xl font-light text-gray-900 mb-2">
+              {results.sharpe_ratio.toFixed(2)}
+            </div>
+            <div className="text-gray-600">Sharpe Ratio</div>
+          </div>
+          
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+            <div className="flex justify-center mb-4">
+              <DollarSign className="h-8 w-8 text-green-600" />
+            </div>
+            <div className="text-3xl font-light text-gray-900 mb-2">
+              ${onboardingData.initialAmount?.toLocaleString() || '0'}
+            </div>
+            <div className="text-gray-600">Valor Investido</div>
+          </div>
+        </div>
+
+        {/* Backtesting vs Benchmarks - Tesla Style */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12">
+          <div className="text-center mb-12">
+            <h3 className="text-2xl font-light text-gray-900 mb-4">
+              Backtesting vs. Benchmarks (10 anos)
+            </h3>
+            <p className="text-gray-600 max-w-2xl mx-auto">
               Performance histórica simulada comparada aos principais benchmarks
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {/* Tabela Resumida de Resultados */}
-            <div className="mb-6">
-              <h4 className="font-semibold mb-3">Resumo de Performance (10 anos)</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="border-blue-200 bg-blue-50">
-                  <CardContent className="pt-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-blue-600">
-                        +{results.backtesting?.portfolio_return.toFixed(1) || '0'}%
-                      </div>
-                      <div className="text-sm text-blue-700 font-medium">Sua Carteira</div>
-                      <div className="text-xs text-blue-500 mt-1">
-                        Valor final: {formatCurrency(onboardingData.initialAmount * (1 + (results.backtesting?.portfolio_return || 0) / 100))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+            </p>
+          </div>
 
-                <Card className="border-gray-200 bg-gray-50">
-                  <CardContent className="pt-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-gray-600">
-                        +{results.backtesting?.sp500_return.toFixed(1) || '0'}%
-                      </div>
-                      <div className="text-sm text-gray-700 font-medium">S&P 500</div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.sp500_return || 0)).toFixed(1)}%
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* Resumo de Performance */}
+          <div className="mb-12">
+            <h4 className="text-lg font-medium text-gray-900 mb-8 text-center">Resumo de Performance (10 anos)</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="bg-blue-50 rounded-2xl p-6 text-center border border-blue-100">
+                  <div className="text-2xl font-light text-blue-600 mb-2">
+                    +{results.backtesting?.portfolio_return.toFixed(1) || '0'}%
+                  </div>
+                  <div className="text-blue-700 font-medium mb-2">Sua Carteira</div>
+                  <div className="text-sm text-blue-500">
+                    Valor final: {formatCurrency(onboardingData.initialAmount * (1 + (results.backtesting?.portfolio_return || 0) / 100))}
+                  </div>
+                </div>
 
-                <Card className="border-orange-200 bg-orange-50">
-                  <CardContent className="pt-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-orange-600">
-                        +{results.backtesting?.ibovespa_return.toFixed(1) || '0'}%
-                      </div>
-                      <div className="text-sm text-orange-700 font-medium">IBOVESPA</div>
-                      <div className="text-xs text-orange-500 mt-1">
-                        Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.ibovespa_return || 0)).toFixed(1)}%
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
+                  <div className="text-2xl font-light text-gray-600 mb-2">
+                    +{results.backtesting?.sp500_return.toFixed(1) || '0'}%
+                  </div>
+                  <div className="text-gray-700 font-medium mb-2">S&P 500</div>
+                  <div className="text-sm text-gray-500">
+                    Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.sp500_return || 0)).toFixed(1)}%
+                  </div>
+                </div>
 
-                <Card className="border-green-200 bg-green-50">
-                  <CardContent className="pt-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-green-600">
-                        +{results.backtesting?.cdi_return.toFixed(1) || '0'}%
-                      </div>
-                      <div className="text-sm text-green-700 font-medium">CDI</div>
-                      <div className="text-xs text-green-500 mt-1">
-                        Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.cdi_return || 0)).toFixed(1)}%
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="bg-orange-50 rounded-2xl p-6 text-center border border-orange-100">
+                  <div className="text-2xl font-light text-orange-600 mb-2">
+                    +{results.backtesting?.ibovespa_return.toFixed(1) || '0'}%
+                  </div>
+                  <div className="text-orange-700 font-medium mb-2">IBOVESPA</div>
+                  <div className="text-sm text-orange-500">
+                    Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.ibovespa_return || 0)).toFixed(1)}%
+                  </div>
+                </div>
+
+                <div className="bg-green-50 rounded-2xl p-6 text-center border border-green-100">
+                  <div className="text-2xl font-light text-green-600 mb-2">
+                    +{results.backtesting?.cdi_return.toFixed(1) || '0'}%
+                  </div>
+                  <div className="text-green-700 font-medium mb-2">CDI</div>
+                  <div className="text-sm text-green-500">
+                    Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.cdi_return || 0)).toFixed(1)}%
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Gráfico de Performance Histórica - MELHORADO */}
-            <div className="mb-4">
-              <h4 className="font-semibold mb-3">Evolução Histórica</h4>
-              <div className="h-80">
+            {/* Gráfico de Performance Histórica - Tesla Style */}
+            <div className="mb-12">
+              <h4 className="text-lg font-medium text-gray-900 mb-8 text-center">Evolução Histórica</h4>
+              <div className="h-96 bg-gray-50 rounded-2xl p-6">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={results.backtesting?.historical_data || []}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -991,201 +948,182 @@ export default function UnifiedPortfolioMaster() {
               </div>
             </div>
 
-            {/* Análise de Outperformance */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold mb-2 flex items-center gap-2 text-blue-800">
-                <TrendingUp className="h-4 w-4" />
-                Análise de Performance
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Melhor que S&P 500:</span>
-                  <span className={`ml-2 font-bold ${
+            {/* Análise de Outperformance - Tesla Style */}
+            <div className="bg-blue-50 rounded-2xl p-8 border border-blue-100">
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <TrendingUp className="h-6 w-6 text-blue-600" />
+                <h4 className="text-lg font-medium text-blue-800">Análise de Performance</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="text-center">
+                  <div className="text-gray-700 mb-2">Melhor que S&P 500:</div>
+                  <div className={`text-xl font-light ${
                     (results.backtesting?.portfolio_return || 0) > (results.backtesting?.sp500_return || 0) 
                       ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {(results.backtesting?.portfolio_return || 0) > (results.backtesting?.sp500_return || 0) ? 'Sim' : 'Não'} 
                     ({((results.backtesting?.portfolio_return || 0) - (results.backtesting?.sp500_return || 0)).toFixed(1)}%)
-                  </span>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium">Melhor que IBOVESPA:</span>
-                  <span className={`ml-2 font-bold ${
+                <div className="text-center">
+                  <div className="text-gray-700 mb-2">Melhor que IBOVESPA:</div>
+                  <div className={`text-xl font-light ${
                     (results.backtesting?.portfolio_return || 0) > (results.backtesting?.ibovespa_return || 0) 
                       ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {(results.backtesting?.portfolio_return || 0) > (results.backtesting?.ibovespa_return || 0) ? 'Sim' : 'Não'} 
                     ({((results.backtesting?.portfolio_return || 0) - (results.backtesting?.ibovespa_return || 0)).toFixed(1)}%)
-                  </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Projeções Monte Carlo - MELHORADAS com percentuais */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <CardTitle>Projeções para 12 Meses</CardTitle>
-              <CustomTooltip text="Simulação Monte Carlo com 1.000 cenários baseados em dados históricos">
-                <Info className="h-4 w-4 text-gray-400" />
-              </CustomTooltip>
-            </div>
-            <CardDescription>
-              Cenários de Monte Carlo baseados em dados históricos e simulações
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Cenário Pessimista */}
-              <Card className="border-red-200 bg-red-50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingDown className="h-5 w-5 text-red-600" />
-                    <span className="font-semibold text-red-800">Pessimista</span>
-                    <CustomTooltip text="Cenário de crise - apenas 15% das simulações resultaram em valores piores que este">
-                      <Info className="h-4 w-4 text-red-400" />
-                    </CustomTooltip>
-                  </div>
-                  <div className="text-2xl font-bold text-red-600 mb-1">
-                    {formatCurrency(results.projections?.pessimistic || 0)}
-                  </div>
-                  <div className="text-lg font-semibold text-red-500">
-                    {(((results.projections?.pessimistic || 0) - onboardingData.initialAmount) / onboardingData.initialAmount * 100).toFixed(1)}%
-                  </div>
-                  <div className="text-sm text-red-600 mt-2">
-                    Percentil 15 - Se as coisas correrem mal
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Projeções Monte Carlo - Tesla Style */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12">
+          <div className="text-center mb-12">
+            <h3 className="text-2xl font-light text-gray-900 mb-4">
+              Projeções para 12 Meses
+            </h3>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Simulação Monte Carlo com 1.000 cenários baseados em dados históricos
+            </p>
+          </div>
 
-              {/* Cenário Esperado */}
-              <Card className="border-green-200 bg-green-50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-5 w-5 text-green-600" />
-                    <span className="font-semibold text-green-800">Esperado</span>
-                    <CustomTooltip text="Cenário mais provável - mediana das simulações">
-                      <Info className="h-4 w-4 text-green-400" />
-                    </CustomTooltip>
-                  </div>
-                  <div className="text-2xl font-bold text-green-600 mb-1">
-                    {formatCurrency(results.projections?.expected || 0)}
-                  </div>
-                  <div className="text-lg font-semibold text-green-500">
-                    +{(((results.projections?.expected || 0) - onboardingData.initialAmount) / onboardingData.initialAmount * 100).toFixed(1)}%
-                  </div>
-                  <div className="text-sm text-green-600 mt-2">
-                    Mediana - O mais provável de acontecer
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Cenário Otimista */}
-              <Card className="border-blue-200 bg-blue-50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-5 w-5 text-blue-600" />
-                    <span className="font-semibold text-blue-800">Otimista</span>
-                    <CustomTooltip text="Cenário favorável - apenas 15% das simulações resultaram em valores melhores que este">
-                      <Info className="h-4 w-4 text-blue-400" />
-                    </CustomTooltip>
-                  </div>
-                  <div className="text-2xl font-bold text-blue-600 mb-1">
-                    {formatCurrency(results.projections?.optimistic || 0)}
-                  </div>
-                  <div className="text-lg font-semibold text-blue-500">
-                    +{(((results.projections?.optimistic || 0) - onboardingData.initialAmount) / onboardingData.initialAmount * 100).toFixed(1)}%
-                  </div>
-                  <div className="text-sm text-blue-600 mt-2">
-                    Percentil 85 - Se tudo correr muito bem
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Explicação Didática */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-semibold mb-2 flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Como interpretar estas projeções
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-red-600">Pessimista:</span> Use para se preparar para cenários adversos. É improvável, mas possível.
-                </div>
-                <div>
-                  <span className="font-medium text-green-600">Esperado:</span> Use para planejamento financeiro. É o cenário mais provável.
-                </div>
-                <div>
-                  <span className="font-medium text-blue-600">Otimista:</span> Representa o potencial máximo. Não conte apenas com este cenário.
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {/* Cenário Pessimista */}
+            <div className="bg-red-50 rounded-2xl p-8 text-center border border-red-100">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <TrendingDown className="h-6 w-6 text-red-600" />
+                <span className="text-lg font-medium text-red-800">Pessimista</span>
+              </div>
+              <div className="text-3xl font-light text-red-600 mb-2">
+                {formatCurrency(results.projections?.pessimistic || 0)}
+              </div>
+              <div className="text-xl font-light text-red-500 mb-4">
+                {(((results.projections?.pessimistic || 0) - onboardingData.initialAmount) / onboardingData.initialAmount * 100).toFixed(1)}%
+              </div>
+              <div className="text-sm text-red-600">
+                Percentil 15 - Se as coisas correrem mal
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Consultoria CVM Especializada */}
-        <Card className="border-2 border-gradient-to-r from-green-500 to-blue-600 bg-gradient-to-r from-green-50 to-blue-50">
-          <CardContent className="pt-6">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                💼 Implementação Profissional
-              </h3>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Deixe nossos especialistas certificados CVM implementarem sua carteira. 
-                Abertura de conta, compra dos ETFs e acompanhamento completo.
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="text-center p-4 bg-white rounded-lg border">
-                <div className="text-green-600 font-semibold mb-1">✅ Certificação CVM</div>
-                <div className="text-sm text-gray-600">Consultores regulamentados</div>
+            {/* Cenário Esperado */}
+            <div className="bg-green-50 rounded-2xl p-8 text-center border border-green-100">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <TrendingUp className="h-6 w-6 text-green-600" />
+                <span className="text-lg font-medium text-green-800">Esperado</span>
               </div>
-              <div className="text-center p-4 bg-white rounded-lg border">
-                <div className="text-blue-600 font-semibold mb-1">🏦 Abertura de Conta</div>
-                <div className="text-sm text-gray-600">Corretora + documentação</div>
+              <div className="text-3xl font-light text-green-600 mb-2">
+                {formatCurrency(results.projections?.expected || 0)}
               </div>
-              <div className="text-center p-4 bg-white rounded-lg border">
-                <div className="text-purple-600 font-semibold mb-1">📈 Acompanhamento</div>
-                <div className="text-sm text-gray-600">Monitoramento contínuo</div>
+              <div className="text-xl font-light text-green-500 mb-4">
+                +{(((results.projections?.expected || 0) - onboardingData.initialAmount) / onboardingData.initialAmount * 100).toFixed(1)}%
+              </div>
+              <div className="text-sm text-green-600">
+                Mediana - O mais provável de acontecer
               </div>
             </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button 
-                size="lg" 
-                className="flex-1 max-w-xs bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-                onClick={() => window.location.href = '/consultoria'}
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                Agendar Consultoria CVM
-              </Button>
-              <Button size="lg" className="flex-1 max-w-xs">
-                <Save className="mr-2 h-4 w-4" />
-                Implementar Sozinho
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Ações Finais */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button variant="outline" size="lg" className="flex-1 max-w-xs">
-                <BarChart className="mr-2 h-4 w-4" />
-                Análise Detalhada
-              </Button>
-              <Button variant="outline" size="lg" className="flex-1 max-w-xs" onClick={() => setStep(1)}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Nova Simulação
-              </Button>
+            {/* Cenário Otimista */}
+            <div className="bg-blue-50 rounded-2xl p-8 text-center border border-blue-100">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <TrendingUp className="h-6 w-6 text-blue-600" />
+                <span className="text-lg font-medium text-blue-800">Otimista</span>
+              </div>
+              <div className="text-3xl font-light text-blue-600 mb-2">
+                {formatCurrency(results.projections?.optimistic || 0)}
+              </div>
+              <div className="text-xl font-light text-blue-500 mb-4">
+                +{(((results.projections?.optimistic || 0) - onboardingData.initialAmount) / onboardingData.initialAmount * 100).toFixed(1)}%
+              </div>
+              <div className="text-sm text-blue-600">
+                Percentil 85 - Se tudo correr muito bem
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          {/* Explicação Didática */}
+          <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <BarChart3 className="h-6 w-6 text-gray-600" />
+              <h4 className="text-lg font-medium text-gray-900">Como interpretar estas projeções</h4>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              <div>
+                <div className="text-red-600 font-medium mb-2">Pessimista</div>
+                <div className="text-gray-600">Use para se preparar para cenários adversos. É improvável, mas possível.</div>
+              </div>
+              <div>
+                <div className="text-green-600 font-medium mb-2">Esperado</div>
+                <div className="text-gray-600">Use para planejamento financeiro. É o cenário mais provável.</div>
+              </div>
+              <div>
+                <div className="text-blue-600 font-medium mb-2">Otimista</div>
+                <div className="text-gray-600">Representa o potencial máximo. Não conte apenas com este cenário.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Consultoria CVM Especializada - Tesla Style */}
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-12 border border-gray-100">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-light text-gray-900 mb-4">
+              💼 Implementação Profissional
+            </h3>
+            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+              Deixe nossos especialistas certificados CVM implementarem sua carteira. 
+              Abertura de conta, compra dos ETFs e acompanhamento completo.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="text-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+              <div className="text-green-600 font-medium mb-2 text-lg">✅ Certificação CVM</div>
+              <div className="text-gray-600">Consultores regulamentados</div>
+            </div>
+            <div className="text-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+              <div className="text-blue-600 font-medium mb-2 text-lg">🏦 Abertura de Conta</div>
+              <div className="text-gray-600">Corretora + documentação</div>
+            </div>
+            <div className="text-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+              <div className="text-purple-600 font-medium mb-2 text-lg">📈 Acompanhamento</div>
+              <div className="text-gray-600">Monitoramento contínuo</div>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <button 
+              className="bg-gray-900 hover:bg-gray-800 text-white px-12 py-4 rounded-xl text-lg font-medium transition-colors duration-300"
+              onClick={() => window.location.href = '/consultoria'}
+            >
+              <Calendar className="mr-2 h-5 w-5 inline" />
+              Agendar Consultoria CVM
+            </button>
+            <button className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 px-12 py-4 rounded-xl text-lg font-medium transition-colors duration-300">
+              <Save className="mr-2 h-5 w-5 inline" />
+              Implementar Sozinho
+            </button>
+          </div>
+        </div>
+
+        {/* Ações Finais - Tesla Style */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <button className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 px-12 py-4 rounded-xl text-lg font-medium transition-colors duration-300">
+              <BarChart className="mr-2 h-5 w-5 inline" />
+              Análise Detalhada
+            </button>
+            <button 
+              className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 px-12 py-4 rounded-xl text-lg font-medium transition-colors duration-300"
+              onClick={() => setStep(1)}
+            >
+              <RefreshCw className="mr-2 h-5 w-5 inline" />
+              Nova Simulação
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -1366,63 +1304,121 @@ export default function UnifiedPortfolioMaster() {
 
   // Etapa 1: Objetivo
   const renderStep1 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5" />
-          Qual é o seu objetivo de investimento?
-        </CardTitle>
-        <CardDescription>
-          Escolha o objetivo principal para personalizar sua carteira
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-12">
+      {/* Progress Indicator - Tesla Style */}
+      <div className="flex items-center justify-center space-x-8 mb-16">
+        {[1, 2, 3].map((stepNumber) => (
+          <div key={stepNumber} className="flex items-center">
+            <div
+              className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-light transition-all ${
+                step >= stepNumber
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-200 text-gray-500'
+              }`}
+            >
+              {stepNumber}
+            </div>
+            {stepNumber < 3 && (
+              <div
+                className={`w-24 h-0.5 mx-4 transition-all ${
+                  step > stepNumber ? 'bg-gray-900' : 'bg-gray-200'
+                }`}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-light text-gray-900 mb-4">
+            Qual é o seu objetivo de investimento?
+          </h2>
+          <p className="text-lg text-gray-600 leading-relaxed">
+            Escolha o objetivo principal para personalizar sua carteira
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {objectives.map((obj) => {
             const Icon = obj.icon
             return (
               <div
                 key={obj.value}
-                className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                className={`p-8 rounded-2xl cursor-pointer transition-all duration-300 ${
                   onboardingData.objective === obj.value
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'bg-white shadow-xl border-2 border-gray-900'
+                    : 'bg-white shadow-sm hover:shadow-lg border border-gray-100'
                 }`}
                 onClick={() => setOnboardingData(prev => ({ ...prev, objective: obj.value as any }))}
               >
-                <div className="flex items-center gap-3">
-                  <Icon className="h-6 w-6 text-blue-600" />
+                <div className="text-center space-y-4">
+                  <div className="flex justify-center">
+                    <Icon className="h-12 w-12 text-gray-900" />
+                  </div>
                   <div>
-                    <div className="font-medium">{obj.label}</div>
-                    <div className="text-sm text-gray-500">{obj.description}</div>
+                    <h3 className="text-xl font-medium text-gray-900 mb-2">{obj.label}</h3>
+                    <p className="text-gray-600 leading-relaxed">{obj.description}</p>
                   </div>
                 </div>
               </div>
             )
           })}
         </div>
-        <div className="mt-6 flex justify-end">
-          <Button onClick={() => setStep(2)}>
-            Próximo <ArrowRight className="ml-2 h-4 w-4" />
+
+        <div className="flex justify-center mt-16">
+          <Button 
+            onClick={() => setStep(2)}
+            className="bg-gray-900 hover:bg-gray-800 text-white px-12 py-4 rounded-xl text-lg font-light tracking-wide transition-all"
+          >
+            Continuar
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 
   // Etapa 2: Valores (com validações em tempo real)
   const renderStep2 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5" />
-          Valores do Investimento
-        </CardTitle>
-        <CardDescription>
-          Configure os valores e horizonte temporal do seu investimento
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <div className="space-y-12">
+      {/* Progress Indicator - Tesla Style */}
+      <div className="flex items-center justify-center space-x-8 mb-16">
+        {[1, 2, 3].map((stepNumber) => (
+          <div key={stepNumber} className="flex items-center">
+            <div
+              className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-light transition-all ${
+                step >= stepNumber
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-200 text-gray-500'
+              }`}
+            >
+              {stepNumber}
+            </div>
+            {stepNumber < 3 && (
+              <div
+                className={`w-24 h-0.5 mx-4 transition-all ${
+                  step > stepNumber ? 'bg-gray-900' : 'bg-gray-200'
+                }`}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-light text-gray-900 mb-4">
+            Valores do Investimento
+          </h2>
+          <p className="text-lg text-gray-600 leading-relaxed">
+            Configure os valores e horizonte temporal do seu investimento
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12">
+          <div className="space-y-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="initialAmount">
@@ -1529,55 +1525,81 @@ export default function UnifiedPortfolioMaster() {
           </div>
         </div>
         
-        <div className="flex justify-between pt-4">
-          <Button variant="outline" onClick={() => setStep(1)}>
+        <div className="flex justify-between pt-8">
+          <Button variant="outline" onClick={() => setStep(1)} className="px-8 py-3 rounded-xl">
             Voltar
           </Button>
           <Button 
             onClick={() => setStep(3)}
             disabled={onboardingData.initialAmount < 10000 || onboardingData.timeHorizon < 12 || onboardingData.timeHorizon > 240}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-gray-900 hover:bg-gray-800 text-white px-12 py-3 rounded-xl font-light tracking-wide"
           >
             Continuar
-            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 
   // Etapa 3: Perfil de Risco
   const renderStep3 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
-          Perfil de Risco
-        </CardTitle>
-        <CardDescription>
-          Escolha seu perfil de investimento baseado na sua tolerância ao risco
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+    <div className="space-y-12">
+      {/* Progress Indicator - Tesla Style */}
+      <div className="flex items-center justify-center space-x-8 mb-16">
+        {[1, 2, 3].map((stepNumber) => (
+          <div key={stepNumber} className="flex items-center">
+            <div
+              className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-light transition-all ${
+                step >= stepNumber
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-200 text-gray-500'
+              }`}
+            >
+              {stepNumber}
+            </div>
+            {stepNumber < 3 && (
+              <div
+                className={`w-24 h-0.5 mx-4 transition-all ${
+                  step > stepNumber ? 'bg-gray-900' : 'bg-gray-200'
+                }`}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-light text-gray-900 mb-4">
+            Perfil de Risco
+          </h2>
+          <p className="text-lg text-gray-600 leading-relaxed">
+            Escolha seu perfil de investimento baseado na sua tolerância ao risco
+          </p>
+        </div>
+
+        <div className="space-y-6">
           {riskProfiles.map((profile) => (
             <div
               key={profile.value}
-              className={`p-4 border rounded-lg cursor-pointer transition-all ${
+              className={`p-8 rounded-2xl cursor-pointer transition-all duration-300 ${
                 onboardingData.riskProfile === profile.value
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'bg-white shadow-xl border-2 border-gray-900'
+                  : 'bg-white shadow-sm hover:shadow-lg border border-gray-100'
               }`}
               onClick={() => setOnboardingData(prev => ({ ...prev, riskProfile: profile.value as any }))}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium">{profile.label}</div>
-                  <div className="text-sm text-gray-500">{profile.description}</div>
+                  <h3 className="text-xl font-medium text-gray-900 mb-2">{profile.label}</h3>
+                  <p className="text-gray-600 leading-relaxed">{profile.description}</p>
                 </div>
-                <div className="w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center">
                   {onboardingData.riskProfile === profile.value && (
-                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-gray-900"></div>
                   )}
                 </div>
               </div>
@@ -1585,15 +1607,19 @@ export default function UnifiedPortfolioMaster() {
           ))}
         </div>
         
-        <div className="mt-6 flex justify-between">
-          <Button variant="outline" onClick={() => setStep(2)}>
+        <div className="flex justify-between mt-16">
+          <Button variant="outline" onClick={() => setStep(2)} className="px-8 py-3 rounded-xl">
             Voltar
           </Button>
-          <Button onClick={generatePortfolio} disabled={loading}>
+          <Button 
+            onClick={generatePortfolio} 
+            disabled={loading}
+            className="bg-gray-900 hover:bg-gray-800 text-white px-12 py-3 rounded-xl font-light tracking-wide"
+          >
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Gerando...
+                Gerando Carteira...
               </>
             ) : (
               <>
@@ -1603,73 +1629,62 @@ export default function UnifiedPortfolioMaster() {
             )}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 
   // Render principal
   if (error) {
     return (
-      <Card className="border-red-200 bg-red-50">
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-3 text-red-800">
-            <AlertCircle className="h-5 w-5" />
-            <div>
-              <div className="font-medium">Erro</div>
-              <div className="text-sm">{error}</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto">
+          <div className="bg-red-50 rounded-2xl p-8 border border-red-100">
+            <div className="text-center">
+              <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-red-800 mb-2">Erro</h3>
+              <p className="text-red-600 mb-6">{error}</p>
+              <button 
+                onClick={() => {
+                  setError(null)
+                  setStep(1)
+                }}
+                className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 px-8 py-3 rounded-xl font-medium transition-colors duration-300"
+              >
+                Tentar Novamente
+              </button>
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              setError(null)
-              setStep(1)
-            }}
-            className="mt-4"
-          >
-            Tentar Novamente
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* Progress Indicator */}
-      {step < 4 && (
-        <div className="flex items-center justify-center space-x-4 mb-8">
-          {[1, 2, 3].map((stepNumber) => (
-            <div key={stepNumber} className="flex items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  step >= stepNumber
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-600'
-                }`}
-              >
-                {stepNumber}
-              </div>
-              {stepNumber < 3 && (
-                <div
-                  className={`w-16 h-1 mx-2 ${
-                    step > stepNumber ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                />
-              )}
-            </div>
-          ))}
+    <div className="min-h-screen bg-gray-50">
+      {/* Container Principal Tesla-inspired */}
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        
+        {/* Header Principal */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-light text-gray-900 mb-6 tracking-tight">
+            Portfolio Master
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Crie carteiras de ETFs otimizadas com base científica usando dados de 1.370+ ativos globais
+          </p>
         </div>
-      )}
 
-      {/* Steps */}
-      {step === 1 && renderStep1()}
-      {step === 2 && renderStep2()}
-      {step === 3 && renderStep3()}
-      {step === 4 && renderResults()}
+        {/* Conteúdo Principal */}
+        <div className="space-y-16">
+          {step === 1 && renderStep1()}
+          {step === 2 && renderStep2()}
+          {step === 3 && renderStep3()}
+          {results && renderResults()}
+        </div>
 
-      {/* Componentes Modais */}
-      <ETFDetailsModal />
+        {/* Modal de Detalhes do ETF */}
+        <ETFDetailsModal />
+      </div>
     </div>
   )
 } 
