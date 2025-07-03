@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 
+// Inicialização do Prisma com singleton pattern para evitar múltiplas conexões
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+const prisma = globalForPrisma.prisma ?? new PrismaClient();
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
 // Schema de validação unificado
 const UnifiedInputSchema = z.object({
   // Onboarding essencial
@@ -97,18 +106,12 @@ interface OptimizedPortfolio {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('🚀 [API] POST /api/portfolio/unified-master - INÍCIO');
-  
   try {
     const body = await request.json();
-    console.log('📝 [API] Body recebido:', JSON.stringify(body, null, 2));
-    
     const validatedInput = UnifiedInputSchema.parse(body);
-    console.log('✅ [API] Input validado:', JSON.stringify(validatedInput, null, 2));
     
     // 1. Seleção de ETFs da base real
     const candidateETFs = await selectCandidateETFs(validatedInput);
-    console.log(`🔍 Selecionados ${candidateETFs.length} ETFs candidatos`);
     
     // 2. Scoring multi-dimensional
     const scoredETFs = candidateETFs.map(etf => {
@@ -129,11 +132,9 @@ export async function POST(request: NextRequest) {
         name: etf.name
       };
     });
-    console.log(`📊 ETFs pontuados, score médio: ${scoredETFs.reduce((sum, etf) => sum + etf.qualityScore, 0) / scoredETFs.length}`);
     
     // 3. Otimização de carteira com objetivo específico
     const portfolio = optimizePortfolioByRisk(scoredETFs, validatedInput.riskProfile, validatedInput.investmentAmount, validatedInput.objective);
-    console.log(`🎯 Portfolio otimizado com ${portfolio.etfs.length} ETFs`);
     
     // 4. Análise de benchmarks
     const benchmarks = await calculateBenchmarks(portfolio);
@@ -176,7 +177,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, result });
     
   } catch (error) {
-    console.error('❌ Erro na análise unificada:', error);
     return NextResponse.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Erro interno na análise' 
@@ -188,7 +188,6 @@ export async function POST(request: NextRequest) {
  * FUNÇÃO CORRIGIDA: Seleção de ETFs candidatos baseada em objetivo e perfil de risco
  */
 async function selectCandidateETFs(input: any): Promise<ETFData[]> {
-  console.log(`🎯 [SELECT-CANDIDATES] Selecionando ETFs para objetivo: ${input.objective}, perfil: ${input.riskProfile}`);
   
   // 1. CRITÉRIOS BASE PARA TODOS OS PERFIS
   const baseFilters = {
@@ -340,14 +339,10 @@ async function selectCandidateETFs(input: any): Promise<ETFData[]> {
     ]
   };
 
-  console.log(`🎯 [SELECT-CANDIDATES] Filtros aplicados:`, {
-    objective: input.objective,
-    riskProfile: input.riskProfile,
-    filters: finalFilters
-  });
+
 
   // 5. BUSCAR ETFs COM FILTROS ESPECÍFICOS
-  let etfs = await prisma!.etfs_ativos_reais.findMany({
+  let etfs = await prisma.etfs_ativos_reais.findMany({
     where: finalFilters,
     orderBy: [
       { sharpe_12m: 'desc' }, // Ordenar por Sharpe ratio
@@ -357,13 +352,9 @@ async function selectCandidateETFs(input: any): Promise<ETFData[]> {
     take: 150 // Mais ETFs para melhor seleção
   });
 
-  console.log(`🎯 [SELECT-CANDIDATES] ETFs encontrados com filtros específicos: ${etfs.length}`);
-
   // 6. FALLBACK SE POUCOS ETFs ENCONTRADOS
   if (etfs.length < 20) {
-    console.log(`⚠️ [SELECT-CANDIDATES] Poucos ETFs encontrados, aplicando filtros mais flexíveis`);
-    
-    etfs = await prisma!.etfs_ativos_reais.findMany({
+    etfs = await prisma.etfs_ativos_reais.findMany({
       where: {
         AND: [
           { totalasset: { gte: 100000000 } }, // AUM >= 100M
@@ -381,8 +372,6 @@ async function selectCandidateETFs(input: any): Promise<ETFData[]> {
       take: 100
     });
   }
-
-  console.log(`✅ [SELECT-CANDIDATES] Total de ETFs candidatos selecionados: ${etfs.length}`);
   
   return etfs.map(etf => ({
     symbol: etf.symbol,
@@ -448,8 +437,7 @@ function applyAdvancedDiversification(etfs: any[], criteria: any, input: any): E
     assetClassGroups[assetClass].push(etf);
   });
   
-  console.log(`🎯 [ADVANCED-DIVERSIFICATION] Classes de ativos identificadas:`, 
-    Object.keys(assetClassGroups).map(ac => `${ac}: ${assetClassGroups[ac].length} ETFs`));
+
   
   // 2. DEFINIR ESTRATÉGIA DE ALOCAÇÃO POR PERFIL
   const allocationStrategy = getAllocationStrategy(input.riskProfile, input.objective);
@@ -467,8 +455,6 @@ function applyAdvancedDiversification(etfs: any[], criteria: any, input: any): E
         .slice(0, classConfig.maxETFs || 2);
       
       selectedETFs.push(...sortedETFs);
-      console.log(`🎯 [DIVERSIFICATION] Selecionados ${sortedETFs.length} ETFs de ${classConfig.class}:`, 
-        sortedETFs.map(e => `${e.symbol} (Score: ${e.technical_score?.toFixed(2)})`));
     }
   });
   
@@ -485,8 +471,6 @@ function applyAdvancedDiversification(etfs: any[], criteria: any, input: any): E
             .slice(0, Math.min(classConfig.maxETFs || 1, remainingSlots));
           
           selectedETFs.push(...availableETFs);
-          console.log(`🎯 [DIVERSIFICATION] Adicionados ${availableETFs.length} ETFs de ${classConfig.class}:`, 
-            availableETFs.map(e => `${e.symbol} (Score: ${e.technical_score?.toFixed(2)})`));
         }
       }
     });
@@ -684,7 +668,6 @@ export async function PUT(request: NextRequest) {
     
     // Buscar ETFs selecionados pelo usuário
     const selectedETFs = await getSelectedETFs(validatedInput.selectedETFs);
-    console.log(`🎯 Recalculando com ${selectedETFs.length} ETFs selecionados`);
     
     if (selectedETFs.length === 0) {
       throw new Error('Nenhum ETF encontrado na base de dados');
@@ -945,8 +928,6 @@ function optimizePortfolioByRisk(
   investmentAmount: number,
   objective: string = 'growth' // Adicionar objetivo como parâmetro
 ): OptimizedPortfolio {
-  console.log(`🎯 [OPTIMIZE-PORTFOLIO] Iniciando otimização para objetivo: ${objective}, perfil: ${riskProfile}`);
-  
   // Estratégia unificada que será passada para as funções avançadas
   const strategy = {
     riskProfile: riskProfile,
@@ -960,15 +941,11 @@ function optimizePortfolioByRisk(
              riskProfile === 'moderate' ? 7 : 8
   };
   
-  console.log(`🎯 [OPTIMIZE-PORTFOLIO] Estratégia definida:`, strategy);
-  
   // Selecionar ETFs usando algoritmo avançado
   const selectedETFs = selectBalancedETFs(scoredETFs, strategy);
-  console.log(`🎯 [OPTIMIZE-PORTFOLIO] ETFs selecionados: ${selectedETFs.length}`);
   
   // Calcular alocações otimizadas usando Markowitz avançado
   const allocations = calculateOptimalAllocations(selectedETFs, strategy);
-  console.log(`🎯 [OPTIMIZE-PORTFOLIO] Alocações calculadas:`, allocations.map(a => `${(a*100).toFixed(1)}%`));
   
   // Construir portfolio final
   const portfolio = selectedETFs.map((etfScore, index) => {
@@ -1009,7 +986,6 @@ function optimizePortfolioByRisk(
  * Explora todos os dados da tabela etfs_ativos_reais para máxima qualidade
  */
 function selectBalancedETFs(scoredETFs: ETFScore[], strategy: any): ETFScore[] {
-  console.log(`🎯 [ADVANCED-SELECTION] Iniciando seleção avançada com ${scoredETFs.length} ETFs candidatos`);
   
   // 1. AGRUPAR POR ASSET CLASS E SETORES
   const assetClassGroups: { [key: string]: ETFScore[] } = {};
@@ -1038,11 +1014,6 @@ function selectBalancedETFs(scoredETFs: ETFScore[], strategy: any): ETFScore[] {
       sectorGroups[mainSector].push(etf);
     }
   });
-  
-  console.log(`🎯 [ADVANCED-SELECTION] Asset Classes identificadas:`, 
-    Object.keys(assetClassGroups).map(ac => `${ac}: ${assetClassGroups[ac].length} ETFs`));
-  console.log(`🎯 [ADVANCED-SELECTION] Setores identificados:`, 
-    Object.keys(sectorGroups).map(s => `${s}: ${sectorGroups[s].length} ETFs`));
   
   // 2. DEFINIR ESTRATÉGIA DE ALOCAÇÃO AVANÇADA POR PERFIL
   const allocationTargets = {
@@ -1147,10 +1118,6 @@ function selectBalancedETFs(scoredETFs: ETFScore[], strategy: any): ETFScore[] {
     selectedETFs.push(...remainingETFs.slice(0, slotsRemaining));
   }
   
-  console.log(`🎯 [ADVANCED-SELECTION] Seleção final: ${selectedETFs.length} ETFs`);
-  console.log(`🎯 [ADVANCED-SELECTION] Asset Classes: ${Array.from(usedAssetClasses).join(', ')}`);
-  console.log(`🎯 [ADVANCED-SELECTION] Setores: ${Array.from(usedSectors).join(', ')}`);
-  
   return selectedETFs;
 }
 
@@ -1247,7 +1214,6 @@ function calculateConsistencyScore(etfData: any): number {
  * FUNÇÃO COMPLETAMENTE REFORMULADA: Otimização Avançada baseada em dados reais multi-timeframe
  */
 function calculateOptimalAllocations(etfs: ETFScore[], strategy: any): number[] {
-  console.log(`🧮 [ADVANCED-MARKOWITZ] Iniciando otimização avançada para ${etfs.length} ETFs`);
   
   const n = etfs.length;
   if (n === 1) return [1.0];
@@ -1279,14 +1245,6 @@ function calculateOptimalAllocations(etfs: ETFScore[], strategy: any): number[] 
     const avgVolatility = (volatility12m * 0.5 + volatility24m * 0.3 + volatility36m * 0.2);
     const avgSharpe = (sharpe12m * 0.5 + sharpe24m * 0.3 + sharpe36m * 0.2);
     
-    console.log(`🧮 [ADVANCED-MARKOWITZ] ETF ${etf.symbol}:`, {
-      avgReturn: avgReturn.toFixed(2),
-      avgVolatility: avgVolatility.toFixed(2),
-      avgSharpe: avgSharpe.toFixed(2),
-      maxDrawdown: maxDrawdown.toFixed(2),
-      qualityScore: etf.qualityScore
-    });
-    
     return {
       symbol: etf.symbol,
       avgReturn,
@@ -1306,10 +1264,6 @@ function calculateOptimalAllocations(etfs: ETFScore[], strategy: any): number[] 
   
   // 3. APLICAR OTIMIZAÇÃO AVANÇADA DE MARKOWITZ
   const weights = optimizeAdvancedMarkowitz(etfMetrics, correlationMatrix, strategy);
-  
-  console.log(`✅ [ADVANCED-MARKOWITZ] Pesos otimizados:`, 
-    weights.map((w, i) => `${etfMetrics[i].symbol}: ${(w*100).toFixed(1)}%`)
-  );
   
   return weights;
 }
@@ -1453,8 +1407,6 @@ function optimizeAdvancedMarkowitz(etfMetrics: any[], correlationMatrix: number[
       };
   }
   
-  console.log(`🧮 [REAL-MARKOWITZ] Limites: min=${(minWeight*100).toFixed(1)}%, max=${(maxWeight*100).toFixed(1)}%`);
-  
   // 2. CALCULAR SCORES AJUSTADOS POR OBJETIVO
   const adjustedScores = etfMetrics.map(etf => {
     let score = etf.avgSharpe || 0;
@@ -1499,9 +1451,6 @@ function optimizeAdvancedMarkowitz(etfMetrics: any[], correlationMatrix: number[
     
     return Math.max(0.05, score); // Mínimo 0.05
   });
-  
-  console.log(`🧮 [REAL-MARKOWITZ] Scores ajustados:`, 
-    adjustedScores.map((score, i) => `${etfMetrics[i].symbol}: ${score.toFixed(3)}`));
   
   // 3. CALCULAR PESOS INICIAIS BASEADOS EM SCORES
   const totalScore = adjustedScores.reduce((sum, score) => sum + score, 0);
@@ -1571,18 +1520,6 @@ function optimizeAdvancedMarkowitz(etfMetrics: any[], correlationMatrix: number[
   );
   const portfolioSharpe = (portfolioReturn - 2) / (portfolioRisk * 100);
   
-  console.log(`✅ [REAL-MARKOWITZ] Portfolio otimizado:`, {
-    expectedReturn: `${portfolioReturn.toFixed(2)}%`,
-    expectedRisk: `${(portfolioRisk * 100).toFixed(2)}%`,
-    sharpeRatio: portfolioSharpe.toFixed(3),
-    maxAllocation: `${(Math.max(...weights) * 100).toFixed(1)}%`,
-    minAllocation: `${(Math.min(...weights) * 100).toFixed(1)}%`,
-    concentration: weights.filter(w => w > 0.2).length // ETFs com >20%
-  });
-  
-  console.log(`🎯 [REAL-MARKOWITZ] Alocações finais:`, 
-    weights.map((w, i) => `${etfMetrics[i].symbol}: ${(w*100).toFixed(1)}%`));
-  
   return weights;
 }
 
@@ -1604,16 +1541,7 @@ function calculatePortfolioMetrics(etfs: ETFScore[], allocations: number[]): Opt
     const weight = allocations[index];
     const etfData = etf as any; // Acesso aos dados originais
     
-    // Log detalhado de cada ETF
-    console.log(`📊 [CALCULATE-METRICS] ETF ${etf.symbol}:`, {
-      weight,
-      returns_12m: etfData.returns_12m,
-      volatility_12m: etfData.volatility_12m,
-      sharpe_12m: etfData.sharpe_12m,
-      expenseratio: etfData.expenseratio,
-      dividends_12m: etfData.dividends_12m,
-      max_drawdown: etfData.max_drawdown
-    });
+
     
     // Converter strings para números com fallback
     const returns = typeof etfData.returns_12m === 'string' ? parseFloat(etfData.returns_12m) : (etfData.returns_12m || 0);
@@ -1628,14 +1556,6 @@ function calculatePortfolioMetrics(etfs: ETFScore[], allocations: number[]): Opt
     const expenseContrib = weight * expenseRatio;
     const dividendContrib = weight * dividendYield;
     const drawdownContrib = weight * maxDrawdown;
-    
-    console.log(`📊 [CALCULATE-METRICS] Contribuição do ${etf.symbol}:`, {
-      returnContrib,
-      volContrib,
-      expenseContrib,
-      dividendContrib,
-      drawdownContrib
-    });
     
     weightedReturn += returnContrib;
     weightedVolatility += volContrib;
@@ -1657,8 +1577,6 @@ function calculatePortfolioMetrics(etfs: ETFScore[], allocations: number[]): Opt
     expenseRatio: Math.round(weightedExpenseRatio * 10000) / 100, // Converter para %
     dividendYield: Math.round(weightedDividendYield * 100) / 100
   };
-  
-  console.log(`📊 [CALCULATE-METRICS] Métricas finais calculadas:`, finalMetrics);
   
   return finalMetrics;
 }
