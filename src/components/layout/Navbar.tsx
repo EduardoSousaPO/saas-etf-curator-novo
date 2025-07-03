@@ -10,6 +10,7 @@ import { Menu, X, LogOut, Settings } from "lucide-react";
 // Navegação para usuários não autenticados (público)
 const publicNavItems: Array<{href: string, label: string, highlight?: boolean}> = [
   { href: "/", label: "Início" },
+  { href: "/consultoria", label: "Consultoria CVM", highlight: true },
   { href: "/pricing", label: "Preços" },
 ];
 
@@ -18,6 +19,7 @@ const privateNavItems: Array<{href: string, label: string, highlight?: boolean}>
   { href: "/dashboard", label: "Dashboard" },
   { href: "/comparador", label: "Comparador" },
   { href: "/portfolio-master", label: "Portfolio Master", highlight: true },
+  { href: "/consultoria", label: "Consultoria CVM" },
   { href: "/rankings", label: "Rankings" },
   { href: "/screener", label: "Screener" },
   { href: "/profile", label: "Perfil" },

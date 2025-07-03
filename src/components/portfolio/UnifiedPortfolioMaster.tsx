@@ -1126,14 +1126,55 @@ export default function UnifiedPortfolioMaster() {
           </CardContent>
         </Card>
 
+        {/* Consultoria CVM Especializada */}
+        <Card className="border-2 border-gradient-to-r from-green-500 to-blue-600 bg-gradient-to-r from-green-50 to-blue-50">
+          <CardContent className="pt-6">
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                💼 Implementação Profissional
+              </h3>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Deixe nossos especialistas certificados CVM implementarem sua carteira. 
+                Abertura de conta, compra dos ETFs e acompanhamento completo.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="text-center p-4 bg-white rounded-lg border">
+                <div className="text-green-600 font-semibold mb-1">✅ Certificação CVM</div>
+                <div className="text-sm text-gray-600">Consultores regulamentados</div>
+              </div>
+              <div className="text-center p-4 bg-white rounded-lg border">
+                <div className="text-blue-600 font-semibold mb-1">🏦 Abertura de Conta</div>
+                <div className="text-sm text-gray-600">Corretora + documentação</div>
+              </div>
+              <div className="text-center p-4 bg-white rounded-lg border">
+                <div className="text-purple-600 font-semibold mb-1">📈 Acompanhamento</div>
+                <div className="text-sm text-gray-600">Monitoramento contínuo</div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button 
+                size="lg" 
+                className="flex-1 max-w-xs bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                onClick={() => window.location.href = '/consultoria'}
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                Agendar Consultoria CVM
+              </Button>
+              <Button size="lg" className="flex-1 max-w-xs">
+                <Save className="mr-2 h-4 w-4" />
+                Implementar Sozinho
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Ações Finais */}
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button size="lg" className="flex-1 max-w-xs">
-                <Save className="mr-2 h-4 w-4" />
-                Implementar Carteira
-              </Button>
               <Button variant="outline" size="lg" className="flex-1 max-w-xs">
                 <BarChart className="mr-2 h-4 w-4" />
                 Análise Detalhada
