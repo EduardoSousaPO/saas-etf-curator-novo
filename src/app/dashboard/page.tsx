@@ -21,9 +21,17 @@ import {
   Globe,
   RefreshCw,
   Crown,
-  Star
+  Star,
+  BarChart3,
+  PieChart,
+  Zap,
+  Award,
+  Activity,
+  Eye,
+  Clock
 } from 'lucide-react';
 import { getPlanConfig } from '@/types/subscriptions';
+import MarketMetrics from '@/components/dashboard/MarketMetrics';
 
 interface UserProfile {
   name: string;
@@ -247,358 +255,415 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header Personalizado */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+        <div className="max-w-6xl mx-auto px-6 py-20">
+          
+          {/* Header */}
+          <div className="mb-20">
+            <div className="flex items-center justify-between mb-8">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Olá, {userProfile?.name}! 👋
+                <h1 className="text-5xl font-light text-gray-900 mb-4">
+                  Dashboard
                 </h1>
-                <p className="text-gray-600 mt-2">
-                  Vamos verificar como está seu progresso para {userProfile?.objective.toLowerCase()}
+                <p className="text-xl font-light text-gray-600">
+                  Acompanhe o mercado e suas análises em tempo real
+                </p>
+              </div>
+              <Badge className="px-6 py-2 bg-green-100 text-green-800 font-light rounded-full">
+                Mercado Aberto
+              </Badge>
+            </div>
+          </div>
+
+          {/* Market Overview */}
+          <div className="mb-20">
+            <h2 className="text-3xl font-light text-gray-900 mb-12">
+              Visão Geral do Mercado
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <Badge className="bg-green-100 text-green-800 font-light">
+                    +2.4%
+                  </Badge>
+                </div>
+                <h3 className="text-2xl font-light text-gray-900 mb-2">
+                  1.370
+                </h3>
+                <p className="text-gray-600 font-light">
+                  ETFs Analisados
                 </p>
               </div>
               
-              {/* Badge do Plano */}
-              <div className="flex items-center space-x-3">
-                <Badge 
-                  variant="secondary" 
-                  className={`${
-                    currentPlan === 'STARTER' ? 'bg-gray-100 text-gray-800' :
-                    currentPlan === 'PRO' ? 'bg-blue-100 text-blue-800' :
-                    currentPlan === 'WEALTH' ? 'bg-purple-100 text-purple-800' :
-                    'bg-emerald-100 text-emerald-800'
-                  }`}
-                >
-                  {currentPlan === 'STARTER' && <Star className="w-4 h-4 mr-1" />}
-                  {(currentPlan === 'WEALTH' || currentPlan === 'OFFSHORE') && <Crown className="w-4 h-4 mr-1" />}
-                  {getPlanConfig(currentPlan).name}
-                </Badge>
-                
-                <button
-                  onClick={() => window.location.href = '/pricing'}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentPlan === 'STARTER' 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {currentPlan === 'STARTER' ? '⚡ Fazer Upgrade' : '⚙️ Gerenciar Plano'}
-                </button>
-              </div>
-            </div>
-
-            {/* Seção de Assinatura para usuários Starter */}
-            {currentPlan === 'STARTER' && (
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200 p-4 mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="bg-blue-100 p-2 rounded-full mr-3">
-                      <TrendingUp className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        Desbloqueie todo o potencial do ETF Curator
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Acesse screener avançado, rankings completos e comparações detalhadas
-                      </p>
-                    </div>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-green-600" />
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">A partir de</div>
-                      <div className="text-xl font-bold text-blue-600">R$ 39,90/mês</div>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-blue-600" />
-                  </div>
+                  <Badge className="bg-blue-100 text-blue-800 font-light">
+                    +0.8%
+                  </Badge>
                 </div>
-              </div>
-            )}
-
-            {/* Seção de Assinatura para usuários Premium */}
-            {currentPlan !== 'STARTER' && (
-              <div className="bg-green-50 rounded-lg border border-green-200 p-4 mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="bg-green-100 p-2 rounded-full mr-3">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        Plano {getPlanConfig(currentPlan).name} Ativo
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Você tem acesso completo a todas as funcionalidades premium
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge className="bg-green-100 text-green-800">
-                      ✓ Ativo
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-            
-          {/* Aviso sobre ETFs */}
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Globe className="w-5 h-5 text-blue-600 mr-2" />
-                <span className="text-sm text-blue-800">
-                  <strong>💡 Lembre-se:</strong> ETFs são negociados em dólares (USD)
-                </span>
-              </div>
-              <button
-                onClick={refreshData}
-                disabled={refreshing}
-                className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
-              >
-                <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
-                Atualizar
-              </button>
-            </div>
-          </div>
-
-          {/* Toggle de Moeda */}
-          <div className="mb-6 flex justify-center">
-            <div className="bg-white rounded-lg border border-gray-200 p-1 flex">
-              <button
-                onClick={() => setCurrencyDisplay('BRL')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currencyDisplay === 'BRL'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Ver em Reais (R$)
-              </button>
-              <button
-                onClick={() => setCurrencyDisplay('USD')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currencyDisplay === 'USD'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Ver em Dólares (US$)
-              </button>
-            </div>
-          </div>
-
-          {/* Métricas Principais - O que Realmente Importa */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Widget 1: Patrimônio Atual - Sempre disponível */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <DollarSign className="w-5 h-5 text-green-600 mr-2" />
-                  <h3 className="text-sm font-medium text-gray-600">Meu Patrimônio</h3>
-                </div>
-              </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">
-                {currencyDisplay === 'BRL' 
-                  ? currencyService.formatCurrency(metrics?.currentValueBRL || 0, 'BRL')
-                  : currencyService.formatCurrency(metrics?.currentValueUSD || 0, 'USD')
-                }
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  {metrics && metrics.monthlyGainBRL > 0 ? (
-                    <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
-                  )}
-                  <span className={`text-sm font-medium ${
-                    metrics && metrics.monthlyGainBRL > 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {currencyDisplay === 'BRL'
-                      ? currencyService.formatCurrency(Math.abs(metrics?.monthlyGainBRL || 0), 'BRL')
-                      : currencyService.formatCurrency(Math.abs(metrics?.monthlyGainUSD || 0), 'USD')
-                    } este mês
-                  </span>
-                </div>
-              </div>
-              {currencyDisplay === 'BRL' && (
-                <div className="text-xs text-gray-500 mt-2">
-                  ≈ {currencyService.formatCurrency(metrics?.currentValueUSD || 0, 'USD')} em dólares
-                </div>
-              )}
-              {currencyDisplay === 'USD' && (
-                <div className="text-xs text-gray-500 mt-2">
-                  ≈ {currencyService.formatCurrency(metrics?.currentValueBRL || 0, 'BRL')} em reais
-                </div>
-              )}
-            </div>
-
-            {/* Widget 2: Progresso para Meta - Sempre disponível */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <Target className="w-5 h-5 text-blue-600 mr-2" />
-                  <h3 className="text-sm font-medium text-gray-600">Progresso da Meta</h3>
-                </div>
-                {metrics?.isOnTrack ? (
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                )}
-              </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">
-                {userProfile && metrics ? 
-                  Math.round((metrics.currentValueBRL / userProfile.targetAmount) * 100) : 0}%
-              </div>
-              <div className="text-sm text-gray-600">
-                Faltam {metrics ? formatMonths(metrics.monthsToGoal) : 'calculando...'}
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
-                <div 
-                  className={`h-2 rounded-full ${metrics?.isOnTrack ? 'bg-green-600' : 'bg-yellow-600'}`}
-                  style={{ 
-                    width: `${userProfile && metrics ? 
-                      Math.min((metrics.currentValueBRL / userProfile.targetAmount) * 100, 100) : 0}%` 
-                  }}
-                ></div>
-              </div>
-            </div>
-
-            {/* Widget 3: Exposição ao Dólar - Apenas PRO+ */}
-            <FeatureGate 
-              featureKey="dashboard_complete"
-              requiredPlan="PRO"
-              fallback={
-                <div className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center text-center">
-                  <Shield className="w-8 h-8 text-gray-400 mb-2" />
-                  <h3 className="text-sm font-medium text-gray-600 mb-1">Widget Premium</h3>
-                  <p className="text-xs text-gray-500 mb-3">Análise de exposição ao dólar</p>
-                  <Badge variant="outline" className="text-xs">PRO+</Badge>
-                </div>
-              }
-            >
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <Shield className="w-5 h-5 text-purple-600 mr-2" />
-                    <h3 className="text-sm font-medium text-gray-600">Exposição USD</h3>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">
-                  {currencyDisplay === 'BRL'
-                    ? currencyService.formatCurrency((metrics?.dollarExposure || 0) * (metrics?.exchangeRate || 5.5), 'BRL')
-                    : currencyService.formatCurrency(metrics?.dollarExposure || 0, 'USD')
-                  }
-                </div>
-                <div className="text-sm text-gray-600">
-                  70% do patrimônio em ETFs
-                </div>
-                <div className="text-xs text-gray-500 mt-2">
-                  💡 Diversificação internacional
-                </div>
-              </div>
-            </FeatureGate>
-          </div>
-
-          {/* Informações do Câmbio */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Globe className="w-5 h-5 mr-2 text-blue-600" />
-                Câmbio USD/BRL
-              </h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
-                  R$ {currencyService.formatNumber(metrics?.exchangeRate || 5.5)}
-                </div>
-                <div className="text-sm text-gray-600">Taxa atual</div>
+                <h3 className="text-2xl font-light text-gray-900 mb-2">
+                  $2.4T
+                </h3>
+                <p className="text-gray-600 font-light">
+                  AUM Total
+                </p>
               </div>
               
-              <div className="text-center">
-                <div className={`text-2xl font-bold flex items-center justify-center ${getVariationColor(metrics?.exchangeVariation || '0')}`}>
-                  {getVariationIcon(metrics?.exchangeVariation || '0')}
-                  <span className="ml-1">R$ {metrics?.exchangeVariation || '0.00'}</span>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
+                    <BarChart3 className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <Badge className="bg-green-100 text-green-800 font-light">
+                    +1.2%
+                  </Badge>
                 </div>
-                <div className="text-sm text-gray-600">Variação</div>
+                <h3 className="text-2xl font-light text-gray-900 mb-2">
+                  12.8%
+                </h3>
+                <p className="text-gray-600 font-light">
+                  Retorno Médio
+                </p>
               </div>
               
-              <div className="text-center">
-                <div className={`text-2xl font-bold ${getVariationColor(metrics?.exchangeVariation || '0')}`}>
-                  {metrics?.exchangePctChange || '0.00'}%
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center">
+                    <Activity className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <Badge className="bg-red-100 text-red-800 font-light">
+                    -0.3%
+                  </Badge>
                 </div>
-                <div className="text-sm text-gray-600">Variação %</div>
+                <h3 className="text-2xl font-light text-gray-900 mb-2">
+                  14.2%
+                </h3>
+                <p className="text-gray-600 font-light">
+                  Volatilidade Média
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Ações Rápidas - O que Precisa Fazer */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center mb-6">
-              <Lightbulb className="w-5 h-5 text-yellow-600 mr-2" />
-              <h2 className="text-xl font-semibold text-gray-900">O que fazer agora?</h2>
-            </div>
+          {/* Market Metrics Component */}
+          <div className="mb-20">
+            <MarketMetrics 
+              metrics={{
+                totalETFs: 1370,
+                avgReturn: 12.5,
+                avgVolatility: 16.8,
+                topPerformer: "QQQ",
+                marketTrend: "up" as const,
+                totalAssets: 25000000000,
+                activeETFs: 1370
+              }}
+            />
+          </div>
 
-            <div className="space-y-4">
-              {quickActions.map((action, index) => (
-                <div 
-                  key={index}
-                  className={`p-4 rounded-lg border-l-4 ${
-                    action.type === 'warning' ? 'border-yellow-500 bg-yellow-50' :
-                    action.type === 'opportunity' ? 'border-blue-500 bg-blue-50' :
-                    'border-green-500 bg-green-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center mb-2">
-                        {action.type === 'warning' && <AlertTriangle className="w-4 h-4 text-yellow-600 mr-2" />}
-                        {action.type === 'opportunity' && <TrendingUp className="w-4 h-4 text-blue-600 mr-2" />}
-                        {action.type === 'success' && <CheckCircle className="w-4 h-4 text-green-600 mr-2" />}
-                        <h3 className="font-medium text-gray-900">{action.title}</h3>
+          {/* Quick Actions */}
+          <div className="mb-20">
+            <h2 className="text-3xl font-light text-gray-900 mb-12">
+              Ações Rápidas
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 transition-all duration-300 hover:shadow-md group cursor-pointer">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center group-hover:bg-blue-200 transition-colors duration-300">
+                    <Target className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors duration-300" />
+                </div>
+                <h3 className="text-xl font-light text-gray-900 mb-4">
+                  Portfolio Master
+                </h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Crie carteiras otimizadas com algoritmos avançados de Markowitz
+                </p>
+              </div>
+              
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 transition-all duration-300 hover:shadow-md group cursor-pointer">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center group-hover:bg-green-200 transition-colors duration-300">
+                    <PieChart className="w-8 h-8 text-green-600" />
+                  </div>
+                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-green-600 transition-colors duration-300" />
+                </div>
+                <h3 className="text-xl font-light text-gray-900 mb-4">
+                  Simulador Avançado
+                </h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Simule cenários com projeções Monte Carlo e backtesting
+                </p>
+              </div>
+              
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 transition-all duration-300 hover:shadow-md group cursor-pointer">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center group-hover:bg-purple-200 transition-colors duration-300">
+                    <Eye className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-purple-600 transition-colors duration-300" />
+                </div>
+                <h3 className="text-xl font-light text-gray-900 mb-4">
+                  Screener ETFs
+                </h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Filtre e descubra ETFs com critérios personalizados
+                </p>
+              </div>
+              
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 transition-all duration-300 hover:shadow-md group cursor-pointer">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center group-hover:bg-orange-200 transition-colors duration-300">
+                    <BarChart3 className="w-8 h-8 text-orange-600" />
+                  </div>
+                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-orange-600 transition-colors duration-300" />
+                </div>
+                <h3 className="text-xl font-light text-gray-900 mb-4">
+                  Comparador
+                </h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Compare performance e métricas de diferentes ETFs
+                </p>
+              </div>
+              
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 transition-all duration-300 hover:shadow-md group cursor-pointer">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center group-hover:bg-red-200 transition-colors duration-300">
+                    <TrendingUp className="w-8 h-8 text-red-600" />
+                  </div>
+                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-red-600 transition-colors duration-300" />
+                </div>
+                <h3 className="text-xl font-light text-gray-900 mb-4">
+                  Rankings
+                </h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Descubra os ETFs com melhor performance do mercado
+                </p>
+              </div>
+              
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 transition-all duration-300 hover:shadow-md group cursor-pointer">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center group-hover:bg-yellow-200 transition-colors duration-300">
+                    <Award className="w-8 h-8 text-yellow-600" />
+                  </div>
+                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-yellow-600 transition-colors duration-300" />
+                </div>
+                <h3 className="text-xl font-light text-gray-900 mb-4">
+                  Consultoria CVM
+                </h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Assessoria personalizada com consultores certificados
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="mb-20">
+            <h2 className="text-3xl font-light text-gray-900 mb-12">
+              Atividade Recente
+            </h2>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+              <div className="p-8">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Target className="w-5 h-5 text-blue-600" />
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">{action.description}</p>
+                      <div>
+                        <p className="font-light text-gray-900">
+                          Portfolio Master executado
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Carteira otimizada com 5 ETFs
+                        </p>
+                      </div>
                     </div>
-                    <button className={`ml-4 px-4 py-2 rounded-lg text-sm font-medium flex items-center ${
-                      action.type === 'warning' ? 'bg-yellow-600 text-white hover:bg-yellow-700' :
-                      action.type === 'opportunity' ? 'bg-blue-600 text-white hover:bg-blue-700' :
-                      'bg-green-600 text-white hover:bg-green-700'
-                    }`}>
-                      {action.action}
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </button>
+                    <div className="text-right">
+                      <p className="text-sm font-light text-gray-600">
+                        Há 2 horas
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <PieChart className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-light text-gray-900">
+                          Simulação Monte Carlo
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Projeção de 10 anos realizada
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-light text-gray-600">
+                        Há 5 horas
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <Eye className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="font-light text-gray-900">
+                          Screener personalizado
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          12 ETFs encontrados
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-light text-gray-600">
+                        Ontem
+                      </p>
+                    </div>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
 
-          {/* Links Rápidos */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Simular Carteira</h3>
-              <p className="text-gray-600 mb-4">
-                Teste diferentes combinações de ETFs e veja o impacto no seu objetivo
-              </p>
-              <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                Ir para Simulador
-              </button>
+          {/* Performance Insights */}
+          <div className="mb-20">
+            <h2 className="text-3xl font-light text-gray-900 mb-12">
+              Insights de Performance
+            </h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-light text-gray-900">
+                    Melhores Performers
+                  </h3>
+                  <Badge className="bg-green-100 text-green-800 font-light">
+                    Esta Semana
+                  </Badge>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-light text-blue-600">1</span>
+                      </div>
+                      <div>
+                        <p className="font-light text-gray-900">QQQ</p>
+                        <p className="text-sm text-gray-500">Invesco QQQ Trust</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-light text-green-600">+4.2%</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-light text-green-600">2</span>
+                      </div>
+                      <div>
+                        <p className="font-light text-gray-900">SPY</p>
+                        <p className="text-sm text-gray-500">SPDR S&P 500 ETF</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-light text-green-600">+2.8%</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-light text-purple-600">3</span>
+                      </div>
+                      <div>
+                        <p className="font-light text-gray-900">VTI</p>
+                        <p className="text-sm text-gray-500">Vanguard Total Stock</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-light text-green-600">+2.1%</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-light text-gray-900">
+                    Setores em Alta
+                  </h3>
+                  <Badge className="bg-blue-100 text-blue-800 font-light">
+                    Hoje
+                  </Badge>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-light text-gray-900">Technology</p>
+                      <p className="text-sm text-gray-500">45 ETFs</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-light text-green-600">+3.1%</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-light text-gray-900">Healthcare</p>
+                      <p className="text-sm text-gray-500">28 ETFs</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-light text-green-600">+1.8%</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-light text-gray-900">Financials</p>
+                      <p className="text-sm text-gray-500">32 ETFs</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-light text-green-600">+1.2%</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Encontrar ETFs</h3>
-              <p className="text-gray-600 mb-4">
-                Descubra os melhores ETFs para seu perfil e objetivos
-              </p>
-              <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
-                Ver Rankings
+          {/* CTA Section */}
+          <div className="bg-gray-900 rounded-2xl p-12 text-center">
+            <h2 className="text-3xl font-light text-white mb-6">
+              Pronto para Otimizar sua Carteira?
+            </h2>
+            <p className="text-lg font-light text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Use nossas ferramentas avançadas para criar uma carteira de ETFs 
+              otimizada baseada em dados científicos.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button className="bg-white text-gray-900 px-8 py-3 rounded-xl font-light transition-all duration-300 hover:bg-gray-100">
+                Começar Portfolio Master
+              </button>
+              <button className="border border-gray-600 text-white px-8 py-3 rounded-xl font-light transition-all duration-300 hover:bg-gray-800">
+                Explorar Ferramentas
               </button>
             </div>
           </div>
+
         </div>
       </div>
     </RequireAuth>

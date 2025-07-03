@@ -11,7 +11,7 @@ import ETFTable from "@/components/screener/ETFTable";
 import { FeatureGate, useUsageLimits } from "@/components/subscriptions/FeatureGate";
 import { Alert, AlertDescription } from "../../components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { Search, Filter, ChevronLeft, ChevronRight, AlertCircle, Database, Target, BarChart3, TrendingUp, Eye } from "lucide-react";
 import { ETF, ETFDetails } from "@/types/etf";
 import { Button } from "@/components/ui/button";
 
@@ -188,217 +188,237 @@ export default function ScreenerPage() {
 
   return (
     <RequireAuth>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <Navbar />
       
-      {/* Hero Section */}
-      <section className="pt-24 pb-12 bg-white">
-        <div className="max-w-[95vw] mx-auto px-6">
-          <div className="text-center mb-16">
-            <div className="flex items-center justify-center space-x-3 mb-6">
-              <Search className="w-8 h-8 text-blue-600" />
-              <h1 className="text-5xl md:text-6xl font-light text-gray-900">
-                ETF Screener
-              </h1>
-            </div>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-light">
-              Encontre ETFs que correspondam aos seus critérios de investimento usando nossos filtros avançados.
+        <div className="max-w-6xl mx-auto px-6 py-20">
+          
+          {/* Header Tesla-style */}
+          <div className="text-center mb-20">
+            <h1 className="text-6xl md:text-7xl font-light text-gray-900 mb-8 leading-tight">
+              ETF
+              <span className="block text-blue-600">Screener</span>
+            </h1>
+            <p className="text-xl font-light text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Descubra os ETFs perfeitos para sua carteira usando filtros avançados 
+              e análise científica de mais de 1.370 fundos globais.
             </p>
             
-            {/* Indicador de uso */}
-            <FeatureGate 
-              featureKey="screener_advanced" 
-              fallback={
-                <div className="mt-6 max-w-md mx-auto space-y-4">
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>Plano Starter:</strong> Filtros básicos disponíveis
-                      <br />
-                      <span className="text-blue-600 underline cursor-pointer" onClick={() => window.location.href = '/pricing'}>
-                        Upgrade para PRO para acessar filtros avançados como Total Assets, Returns, Sharpe Ratio e Dividend Yield.
-                      </span>
-                    </AlertDescription>
-                  </Alert>
-                  
-                  {/* Debug: Botão para forçar atualização */}
-                  <div className="text-center">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.location.reload()}
-                      className="text-xs"
-                    >
-                      🔄 Atualizar Plano
-                    </Button>
-                  </div>
+            {/* Stats Tesla-style */}
+            <div className="flex flex-wrap justify-center gap-12 mt-16">
+              <div className="flex items-center gap-3 text-gray-700">
+                <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
+                  <Database className="w-6 h-6 text-blue-600" />
                 </div>
-              }
-            >
-              <div className="mt-6">
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                  <Filter className="w-3 h-3 mr-1" />
-                  Screener Ativo
-                </Badge>
-                {remainingQueries !== null && (
-                  <div className="mt-2 text-sm text-gray-600">
-                    {remainingQueries} consultas avançadas restantes hoje
-                  </div>
-                )}
+                <div>
+                  <div className="text-2xl font-light text-gray-900">1.370+</div>
+                  <div className="text-sm text-gray-600">ETFs Analisados</div>
+                </div>
               </div>
-            </FeatureGate>
+              
+              <div className="flex items-center gap-3 text-gray-700">
+                <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
+                  <BarChart3 className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-light text-gray-900">15+</div>
+                  <div className="text-sm text-gray-600">Métricas por ETF</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 text-gray-700">
+                <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-light text-gray-900">96.5%</div>
+                  <div className="text-sm text-gray-600">Dados Completos</div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Conteúdo Principal */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            {/* Sidebar com Filtros */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-24">
+          {/* Filtros Tesla-style */}
+          <div className="mb-20">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+              <div className="flex items-center space-x-4 mb-8">
+                <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
+                  <Filter className="w-6 h-6 text-gray-600" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-light text-gray-900">
+                    Filtros Avançados
+                  </h2>
+                  <p className="text-gray-600 font-light">
+                    Encontre ETFs baseados em critérios específicos
+                  </p>
+                </div>
+              </div>
+              
+              <FeatureGate 
+                featureKey="screener_filters" 
+                fallback={
+                  <div className="text-center py-12 bg-gray-50 rounded-2xl border border-gray-200">
+                    <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Filtros Avançados - Plano PRO
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Acesse filtros por retorno, Sharpe Ratio, dividend yield e muito mais
+                    </p>
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl">
+                      Fazer Upgrade
+                    </Button>
+                  </div>
+                }
+              >
+                <Filters 
+                  onFilterChange={handleFilterChange}
+                  basicOnly={true}
+                  onSortChange={handleSort}
+                  currentSortBy={sortBy}
+                  currentSortOrder={sortOrder}
+                  onItemsPerPageChange={handleItemsPerPageChange}
+                  currentItemsPerPage={itemsPerPage}
+                />
+              </FeatureGate>
+            </div>
+          </div>
+
+          {/* Resultados Tesla-style */}
+          <div className="space-y-8">
+            {/* Header dos Resultados */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-light text-gray-900 mb-2">
+                  Resultados da Busca
+                </h2>
+                <p className="text-gray-600 font-light">
+                  {totalETFs} ETFs encontrados
+                </p>
+              </div>
+              
+              {remainingQueries !== null && (
+                <div className="text-right">
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    {remainingQueries} consultas restantes
+                  </Badge>
+                </div>
+              )}
+            </div>
+
+            {/* Loading State */}
+            {loading && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-20">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600 font-light">Analisando ETFs...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="bg-red-50 rounded-2xl border border-red-200 p-8">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-6 h-6 text-red-600" />
+                  <div>
+                    <h3 className="text-lg font-medium text-red-800">Erro na Busca</h3>
+                    <p className="text-red-600">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tabela de ETFs */}
+            {!loading && !error && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <FeatureGate 
-                  featureKey="screener_advanced"
-                  requiredPlan="PRO"
+                  featureKey="screener_queries"
                   fallback={
-                    <Filters
-                      onFilterChange={handleFilterChange}
-                      basicOnly={true}
-                      onSortChange={handleSort}
-                      currentSortBy={sortBy}
-                      currentSortOrder={sortOrder}
-                      onItemsPerPageChange={handleItemsPerPageChange}
-                      currentItemsPerPage={itemsPerPage}
-                    />
+                    <div className="text-center py-20">
+                      <Eye className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        Limite de Consultas Atingido
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        Faça upgrade para continuar usando o screener
+                      </p>
+                      <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl">
+                        Fazer Upgrade
+                      </Button>
+                    </div>
                   }
                 >
-                  <Filters
-                    onFilterChange={handleFilterChange}
-                    onSortChange={handleSort}
-                    currentSortBy={sortBy}
-                    currentSortOrder={sortOrder}
-                    onItemsPerPageChange={handleItemsPerPageChange}
-                    currentItemsPerPage={itemsPerPage}
+                  <ETFTable 
+                    etfs={etfs}
+                    onETFClick={handleETFClick}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
                   />
                 </FeatureGate>
               </div>
-            </div>
+            )}
 
-            {/* Área Principal */}
-            <div className="lg:col-span-4 space-y-6">
-              {/* Estatísticas */}
-              <div className="bg-white rounded-lg border p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 flex items-center">
-                      <Filter className="w-5 h-5 mr-2" />
-                      Screener de ETFs
-                    </h3>
-                    <p className="text-gray-600">
-                      {loading ? "Carregando..." : `${totalETFs} ETFs encontrados • Mostrando ${itemsPerPage} por página`}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-500">Página</div>
-                    <div className="text-lg font-semibold">
-                      {currentPage} de {totalPages}
+            {/* ETF Details Card */}
+            {expandedETF && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
+                      <Eye className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-medium text-gray-900">
+                        Detalhes do ETF
+                      </h3>
+                      <p className="text-gray-600 font-light">
+                        Análise completa do {expandedETF}
+                      </p>
                     </div>
                   </div>
+                  <Button 
+                    variant="ghost" 
+                    onClick={handleCloseDetails}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    ✕
+                  </Button>
+                </div>
+                
+                {etfDetails && (
+                  <ETFDetailCard 
+                    etf={etfDetails}
+                    onClose={handleCloseDetails}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && !error && etfs.length === 0 && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-20">
+                <div className="text-center">
+                  <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Nenhum ETF Encontrado
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Tente ajustar os filtros para encontrar ETFs que atendam aos seus critérios
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setFilters({ onlyComplete: false })}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    Limpar Filtros
+                  </Button>
                 </div>
               </div>
-
-              {/* Mensagem de Erro */}
-              {error && (
-                <Alert className="border-red-200 bg-red-50">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <AlertDescription className="text-red-800">
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {/* Tabela de ETFs */}
-              <div className="bg-white rounded-lg border">
-                <ETFTable
-                  etfs={etfs}
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  onETFClick={handleETFClick}
-                />
-              </div>
-
-              {/* Paginação */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-8">
-                  <div className="text-sm text-gray-600">
-                    Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, totalETFs)} de {totalETFs} ETFs
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="w-4 h-4 mr-1" />
-                      Anterior
-                    </Button>
-                    
-                    <span className="text-sm text-gray-600">
-                      Página {currentPage} de {totalPages}
-                    </span>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      Próxima
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Loading indicator */}
-              {loading && (
-                <div className="text-center py-8">
-                  <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-blue-500 bg-blue-100">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Carregando ETFs...
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
-      </section>
-
-      {/* Card de Detalhes */}
-      {etfDetails && (
-        <ETFDetailCard
-          etf={etfDetails}
-          onClose={handleCloseDetails}
-        />
-      )}
-
-      {/* Loading de detalhes */}
-      {loadingDetails && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6">
-            <div className="flex items-center space-x-3">
-              <svg className="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>Carregando detalhes...</span>
-            </div>
-          </div>
-        </div>
-      )}
       </div>
     </RequireAuth>
   );

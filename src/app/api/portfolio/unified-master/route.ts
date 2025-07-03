@@ -131,8 +131,8 @@ export async function POST(request: NextRequest) {
     });
     console.log(`📊 ETFs pontuados, score médio: ${scoredETFs.reduce((sum, etf) => sum + etf.qualityScore, 0) / scoredETFs.length}`);
     
-    // 3. Otimização de carteira
-    const portfolio = optimizePortfolioByRisk(scoredETFs, validatedInput.riskProfile, validatedInput.investmentAmount);
+    // 3. Otimização de carteira com objetivo específico
+    const portfolio = optimizePortfolioByRisk(scoredETFs, validatedInput.riskProfile, validatedInput.investmentAmount, validatedInput.objective);
     console.log(`🎯 Portfolio otimizado com ${portfolio.etfs.length} ETFs`);
     
     // 4. Análise de benchmarks
@@ -185,79 +185,220 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * FUNÇÃO MELHORADA: Seleciona ETFs candidatos baseado em critérios avançados
+ * FUNÇÃO CORRIGIDA: Seleção de ETFs candidatos baseada em objetivo e perfil de risco
  */
 async function selectCandidateETFs(input: any): Promise<ETFData[]> {
-  console.log('🔍 [SELECT-CANDIDATES] Iniciando seleção com critérios técnicos avançados...');
+  console.log(`🎯 [SELECT-CANDIDATES] Selecionando ETFs para objetivo: ${input.objective}, perfil: ${input.riskProfile}`);
   
-  // CRITÉRIOS TÉCNICOS RIGOROSOS
-  const criteria = {
-    minAUM: 50_000_000, // Mínimo $50M em ativos
-    maxVolatility: 50,   // Máximo 50% de volatilidade anual
-    minSharpe: 0.1,      // Sharpe ratio mínimo
-    targetETFs: 12,      // AUMENTADO: Buscar 12 ETFs para depois selecionar 6-8 melhores
-    maxSingleAssetClass: 0.4, // Máximo 40% em uma única classe
-    preferredAssetClasses: getPreferredAssetClasses(input.objective, input.riskProfile)
+  // 1. CRITÉRIOS BASE PARA TODOS OS PERFIS
+  const baseFilters = {
+    totalasset: { gte: 50000000 }, // AUM >= 50M (reduzido para mais opções)
+    expenseratio: { lte: 1.5 }, // Expense ratio <= 1.5% (mais flexível)
+    returns_12m: { not: null },
+    volatility_12m: { not: null }
   };
+
+  // 2. FILTROS ESPECÍFICOS POR OBJETIVO
+  let objectiveFilters: any = {};
   
-  console.log('🎯 [SELECT-CANDIDATES] Critérios aplicados:', criteria);
+  switch (input.objective) {
+    case 'retirement':
+      // Aposentadoria: foco em renda e preservação de capital
+      objectiveFilters = {
+        OR: [
+          { assetclass: { contains: 'Bond' } }, // Bonds para estabilidade
+          { assetclass: { contains: 'Dividend' } }, // Dividend ETFs para renda
+          { assetclass: { contains: 'Value' } }, // Value para preservação
+          { 
+            AND: [
+              { dividends_12m: { gte: 2.0 } }, // Dividend yield >= 2%
+              { volatility_12m: { lte: 20 } } // Baixa volatilidade
+            ]
+          }
+        ]
+      };
+      break;
+      
+    case 'house':
+      // Casa: foco em crescimento com prazo definido
+      objectiveFilters = {
+        OR: [
+          { assetclass: { contains: 'Growth' } }, // Growth ETFs
+          { assetclass: { contains: 'Large Blend' } }, // Large cap diversificado
+          { assetclass: { contains: 'Target Date' } }, // Target date funds
+          {
+            AND: [
+              { returns_12m: { gte: 8 } }, // Retorno >= 8%
+              { volatility_12m: { lte: 25 } } // Volatilidade controlada
+            ]
+          }
+        ]
+      };
+      break;
+      
+    case 'emergency':
+      // Emergência: foco em preservação e liquidez
+      objectiveFilters = {
+        OR: [
+          { assetclass: { contains: 'Bond' } }, // Bonds
+          { assetclass: { contains: 'Money Market' } }, // Money market
+          { assetclass: { contains: 'Short' } }, // Short-term bonds
+          {
+            AND: [
+              { volatility_12m: { lte: 8 } }, // Ultra baixa volatilidade
+              { totalasset: { gte: 1000000000 } } // Alta liquidez
+            ]
+          }
+        ]
+      };
+      break;
+      
+    case 'growth':
+      // Crescimento: foco em máximo retorno
+      objectiveFilters = {
+        OR: [
+          { assetclass: { contains: 'Growth' } }, // Growth ETFs
+          { assetclass: { contains: 'Technology' } }, // Technology
+          { assetclass: { contains: 'Small' } }, // Small cap
+          { assetclass: { contains: 'Emerging' } }, // Emerging markets
+          {
+            AND: [
+              { returns_12m: { gte: 10 } }, // Alto retorno
+              { sharpe_12m: { gte: 0.5 } } // Sharpe ratio decente
+            ]
+          }
+        ]
+      };
+      break;
+      
+    default:
+      // Objetivo genérico: mix balanceado
+      objectiveFilters = {
+        OR: [
+          { assetclass: { contains: 'Large Blend' } },
+          { assetclass: { contains: 'International' } },
+          { assetclass: { contains: 'Bond' } }
+        ]
+      };
+  }
+
+  // 3. FILTROS ESPECÍFICOS POR PERFIL DE RISCO
+  let riskFilters: any = {};
   
-  try {
-    // Testar conexão primeiro
-    const prisma = new PrismaClient();
-    await prisma.$connect();
-    console.log(`🔍 [SELECT-CANDIDATES] Conexão com banco estabelecida`);
+  switch (input.riskProfile) {
+    case 'conservative':
+      riskFilters = {
+        AND: [
+          { volatility_12m: { lte: 18 } }, // Baixa volatilidade
+          { max_drawdown: { gte: -20 } }, // Drawdown limitado
+          {
+            OR: [
+              { assetclass: { contains: 'Bond' } },
+              { assetclass: { contains: 'Dividend' } },
+              { assetclass: { contains: 'Value' } },
+              { dividends_12m: { gte: 1.5 } } // Preferência por dividendos
+            ]
+          }
+        ]
+      };
+      break;
+      
+    case 'moderate':
+      riskFilters = {
+        AND: [
+          { volatility_12m: { lte: 28 } }, // Volatilidade moderada
+          { max_drawdown: { gte: -35 } }, // Drawdown moderado
+          { sharpe_12m: { gte: 0.3 } } // Sharpe ratio mínimo
+        ]
+      };
+      break;
+      
+    case 'aggressive':
+      riskFilters = {
+        AND: [
+          { returns_12m: { gte: 5 } }, // Foco em retorno
+          { sharpe_12m: { gte: 0.2 } }, // Sharpe ratio mínimo mais baixo
+          {
+            OR: [
+              { assetclass: { contains: 'Growth' } },
+              { assetclass: { contains: 'Technology' } },
+              { assetclass: { contains: 'Small' } },
+              { volatility_12m: { gte: 15 } } // Aceita alta volatilidade
+            ]
+          }
+        ]
+      };
+      break;
+  }
+
+  // 4. COMBINAR TODOS OS FILTROS
+  const finalFilters = {
+    AND: [
+      baseFilters,
+      objectiveFilters,
+      riskFilters
+    ]
+  };
+
+  console.log(`🎯 [SELECT-CANDIDATES] Filtros aplicados:`, {
+    objective: input.objective,
+    riskProfile: input.riskProfile,
+    filters: finalFilters
+  });
+
+  // 5. BUSCAR ETFs COM FILTROS ESPECÍFICOS
+  let etfs = await prisma!.etfs_ativos_reais.findMany({
+    where: finalFilters,
+    orderBy: [
+      { sharpe_12m: 'desc' }, // Ordenar por Sharpe ratio
+      { totalasset: 'desc' }, // Depois por liquidez
+      { returns_12m: 'desc' } // Depois por retorno
+    ],
+    take: 150 // Mais ETFs para melhor seleção
+  });
+
+  console.log(`🎯 [SELECT-CANDIDATES] ETFs encontrados com filtros específicos: ${etfs.length}`);
+
+  // 6. FALLBACK SE POUCOS ETFs ENCONTRADOS
+  if (etfs.length < 20) {
+    console.log(`⚠️ [SELECT-CANDIDATES] Poucos ETFs encontrados, aplicando filtros mais flexíveis`);
     
-    const etfs = await prisma.etfs_ativos_reais.findMany({
+    etfs = await prisma!.etfs_ativos_reais.findMany({
       where: {
         AND: [
-          { totalasset: { gte: criteria.minAUM } },
-          { volatility_12m: { lte: criteria.maxVolatility } },
+          { totalasset: { gte: 100000000 } }, // AUM >= 100M
+          { expenseratio: { lte: 1.0 } }, // Expense ratio <= 1%
           { returns_12m: { not: null } },
-          { volatility_12m: { not: null } }
+          { volatility_12m: { not: null } },
+          input.riskProfile === 'conservative' ? { volatility_12m: { lte: 20 } } :
+          input.riskProfile === 'aggressive' ? { returns_12m: { gte: 5 } } : {}
         ]
       },
-      take: criteria.targetETFs * 2, // Buscar mais para depois filtrar
       orderBy: [
-        { totalasset: 'desc' },
-        { returns_12m: 'desc' }
-      ]
+        { sharpe_12m: 'desc' },
+        { totalasset: 'desc' }
+      ],
+      take: 100
     });
-
-    console.log(`🔍 [SELECT-CANDIDATES] Query executada, ${etfs.length} ETFs encontrados`);
-
-    // Calcular score técnico e filtrar
-    const scoredETFs = etfs
-      .map(etf => {
-        const technicalScore = calculateTechnicalScore({
-          ...etf,
-          name: etf.name || etf.symbol || 'N/A',
-          assetclass: etf.assetclass || 'Mixed'
-        });
-        return {
-          ...etf,
-          name: etf.name || etf.symbol || 'N/A',
-          assetclass: etf.assetclass || 'Mixed',
-          technical_score: technicalScore
-        };
-      })
-      .filter(etf => etf.technical_score > 0.3) // Filtrar apenas ETFs com score mínimo
-      .sort((a, b) => b.technical_score - a.technical_score)
-      .slice(0, criteria.targetETFs);
-
-    console.log(`🎯 [SELECT-CANDIDATES] ETFs com score técnico:`, 
-      scoredETFs.map(etf => `${etf.symbol} (${normalizeAssetClass(etf.assetclass)}) - Score: ${etf.technical_score?.toFixed(2)}`));
-
-    // Aplicar diversificação avançada
-    const diversifiedETFs = applyAdvancedDiversification(scoredETFs, criteria, input);
-
-    await prisma.$disconnect();
-    return diversifiedETFs as ETFData[];
-    
-  } catch (error) {
-    console.error('❌ [SELECT-CANDIDATES] Erro na seleção:', error);
-    throw error;
   }
+
+  console.log(`✅ [SELECT-CANDIDATES] Total de ETFs candidatos selecionados: ${etfs.length}`);
+  
+  return etfs.map(etf => ({
+    symbol: etf.symbol,
+    name: etf.name || `ETF ${etf.symbol}`,
+    assetclass: etf.assetclass || 'Mixed',
+    returns_12m: Number(etf.returns_12m) || 0,
+    volatility_12m: Number(etf.volatility_12m) || 0,
+    sharpe_12m: Number(etf.sharpe_12m) || 0,
+    dividends_12m: Number(etf.dividends_12m) || 0,
+    expenseratio: Number(etf.expenseratio) || 0,
+    totalasset: Number(etf.totalasset) || 0,
+    max_drawdown: Number(etf.max_drawdown) || 0,
+    sectorslist: etf.sectorslist || {},
+    avgvolume: Number(etf.avgvolume) || 0,
+    holdingscount: Number(etf.holdingscount) || 0
+  }));
 }
 
 /**
@@ -559,8 +700,8 @@ export async function PUT(request: NextRequest) {
       };
     });
     
-    // Otimização com ETFs específicos
-    const portfolio = optimizePortfolioByRisk(scoredETFs, validatedInput.riskProfile, validatedInput.investmentAmount);
+    // Otimização com ETFs específicos considerando objetivo
+    const portfolio = optimizePortfolioByRisk(scoredETFs, validatedInput.riskProfile, validatedInput.investmentAmount, validatedInput.objective);
     
     // Backtesting histórico (ADICIONADO)
     const backtesting = await generateBacktesting(portfolio);
@@ -801,18 +942,20 @@ function generateAdvancedRationale(etf: ETFData, score: number, components: any)
 function optimizePortfolioByRisk(
   scoredETFs: ETFScore[], 
   riskProfile: string,
-  investmentAmount: number
+  investmentAmount: number,
+  objective: string = 'growth' // Adicionar objetivo como parâmetro
 ): OptimizedPortfolio {
-  console.log(`🎯 [OPTIMIZE-PORTFOLIO] Iniciando otimização para perfil: ${riskProfile}`);
+  console.log(`🎯 [OPTIMIZE-PORTFOLIO] Iniciando otimização para objetivo: ${objective}, perfil: ${riskProfile}`);
   
   // Estratégia unificada que será passada para as funções avançadas
   const strategy = {
     riskProfile: riskProfile,
+    objective: objective, // Incluir objetivo na estratégia
     investmentAmount: investmentAmount,
-    maxSingleETF: riskProfile === 'conservative' ? 0.35 : 
-                  riskProfile === 'moderate' ? 0.40 : 0.45,
-    minETFs: riskProfile === 'conservative' ? 5 : 
-             riskProfile === 'moderate' ? 6 : 7,
+    maxSingleETF: riskProfile === 'conservative' ? 0.50 : 
+                  riskProfile === 'moderate' ? 0.65 : 0.80, // Limites corrigidos
+    minETFs: riskProfile === 'conservative' ? 4 : 
+             riskProfile === 'moderate' ? 5 : 6,
     maxETFs: riskProfile === 'conservative' ? 6 : 
              riskProfile === 'moderate' ? 7 : 8
   };
@@ -1229,77 +1372,216 @@ function calculateRealCorrelationMatrix(etfMetrics: any[]): number[][] {
 }
 
 /**
- * NOVA FUNÇÃO: Otimização avançada de Markowitz com penalizações inteligentes
+ * FUNÇÃO CORRIGIDA: Otimização real de Markowitz com concentrações adequadas
  */
 function optimizeAdvancedMarkowitz(etfMetrics: any[], correlationMatrix: number[][], strategy: any): number[] {
   const n = etfMetrics.length;
   
-  // 1. CALCULAR PESOS BASE USANDO SHARPE RATIO AJUSTADO
+  console.log(`🧮 [REAL-MARKOWITZ] Iniciando otimização real para ${n} ETFs`);
+  console.log(`🧮 [REAL-MARKOWITZ] Objetivo: ${strategy.objective}, Perfil: ${strategy.riskProfile}`);
+  
+  // 1. DEFINIR LIMITES BASEADOS NO OBJETIVO E PERFIL DE RISCO
+  let maxWeight: number, minWeight: number, objectiveWeights: any;
+  
+  // Limites por perfil de risco
+  switch (strategy.riskProfile) {
+    case 'conservative':
+      maxWeight = 0.50; // Máximo 50% em um ETF
+      minWeight = 0.01; // Mínimo 1%
+      break;
+    case 'moderate':
+      maxWeight = 0.65; // Máximo 65% em um ETF
+      minWeight = 0.01; // Mínimo 1%
+      break;
+    case 'aggressive':
+      maxWeight = 0.80; // Máximo 80% em um ETF (concentração real!)
+      minWeight = 0.01; // Mínimo 1%
+      break;
+    default:
+      maxWeight = 0.60;
+      minWeight = 0.02;
+  }
+  
+  // Ajustes específicos por objetivo
+  switch (strategy.objective) {
+    case 'retirement':
+      // Aposentadoria: foco em renda e estabilidade
+      objectiveWeights = {
+        bondBonus: 0.3, // Bônus para bonds
+        dividendBonus: 0.2, // Bônus para dividend ETFs
+        lowVolBonus: 0.2, // Bônus para baixa volatilidade
+        growthPenalty: -0.1 // Penalidade para growth
+      };
+      maxWeight = Math.min(maxWeight, 0.45); // Limitar concentração
+      break;
+      
+    case 'house':
+      // Casa: foco em crescimento balanceado
+      objectiveWeights = {
+        growthBonus: 0.2, // Bônus para growth
+        largeCapBonus: 0.15, // Bônus para large cap
+        stabilityBonus: 0.1, // Alguma estabilidade
+        volatilityPenalty: -0.05 // Penalidade leve para alta volatilidade
+      };
+      break;
+      
+    case 'emergency':
+      // Emergência: foco em preservação
+      objectiveWeights = {
+        bondBonus: 0.4, // Grande bônus para bonds
+        lowVolBonus: 0.3, // Grande bônus para baixa volatilidade
+        liquidityBonus: 0.2, // Bônus para liquidez
+        growthPenalty: -0.3 // Grande penalidade para growth
+      };
+      maxWeight = Math.min(maxWeight, 0.40); // Forçar diversificação
+      break;
+      
+    case 'growth':
+      // Crescimento: foco em máximo retorno
+      objectiveWeights = {
+        returnBonus: 0.4, // Grande bônus para alto retorno
+        growthBonus: 0.3, // Grande bônus para growth
+        sharpeBonus: 0.2, // Bônus para Sharpe ratio
+        lowVolPenalty: -0.1 // Penalidade para baixa volatilidade
+      };
+      maxWeight = 0.85; // Permitir alta concentração para growth
+      break;
+      
+    default:
+      objectiveWeights = {
+        balanceBonus: 0.1
+      };
+  }
+  
+  console.log(`🧮 [REAL-MARKOWITZ] Limites: min=${(minWeight*100).toFixed(1)}%, max=${(maxWeight*100).toFixed(1)}%`);
+  
+  // 2. CALCULAR SCORES AJUSTADOS POR OBJETIVO
   const adjustedScores = etfMetrics.map(etf => {
     let score = etf.avgSharpe || 0;
     
-    // Bônus por baixo custo
-    if (etf.expenseRatio < 0.2) score += 0.3;
-    else if (etf.expenseRatio < 0.5) score += 0.1;
-    else score -= 0.2;
-    
-    // Bônus por controle de risco
-    if (Math.abs(etf.maxDrawdown) < 15) score += 0.2;
-    else if (Math.abs(etf.maxDrawdown) < 25) score += 0.1;
-    else score -= 0.1;
-    
-    // Bônus por qualidade geral
-    score += (etf.qualityScore / 100) * 0.5;
-    
-    // Bônus por dividendos (para perfis conservadores)
-    if (strategy.riskProfile === 'conservative' && etf.dividendYield > 2) {
-      score += 0.2;
+    // Aplicar bônus/penalidades baseados no objetivo
+    if (strategy.objective === 'retirement') {
+      if (etf.assetClass?.includes('Bond')) score += objectiveWeights.bondBonus;
+      if (etf.dividendYield > 2) score += objectiveWeights.dividendBonus;
+      if (etf.avgVolatility < 15) score += objectiveWeights.lowVolBonus;
+      if (etf.assetClass?.includes('Growth')) score += objectiveWeights.growthPenalty;
     }
     
-    return Math.max(0.1, score); // Mínimo 0.1
+    else if (strategy.objective === 'house') {
+      if (etf.assetClass?.includes('Growth')) score += objectiveWeights.growthBonus;
+      if (etf.assetClass?.includes('Large')) score += objectiveWeights.largeCapBonus;
+      if (etf.avgVolatility < 20) score += objectiveWeights.stabilityBonus;
+      if (etf.avgVolatility > 30) score += objectiveWeights.volatilityPenalty;
+    }
+    
+    else if (strategy.objective === 'emergency') {
+      if (etf.assetClass?.includes('Bond')) score += objectiveWeights.bondBonus;
+      if (etf.avgVolatility < 10) score += objectiveWeights.lowVolBonus;
+      if (etf.totalAsset > 1000000000) score += objectiveWeights.liquidityBonus;
+      if (etf.assetClass?.includes('Growth')) score += objectiveWeights.growthPenalty;
+    }
+    
+    else if (strategy.objective === 'growth') {
+      if (etf.avgReturn > 12) score += objectiveWeights.returnBonus;
+      if (etf.assetClass?.includes('Growth')) score += objectiveWeights.growthBonus;
+      if (etf.avgSharpe > 1.0) score += objectiveWeights.sharpeBonus;
+      if (etf.avgVolatility < 12) score += objectiveWeights.lowVolPenalty;
+    }
+    
+    // Bônus universais
+    if (etf.expenseRatio < 0.2) score += 0.2; // Baixo custo
+    if (etf.expenseRatio > 0.8) score -= 0.2; // Alto custo
+    if (Math.abs(etf.maxDrawdown) < 15) score += 0.1; // Controle de risco
+    if (Math.abs(etf.maxDrawdown) > 40) score -= 0.2; // Alto risco
+    
+    // Score de qualidade
+    score += (etf.qualityScore / 100) * 0.3;
+    
+    return Math.max(0.05, score); // Mínimo 0.05
   });
   
-  // 2. CALCULAR PESOS INICIAIS
+  console.log(`🧮 [REAL-MARKOWITZ] Scores ajustados:`, 
+    adjustedScores.map((score, i) => `${etfMetrics[i].symbol}: ${score.toFixed(3)}`));
+  
+  // 3. CALCULAR PESOS INICIAIS BASEADOS EM SCORES
   const totalScore = adjustedScores.reduce((sum, score) => sum + score, 0);
   let weights = adjustedScores.map(score => score / totalScore);
   
-  // 3. APLICAR PENALIZAÇÕES POR CORRELAÇÃO
+  // 4. APLICAR OTIMIZAÇÃO BASEADA EM CORRELAÇÃO E RISCO
+  // Penalizar ETFs altamente correlacionados apenas se necessário
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
       const correlation = correlationMatrix[i][j];
-      if (correlation > 0.7) {
-        // Penalizar ETFs altamente correlacionados
-        const penalty = (correlation - 0.7) * 0.5;
-        weights[i] *= (1 - penalty);
-        weights[j] *= (1 - penalty);
+      
+      // Penalizar apenas correlações muito altas (>80%)
+      if (correlation > 0.8) {
+        const penalty = (correlation - 0.8) * 0.3; // Penalidade reduzida
+        
+        // Penalizar o ETF com menor score
+        if (adjustedScores[i] < adjustedScores[j]) {
+          weights[i] *= (1 - penalty);
+        } else {
+          weights[j] *= (1 - penalty);
+        }
       }
     }
   }
   
-  // 4. APLICAR LIMITES DE CONCENTRAÇÃO
-  const maxWeight = strategy.riskProfile === 'conservative' ? 0.35 : 
-                   strategy.riskProfile === 'moderate' ? 0.40 : 0.45;
-  const minWeight = 0.05;
-  
+  // 5. APLICAR LIMITES DE CONCENTRAÇÃO (FLEXÍVEIS)
   weights = weights.map(w => Math.max(minWeight, Math.min(maxWeight, w)));
   
-  // 5. RENORMALIZAR
+  // 6. RENORMALIZAR
   const totalWeight = weights.reduce((sum, w) => sum + w, 0);
   weights = weights.map(w => w / totalWeight);
   
-  // 6. VALIDAÇÃO FINAL
+  // 7. OTIMIZAÇÃO FINAL: CONCENTRAR NOS MELHORES ETFs SE PERMITIDO
+  if (strategy.objective === 'growth' || strategy.riskProfile === 'aggressive') {
+    // Para perfis agressivos, concentrar mais nos top performers
+    const sortedIndices = weights
+      .map((weight, index) => ({ weight, index, score: adjustedScores[index] }))
+      .sort((a, b) => b.score - a.score);
+    
+    // Redistribuir peso dos ETFs mais fracos para os mais fortes
+    for (let i = Math.floor(n / 2); i < n; i++) {
+      const weakIndex = sortedIndices[i].index;
+      const strongIndex = sortedIndices[0].index;
+      
+      if (weights[weakIndex] > minWeight && weights[strongIndex] < maxWeight) {
+        const transfer = Math.min(
+          weights[weakIndex] * 0.2, // Transferir até 20% do peso
+          maxWeight - weights[strongIndex] // Não exceder máximo
+        );
+        
+        weights[weakIndex] -= transfer;
+        weights[strongIndex] += transfer;
+      }
+    }
+    
+    // Renormalizar após redistribuição
+    const newTotalWeight = weights.reduce((sum, w) => sum + w, 0);
+    weights = weights.map(w => w / newTotalWeight);
+  }
+  
+  // 8. VALIDAÇÃO E MÉTRICAS FINAIS
   const portfolioReturn = weights.reduce((sum, w, i) => sum + w * etfMetrics[i].avgReturn, 0);
   const portfolioRisk = Math.sqrt(
     weights.reduce((sum, wi, i) => 
       sum + weights.reduce((innerSum, wj, j) => 
         innerSum + wi * wj * correlationMatrix[i][j] * etfMetrics[i].avgVolatility * etfMetrics[j].avgVolatility / 10000, 0), 0)
   );
+  const portfolioSharpe = (portfolioReturn - 2) / (portfolioRisk * 100);
   
-  console.log(`🎯 [ADVANCED-MARKOWITZ] Portfolio resultante:`, {
+  console.log(`✅ [REAL-MARKOWITZ] Portfolio otimizado:`, {
     expectedReturn: `${portfolioReturn.toFixed(2)}%`,
     expectedRisk: `${(portfolioRisk * 100).toFixed(2)}%`,
-    sharpeRatio: ((portfolioReturn - 2) / (portfolioRisk * 100)).toFixed(2)
+    sharpeRatio: portfolioSharpe.toFixed(3),
+    maxAllocation: `${(Math.max(...weights) * 100).toFixed(1)}%`,
+    minAllocation: `${(Math.min(...weights) * 100).toFixed(1)}%`,
+    concentration: weights.filter(w => w > 0.2).length // ETFs com >20%
   });
+  
+  console.log(`🎯 [REAL-MARKOWITZ] Alocações finais:`, 
+    weights.map((w, i) => `${etfMetrics[i].symbol}: ${(w*100).toFixed(1)}%`));
   
   return weights;
 }

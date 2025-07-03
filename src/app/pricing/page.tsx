@@ -12,6 +12,9 @@ import { PLAN_CONFIGS, SubscriptionPlan, calculateAnnualFee } from '@/types/subs
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import RequireAuth from '@/components/auth/RequireAuth';
+import { PricingPlans } from '@/components/subscriptions/PricingPlans';
+import { CheckCircle, Award } from 'lucide-react';
 
 export default function PricingPage() {
   const { user, loading: authLoading } = useAuth();
@@ -285,523 +288,306 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-      
-      <main className="pt-16">
-        {/* Informações do usuário logado */}
-        {user && (
-          <section className="py-8 px-6 bg-blue-50 border-b">
-            <div className="max-w-6xl mx-auto">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-blue-100 p-2 rounded-full">
-                    <User className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Olá, {user.email}!
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {loadingSubscription ? 'Carregando plano atual...' :
-                       currentSubscription ? 
-                         `Plano atual: ${currentSubscription.plan} (${currentSubscription.status})` :
-                         'Nenhum plano ativo'}
-                    </p>
-                  </div>
-                </div>
-                {currentSubscription && (
-                  <Badge 
-                    className={`${currentSubscription.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
-                                currentSubscription.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'}`}
-                  >
-                    {currentSubscription.status === 'ACTIVE' ? 'Ativo' :
-                     currentSubscription.status === 'PENDING' ? 'Pendente' :
-                     currentSubscription.status}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Hero Section - Inspirado em YC Startups */}
-        <section className="py-20 px-6 bg-gradient-to-br from-gray-50 to-white">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h1 className="text-5xl font-bold text-gray-900 mb-6">
-                Escolha Seu Caminho para a
-                <span className="text-blue-600"> Liberdade Financeira</span>
-              </h1>
-              <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-8">
-                {user ? 'Gerencie sua assinatura ou faça upgrade para acelerar seus resultados.' :
-                        'Do iniciante ao investidor sofisticado, temos o plano perfeito para multiplicar seu patrimônio através de ETFs com base científica.'}
-              </p>
-              
-              {/* Social Proof */}
-              <div className="flex items-center justify-center space-x-8 mb-8">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">4,409</div>
-                  <div className="text-sm text-gray-600">ETFs Analisados</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">15.8%</div>
-                  <div className="text-sm text-gray-600">Retorno Médio</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">96.5%</div>
-                  <div className="text-sm text-gray-600">Dados Completos</div>
-                </div>
-              </div>
-
-              {/* Trust Badges */}
-              <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
-                <div className="flex items-center space-x-2">
-                  <Shield className="w-4 h-4" />
-                  <span>Dados Seguros</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Zap className="w-4 h-4" />
-                  <span>Ativação Instantânea</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Target className="w-4 h-4" />
-                  <span>Baseado em Ciência</span>
-                </div>
-              </div>
-            </div>
+    <RequireAuth>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6 py-20">
+          
+          {/* Hero Section */}
+          <div className="text-center mb-20">
+            <Badge className="mb-8 px-6 py-2 bg-gray-900 text-white font-light rounded-full">
+              Planos Premium
+            </Badge>
+            <h1 className="text-6xl md:text-7xl font-light text-gray-900 mb-8 leading-tight">
+              Invista com
+              <span className="block text-blue-600">Inteligência</span>
+            </h1>
+            <p className="text-xl font-light text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Acesso completo às ferramentas profissionais de análise e curadoria de ETFs. 
+              Transforme sua estratégia de investimento com dados precisos e insights avançados.
+            </p>
           </div>
-        </section>
 
-        {/* Toggle de plano anual/mensal */}
-        <section className="pb-8">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="flex items-center justify-center space-x-4 mb-8">
-              <span className={`font-medium ${billingCycle === 'monthly' ? 'text-blue-600' : 'text-gray-500'}`}>
-                Mensal
-              </span>
-              <button
-                onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annual' : 'monthly')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  billingCycle === 'annual' ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    billingCycle === 'annual' ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-              <span className={`font-medium ${billingCycle === 'annual' ? 'text-blue-600' : 'text-gray-500'}`}>
-                Anual
-              </span>
-              {billingCycle === 'annual' && (
-                <Badge className="bg-green-100 text-green-800 font-medium">
-                  Economize 20%
-                </Badge>
-              )}
-            </div>
+          {/* Pricing Plans */}
+          <div className="mb-20">
+            <PricingPlans />
           </div>
-        </section>
 
-        {/* Planos - Estrutura em Cascata Inspirada em YC */}
-        <section className="pb-20 px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              
-              {/* Starter - Para Iniciantes */}
-              <Card className="relative bg-white border-2 border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300">
-                <CardHeader className="text-center space-y-4 pb-6">
-                  <div className="flex justify-center">
-                    <div className="bg-gray-100 p-4 rounded-full">
-                      <Star className="w-8 h-8 text-gray-600" />
-                    </div>
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-bold text-gray-900">Starter</CardTitle>
-                    <CardDescription className="text-base text-gray-600 mt-2">
-                      <strong>Para Iniciantes</strong><br />
-                      Comece sua jornada de investimentos com ferramentas essenciais
-                    </CardDescription>
-                  </div>
-                  <div className="py-4">
-                    {renderPrice('STARTER')}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-3">
-                    {PLAN_CONFIGS.STARTER.features.map((feature, index) => (
-                      <div key={index} className="flex items-start space-x-3">
-                        <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {renderPlanButton('STARTER')}
-                  <p className="text-xs text-center text-gray-500">
-                    Sem compromisso • Ative em 30 segundos
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Pro - Mais Popular */}
-              <Card className="relative bg-white border-2 border-blue-500 hover:border-blue-600 hover:shadow-xl transition-all duration-300 scale-105 ring-2 ring-blue-500 ring-opacity-20">
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-blue-600 text-white px-4 py-1 text-sm font-bold shadow-lg">
-                    Mais Popular
-                  </Badge>
-                </div>
-                <CardHeader className="text-center space-y-4 pb-6">
-                  <div className="flex justify-center">
-                    <div className="bg-blue-100 p-4 rounded-full">
-                      <TrendingUp className="w-8 h-8 text-blue-600" />
-                    </div>
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-bold text-gray-900">Pro</CardTitle>
-                    <CardDescription className="text-base text-gray-600 mt-2">
-                      <strong>Para Investidores Ativos</strong><br />
-                      Acelere seus resultados com análises avançadas e ferramentas profissionais
-                    </CardDescription>
-                  </div>
-                  <div className="py-4">
-                    {renderPrice('PRO')}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-3">
-                    {PLAN_CONFIGS.PRO.features.map((feature, index) => (
-                      <div key={index} className="flex items-start space-x-3">
-                        <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {renderPlanButton('PRO')}
-                  <p className="text-xs text-center text-gray-500">
-                    Cancele quando quiser • Garantia de 7 dias
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Wealth - Premium */}
-              <Card className="relative bg-white border-2 border-purple-300 hover:border-purple-400 hover:shadow-lg transition-all duration-300">
-                <CardHeader className="text-center space-y-4 pb-6">
-                  <div className="flex justify-center">
-                    <div className="bg-purple-100 p-4 rounded-full">
-                      <Crown className="w-8 h-8 text-purple-600" />
-                    </div>
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-bold text-gray-900">Wealth</CardTitle>
-                    <CardDescription className="text-base text-gray-600 mt-2">
-                      <strong>Para Patrimônios Altos</strong><br />
-                      Consultoria personalizada com consultor CVM dedicado
-                    </CardDescription>
-                  </div>
-                  <div className="py-4">
-                    {renderPrice('WEALTH')}
-                  </div>
-                  <div className="text-sm text-gray-600 font-medium">
-                    Mínimo: R$ 200.000
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-3">
-                    {PLAN_CONFIGS.WEALTH.features.map((feature, index) => (
-                      <div key={index} className="flex items-start space-x-3">
-                        <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="wealth-assets" className="text-sm font-medium">
-                      Patrimônio Total (R$)
-                    </Label>
-                    <Input
-                      id="wealth-assets"
-                      type="number"
-                      placeholder="200.000"
-                      value={selectedAssets.WEALTH || ''}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value) || 0;
-                        setSelectedAssets(prev => ({
-                          ...prev,
-                          WEALTH: Math.max(value, 200000)
-                        }));
-                      }}
-                      min={200000}
-                      step={10000}
-                      className="text-center"
-                    />
-                  </div>
-                  
-                  {renderPlanButton('WEALTH', selectedAssets.WEALTH)}
-                  <p className="text-xs text-center text-gray-500">
-                    Diagnóstico gratuito • Processo seletivo
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Offshore - Enterprise */}
-              <Card className="relative bg-white border-2 border-emerald-300 hover:border-emerald-400 hover:shadow-lg transition-all duration-300">
-                <CardHeader className="text-center space-y-4 pb-6">
-                  <div className="flex justify-center">
-                    <div className="bg-emerald-100 p-4 rounded-full">
-                      <Globe className="w-8 h-8 text-emerald-600" />
-                    </div>
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-bold text-gray-900">Offshore</CardTitle>
-                    <CardDescription className="text-base text-gray-600 mt-2">
-                      <strong>Para Ultra High Net Worth</strong><br />
-                      Estruturação internacional e estratégias sofisticadas
-                    </CardDescription>
-                  </div>
-                  <div className="py-4">
-                    {renderPrice('OFFSHORE')}
-                  </div>
-                  <div className="text-sm text-gray-600 font-medium">
-                    Mínimo: R$ 1.000.000
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-3">
-                    {PLAN_CONFIGS.OFFSHORE.features.map((feature, index) => (
-                      <div key={index} className="flex items-start space-x-3">
-                        <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="offshore-assets" className="text-sm font-medium">
-                      Patrimônio Total (R$)
-                    </Label>
-                    <Input
-                      id="offshore-assets"
-                      type="number"
-                      placeholder="1.000.000"
-                      value={selectedAssets.OFFSHORE || ''}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value) || 0;
-                        setSelectedAssets(prev => ({
-                          ...prev,
-                          OFFSHORE: Math.max(value, 1000000)
-                        }));
-                      }}
-                      min={1000000}
-                      step={50000}
-                      className="text-center"
-                    />
-                  </div>
-                  
-                  {renderPlanButton('OFFSHORE', selectedAssets.OFFSHORE)}
-                  <p className="text-xs text-center text-gray-500">
-                    Aconselhamento completo • Rede de parceiros
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* Seção de Valor por Perfil - Storytelling Melhorado */}
-        <section className="py-16 px-6 bg-gray-50">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Qual é o Seu Perfil de Investidor?
-              </h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Cada plano foi desenhado para um momento específico da sua jornada financeira
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Perfil Starter */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <div className="text-center mb-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Star className="w-6 h-6 text-gray-600" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900">Iniciante</h3>
-                  <p className="text-sm text-gray-600 mt-1">Patrimônio: R$ 1.000 - R$ 50.000</p>
-                </div>
-                <div className="space-y-3 text-sm text-gray-700">
-                  <p>• Quer começar a investir mas não sabe por onde</p>
-                  <p>• Busca ferramentas simples e confiáveis</p>
-                  <p>• Precisa de educação financeira básica</p>
-                  <p>• Quer evitar erros comuns de iniciantes</p>
-                </div>
-              </div>
-
-              {/* Perfil Pro */}
-              <div className="bg-white p-6 rounded-xl border-2 border-blue-200">
-                <div className="text-center mb-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <TrendingUp className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900">Ativo</h3>
-                  <p className="text-sm text-gray-600 mt-1">Patrimônio: R$ 50.000 - R$ 200.000</p>
-                </div>
-                <div className="space-y-3 text-sm text-gray-700">
-                  <p>• Já investe mas quer otimizar resultados</p>
-                  <p>• Busca análises avançadas e dados precisos</p>
-                  <p>• Quer diversificar com ETFs internacionais</p>
-                  <p>• Precisa de ferramentas profissionais</p>
-                </div>
-              </div>
-
-              {/* Perfil Wealth */}
-              <div className="bg-white p-6 rounded-xl border border-purple-200">
-                <div className="text-center mb-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Crown className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900">Sofisticado</h3>
-                  <p className="text-sm text-gray-600 mt-1">Patrimônio: R$ 200.000 - R$ 1.000.000</p>
-                </div>
-                <div className="space-y-3 text-sm text-gray-700">
-                  <p>• Tem patrimônio significativo para gerir</p>
-                  <p>• Quer consultoria personalizada e dedicada</p>
-                  <p>• Busca otimização fiscal e tributária</p>
-                  <p>• Precisa de estratégias mais complexas</p>
-                </div>
-              </div>
-
-              {/* Perfil Offshore */}
-              <div className="bg-white p-6 rounded-xl border border-emerald-200">
-                <div className="text-center mb-4">
-                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Globe className="w-6 h-6 text-emerald-600" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900">Internacional</h3>
-                  <p className="text-sm text-gray-600 mt-1">Patrimônio: R$ 1.000.000+</p>
-                </div>
-                <div className="space-y-3 text-sm text-gray-700">
-                  <p>• Possui patrimônio para estruturação offshore</p>
-                  <p>• Quer diversificação geográfica de ativos</p>
-                  <p>• Busca elisão fiscal internacional</p>
-                  <p>• Precisa de compliance e due diligence</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Social Proof Section - Inspirado em YC */}
-        <section className="py-16 px-6 bg-white">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Confiado por Investidores Inteligentes
-              </h2>
-              <p className="text-lg text-gray-600">
-                Junte-se a milhares de investidores que já descobriram o poder dos ETFs
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-blue-600 mb-2">4,409</div>
-                <div className="text-lg font-medium text-gray-900 mb-2">ETFs Analisados</div>
-                <div className="text-sm text-gray-600">
-                  Base de dados mais completa do Brasil com 96.5% de cobertura
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-4xl font-bold text-green-600 mb-2">15.8%</div>
-                <div className="text-lg font-medium text-gray-900 mb-2">Retorno Médio Anual</div>
-                <div className="text-sm text-gray-600">
-                  Performance média dos ETFs em nossa base de dados
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-4xl font-bold text-purple-600 mb-2">172</div>
-                <div className="text-lg font-medium text-gray-900 mb-2">Categorias Cobertas</div>
-                <div className="text-sm text-gray-600">
-                  Diversificação completa por setores e regiões
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* FAQ Section - Melhorada */}
-        <section className="py-16 px-6 bg-gray-50">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">Perguntas Frequentes</h2>
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-bold mb-3 text-gray-900">Posso cancelar a qualquer momento?</h3>
-                <p className="text-gray-600">Sim, você pode cancelar sua assinatura a qualquer momento sem burocracias. Para planos anuais, oferecemos reembolso proporcional nos primeiros 30 dias.</p>
-              </div>
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-bold mb-3 text-gray-900">Como funciona o plano Wealth?</h3>
-                <p className="text-gray-600">Após solicitar análise, nossa equipe fará um diagnóstico completo do seu perfil e patrimônio. Se aprovado, você terá acesso a um consultor CVM dedicado com reuniões mensais e suporte prioritário.</p>
-              </div>
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-bold mb-3 text-gray-900">O que significa aconselhamento no plano Offshore?</h3>
-                <p className="text-gray-600">Fornecemos orientação estratégica e estruturação, mas não executamos operações. Conectamos você com nossa rede de parceiros especializados para execução internacional.</p>
-              </div>
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-bold mb-3 text-gray-900">Por que o ETF Curator é diferente?</h3>
-                <p className="text-gray-600">Somos a única plataforma brasileira com análise científica de ETFs baseada em dados reais. Nossa metodologia combina métricas quantitativas com insights de mercado para decisões mais inteligentes.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Final - Inspirado em YC */}
-        <section className="py-16 px-6 bg-blue-600">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Pronto para Acelerar Seus Resultados?
+          {/* Features Comparison */}
+          <div className="mb-20">
+            <h2 className="text-4xl font-light text-gray-900 text-center mb-16">
+              Compare os Recursos
             </h2>
-            <p className="text-xl text-blue-100 mb-8">
-              Junte-se a milhares de investidores que já descobriram o poder dos ETFs com base científica
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-3"
-                onClick={() => !user ? router.push('/auth/register') : router.push('/dashboard')}
-              >
-                {user ? 'Acessar Dashboard' : 'Começar Grátis Agora'}
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-3"
-                onClick={() => router.push('/contato')}
-              >
-                Falar com Especialista
-              </Button>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="text-left p-8 font-light text-gray-900 text-lg">Recursos</th>
+                      <th className="text-center p-8 font-light text-gray-600 text-lg">Gratuito</th>
+                      <th className="text-center p-8 font-light text-gray-600 text-lg bg-gray-50">Premium</th>
+                      <th className="text-center p-8 font-light text-gray-600 text-lg">Pro</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-gray-100">
+                      <td className="p-8 font-light text-gray-900">Análise Básica de ETFs</td>
+                      <td className="text-center p-8">
+                        <CheckCircle className="w-6 h-6 text-green-500 mx-auto" />
+                      </td>
+                      <td className="text-center p-8 bg-gray-50">
+                        <CheckCircle className="w-6 h-6 text-green-500 mx-auto" />
+                      </td>
+                      <td className="text-center p-8">
+                        <CheckCircle className="w-6 h-6 text-green-500 mx-auto" />
+                      </td>
+                    </tr>
+                    <tr className="border-b border-gray-100">
+                      <td className="p-8 font-light text-gray-900">Portfolio Master</td>
+                      <td className="text-center p-8">
+                        <span className="text-gray-400">—</span>
+                      </td>
+                      <td className="text-center p-8 bg-gray-50">
+                        <CheckCircle className="w-6 h-6 text-green-500 mx-auto" />
+                      </td>
+                      <td className="text-center p-8">
+                        <CheckCircle className="w-6 h-6 text-green-500 mx-auto" />
+                      </td>
+                    </tr>
+                    <tr className="border-b border-gray-100">
+                      <td className="p-8 font-light text-gray-900">Simulador Avançado</td>
+                      <td className="text-center p-8">
+                        <span className="text-gray-400">—</span>
+                      </td>
+                      <td className="text-center p-8 bg-gray-50">
+                        <CheckCircle className="w-6 h-6 text-green-500 mx-auto" />
+                      </td>
+                      <td className="text-center p-8">
+                        <CheckCircle className="w-6 h-6 text-green-500 mx-auto" />
+                      </td>
+                    </tr>
+                    <tr className="border-b border-gray-100">
+                      <td className="p-8 font-light text-gray-900">Alertas Personalizados</td>
+                      <td className="text-center p-8">
+                        <span className="text-gray-400">—</span>
+                      </td>
+                      <td className="text-center p-8 bg-gray-50">
+                        <span className="text-gray-400">—</span>
+                      </td>
+                      <td className="text-center p-8">
+                        <CheckCircle className="w-6 h-6 text-green-500 mx-auto" />
+                      </td>
+                    </tr>
+                    <tr className="border-b border-gray-100">
+                      <td className="p-8 font-light text-gray-900">Consultoria CVM</td>
+                      <td className="text-center p-8">
+                        <span className="text-gray-400">—</span>
+                      </td>
+                      <td className="text-center p-8 bg-gray-50">
+                        <span className="text-gray-400">—</span>
+                      </td>
+                      <td className="text-center p-8">
+                        <CheckCircle className="w-6 h-6 text-green-500 mx-auto" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="p-8 font-light text-gray-900">Suporte Prioritário</td>
+                      <td className="text-center p-8">
+                        <span className="text-gray-400">—</span>
+                      </td>
+                      <td className="text-center p-8 bg-gray-50">
+                        <span className="text-gray-400">—</span>
+                      </td>
+                      <td className="text-center p-8">
+                        <CheckCircle className="w-6 h-6 text-green-500 mx-auto" />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <p className="text-sm text-blue-100 mt-4">
-              Sem cartão de crédito • Ativação instantânea • Suporte em português
-            </p>
           </div>
-        </section>
 
-        {/* Disclaimer */}
-        <section className="py-8 px-6 bg-gray-100">
-          <div className="max-w-4xl mx-auto text-center">
-            <p className="text-sm text-gray-600">
-              <strong>Disclaimer:</strong> As informações apresentadas são baseadas em dados históricos e não constituem 
-              recomendação de investimento. Rentabilidade passada não garante resultados futuros. 
-              Consulte sempre um profissional qualificado antes de investir.
-            </p>
+          {/* Benefits Grid */}
+          <div className="mb-20">
+            <h2 className="text-4xl font-light text-gray-900 text-center mb-16">
+              Por que Escolher o ETF Curator?
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center transition-all duration-300 hover:shadow-md">
+                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <TrendingUp className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-light text-gray-900 mb-4">Performance Superior</h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Algoritmos avançados de otimização baseados na Teoria de Markowitz
+                </p>
+              </div>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center transition-all duration-300 hover:shadow-md">
+                <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Shield className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-light text-gray-900 mb-4">Gestão de Risco</h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Análise detalhada de volatilidade e correlações para proteção do capital
+                </p>
+              </div>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center transition-all duration-300 hover:shadow-md">
+                <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Globe className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-light text-gray-900 mb-4">Diversificação Global</h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Acesso a mais de 1.370 ETFs globais com análise completa
+                </p>
+              </div>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center transition-all duration-300 hover:shadow-md">
+                <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Award className="w-8 h-8 text-orange-600" />
+                </div>
+                <h3 className="text-xl font-light text-gray-900 mb-4">Consultoria CVM</h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Assessoria profissional certificada pela Comissão de Valores Mobiliários
+                </p>
+              </div>
+            </div>
           </div>
-        </section>
-      </main>
-    </div>
+
+          {/* Social Proof */}
+          <div className="mb-20">
+            <h2 className="text-4xl font-light text-gray-900 text-center mb-16">
+              Confiado por Investidores
+            </h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center mb-6">
+                  <div className="flex space-x-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 text-yellow-500 fill-current" />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-gray-600 font-light mb-6 leading-relaxed">
+                  "O Portfolio Master revolucionou minha estratégia de investimento. 
+                  Consegui otimizar minha carteira e reduzir riscos significativamente."
+                </p>
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mr-4">
+                    <Users className="w-6 h-6 text-gray-600" />
+                  </div>
+                  <div>
+                    <p className="font-light text-gray-900">Maria Silva</p>
+                    <p className="text-sm text-gray-500">Investidora Premium</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center mb-6">
+                  <div className="flex space-x-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 text-yellow-500 fill-current" />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-gray-600 font-light mb-6 leading-relaxed">
+                  "Dados precisos e análises profissionais. A plataforma me ajudou 
+                  a tomar decisões mais informadas e melhorar meus resultados."
+                </p>
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mr-4">
+                    <Users className="w-6 h-6 text-gray-600" />
+                  </div>
+                  <div>
+                    <p className="font-light text-gray-900">João Santos</p>
+                    <p className="text-sm text-gray-500">Investidor Pro</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center mb-6">
+                  <div className="flex space-x-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 text-yellow-500 fill-current" />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-gray-600 font-light mb-6 leading-relaxed">
+                  "Interface limpa e funcionalidades avançadas. O simulador de Monte Carlo 
+                  é uma ferramenta incrível para projeções de longo prazo."
+                </p>
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mr-4">
+                    <Users className="w-6 h-6 text-gray-600" />
+                  </div>
+                  <div>
+                    <p className="font-light text-gray-900">Ana Costa</p>
+                    <p className="text-sm text-gray-500">Investidora Premium</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* FAQ */}
+          <div className="mb-20">
+            <h2 className="text-4xl font-light text-gray-900 text-center mb-16">
+              Perguntas Frequentes
+            </h2>
+            <div className="max-w-4xl mx-auto space-y-6">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <h3 className="text-xl font-light text-gray-900 mb-4">
+                  Como funciona o período de teste?
+                </h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Oferecemos 7 dias gratuitos para testar todas as funcionalidades premium. 
+                  Cancele a qualquer momento sem compromisso.
+                </p>
+              </div>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <h3 className="text-xl font-light text-gray-900 mb-4">
+                  Posso cancelar minha assinatura?
+                </h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Sim, você pode cancelar sua assinatura a qualquer momento através do seu painel 
+                  de controle. Não há taxas de cancelamento.
+                </p>
+              </div>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <h3 className="text-xl font-light text-gray-900 mb-4">
+                  Os dados são atualizados em tempo real?
+                </h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Nossos dados são atualizados diariamente após o fechamento do mercado. 
+                  Preços intraday estão disponíveis para assinantes Pro.
+                </p>
+              </div>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <h3 className="text-xl font-light text-gray-900 mb-4">
+                  Como funciona a consultoria CVM?
+                </h3>
+                <p className="text-gray-600 font-light leading-relaxed">
+                  Nossos consultores certificados pela CVM oferecem assessoria personalizada 
+                  para otimizar sua estratégia de investimento em ETFs.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA Final */}
+          <div className="bg-gray-900 rounded-2xl p-12 text-center">
+            <h2 className="text-4xl font-light text-white mb-6">
+              Pronto para Começar?
+            </h2>
+            <p className="text-xl font-light text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Junte-se a milhares de investidores que já transformaram suas carteiras 
+              com o ETF Curator.
+            </p>
+            <button className="bg-white text-gray-900 px-12 py-4 rounded-xl font-light text-lg transition-all duration-300 hover:bg-gray-100">
+              Começar Teste Gratuito
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </RequireAuth>
   );
 } 
