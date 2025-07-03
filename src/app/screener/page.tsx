@@ -97,7 +97,7 @@ export default function ScreenerPage() {
         params.append('sort_order', sortOrder);
       }
 
-      console.log('🔍 Buscando ETFs com parâmetros:', params.toString());
+  
 
       const response = await fetch(`/api/etfs/screener?${params.toString()}`);
       const data = await response.json();

@@ -243,7 +243,7 @@ export default function UnifiedPortfolioMaster() {
     setError(null)
 
     try {
-      console.log('🔄 Recalculando portfolio com ETFs:', selectedETFs)
+
       
       const response = await fetch('/api/portfolio/unified-master', {
         method: 'PUT',
@@ -267,7 +267,7 @@ export default function UnifiedPortfolioMaster() {
         throw new Error(data.error || 'Erro no recálculo')
       }
 
-      console.log('✅ Portfolio recalculado:', data.result)
+
 
       // Atualizar o portfolio com os novos dados
       const updatedPortfolio = {
@@ -312,7 +312,7 @@ export default function UnifiedPortfolioMaster() {
       // Atualizar ETFs selecionados
       setSelectedETFs(selectedETFs)
       
-      console.log('✅ Portfolio atualizado no frontend')
+
 
     } catch (error) {
       console.error('❌ Erro no recálculo:', error)
@@ -328,10 +328,7 @@ export default function UnifiedPortfolioMaster() {
       ? selectedETFs.filter(s => s !== symbol)
       : [...selectedETFs, symbol]
 
-    console.log(`🔄 Toggle ETF ${symbol}:`, {
-      before: selectedETFs,
-      after: newSelectedETFs
-    })
+
 
     // Atualizar imediatamente no estado local
     setSelectedETFs(newSelectedETFs)
@@ -355,10 +352,7 @@ export default function UnifiedPortfolioMaster() {
 
     const newSelectedETFs = [...selectedETFs, etf.symbol]
     
-    console.log(`➕ Adicionando ETF ${etf.symbol}:`, {
-      before: selectedETFs,
-      after: newSelectedETFs
-    })
+
 
     // Adicionar ao portfolio result se não existe
     if (results && !results.portfolio.find(p => p.symbol === etf.symbol)) {
@@ -439,7 +433,7 @@ export default function UnifiedPortfolioMaster() {
         }))
         
         setSearchResults(mappedResults)
-        console.log(`✅ Busca realizada: ${mappedResults.length} ETFs encontrados`)
+
       } else {
         throw new Error(data.error || 'Erro na busca')
       }
@@ -500,7 +494,7 @@ export default function UnifiedPortfolioMaster() {
       
       if (data.success) {
         setSelectedETFDetails(data.etf)
-        console.log(`✅ Detalhes carregados para ${symbol}`)
+
       } else {
         throw new Error(data.error || 'Erro ao buscar detalhes')
       }

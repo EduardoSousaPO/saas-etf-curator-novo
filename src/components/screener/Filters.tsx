@@ -55,11 +55,11 @@ export default function Filters({
     const fetchAssetClasses = async () => {
       try {
         // Usamos a API para buscar dados iniciais de ETFs
-        console.log("Buscando asset classes...");
+    
         const response = await fetch("/api/etfs/screener?page=1&limit=100");
         const data = await response.json();
         
-        console.log("Dados recebidos:", data);
+        
         
         if (data.etfs && Array.isArray(data.etfs)) {
           // Extraímos asset classes únicas
@@ -67,7 +67,7 @@ export default function Filters({
             new Set(data.etfs.map((etf: any) => etf.assetclass).filter(Boolean))
           ) as string[];
           
-          console.log("Asset classes encontradas:", uniqueAssetClasses);
+          
           
           setAssetClasses(uniqueAssetClasses.sort());
           setDebugInfo(`Carregadas ${uniqueAssetClasses.length} asset classes`);
@@ -89,17 +89,17 @@ export default function Filters({
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    console.log(`Alterando filtro ${name} para ${value}`);
+
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSliderChange = (name: string, value: number[]) => {
-    console.log(`Alterando slider ${name} para [${value.join(", ")}]`);
+
     setFilters((prev) => ({ ...prev, [`${name}Min`]: value[0], [`${name}Max`]: value[1] }));
   };
 
   const handleSingleSliderChange = (name: string, value: number[]) => {
-    console.log(`Alterando slider único ${name} para ${value[0]}`);
+
     setFilters((prev) => ({ ...prev, [name]: value[0] }));
   };
 
@@ -110,13 +110,13 @@ export default function Filters({
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log("Aplicando filtros:", filters);
+
     setDebugInfo(`Filtros aplicados: ${JSON.stringify(filters)}`);
     onFilterChange(filters);
   };
 
   const clearFilters = () => {
-    console.log("Limpando todos os filtros");
+
     setFilters({ onlyComplete: false });
     setDebugInfo("Filtros limpos");
     onFilterChange({ onlyComplete: false });

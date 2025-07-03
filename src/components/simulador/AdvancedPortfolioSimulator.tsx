@@ -180,7 +180,7 @@ export default function AdvancedPortfolioSimulator() {
           body: JSON.stringify(requestBody),
         });
       } catch (authError) {
-        console.log('⚠️ Tentativa de autenticação falhou, tentando com override admin...');
+
         // Se falhar por autenticação, tentar com override admin
         response = await fetch('/api/portfolio/advanced-recommendation?admin=true', {
           method: 'POST',
@@ -196,7 +196,7 @@ export default function AdvancedPortfolioSimulator() {
       if (!response.ok) {
         // Se ainda falhar por autenticação, tentar com override admin
         if (response.status === 401) {
-          console.log('🔑 Tentando acesso com override administrativo...');
+  
           response = await fetch('/api/portfolio/advanced-recommendation?admin=true', {
             method: 'POST',
             headers: {

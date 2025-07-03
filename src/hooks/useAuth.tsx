@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (event, session) => {
         if (!isMounted) return;
 
-        console.log('Auth state changed:', event, session?.user?.email);
+  
 
         setSession(session);
         const userWithToken = session?.user ? {
@@ -141,10 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setIsEmailConfirmed(false);
             break;
           case 'TOKEN_REFRESHED':
-            console.log('Token refreshed successfully');
             break;
           case 'USER_UPDATED':
-            console.log('User data updated');
             break;
         }
       }

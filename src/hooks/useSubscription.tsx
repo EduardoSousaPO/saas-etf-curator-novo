@@ -109,16 +109,16 @@ export function useSubscription(): UseSubscriptionReturn {
     try {
       setLoading(true);
       
-      console.log('🔄 Carregando dados da assinatura para usuário:', user.id);
+
       
       // Carregar assinatura ativa
       const userSubscription = await SubscriptionService.getUserSubscription(user.id);
-      console.log('📋 Assinatura encontrada:', userSubscription);
+      
       setSubscription(userSubscription);
       
       // Carregar limites de uso
       const limits = await SubscriptionService.getCurrentUsageLimits(user.id);
-      console.log('📊 Limites de uso:', limits);
+      
       setUsageLimits(limits);
       
       // Carregar onboarding se aplicável
@@ -143,9 +143,7 @@ export function useSubscription(): UseSubscriptionReturn {
   const loadPlanFeatures = useCallback(async () => {
     try {
       setFeaturesLoading(true);
-      console.log('🔧 Carregando features do plano:', currentPlan);
       const planFeatures = await SubscriptionService.getPlanFeatures(currentPlan);
-      console.log('✨ Features carregadas:', planFeatures.length, 'features');
       setFeatures(planFeatures);
     } catch (error) {
       console.error('❌ Erro ao carregar features do plano:', error);
@@ -185,23 +183,18 @@ export function useSubscription(): UseSubscriptionReturn {
     // Verificação baseada no plano atual (mais confiável)
     const planBasedAccess = getPlanBasedAccess(currentPlan, featureKey);
     
-    console.log(`🔐 canAccessFeature("${featureKey}"):`, {
-      currentPlan,
-      planBasedAccess,
-      featuresCount: features.length,
-      features: features.map(f => ({ key: f.feature_key, enabled: f.is_enabled }))
-    });
+
     
     // Se temos features carregadas, usar elas
     if (features.length > 0) {
       const feature = features.find(f => f.feature_key === featureKey);
       const result = feature?.is_enabled ?? planBasedAccess;
-      console.log(`✅ Resultado via features: ${result}`);
+
       return result;
     }
     
     // Fallback para verificação baseada no plano
-    console.log(`✅ Resultado via plano: ${planBasedAccess}`);
+
     return planBasedAccess;
   }, [features, currentPlan]);
 

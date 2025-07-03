@@ -61,7 +61,7 @@ export default function RankingsPage() {
   useEffect(() => {
     const fetchRankings = async () => {
       try {
-        console.log('🔍 Buscando rankings...');
+    
         
         const response = await fetch('/api/etfs/rankings');
         
@@ -70,7 +70,7 @@ export default function RankingsPage() {
         }
         
         const data = await response.json();
-        console.log('✅ Rankings recebidos:', data);
+        
         
         setRankings(data);
         setError(null);

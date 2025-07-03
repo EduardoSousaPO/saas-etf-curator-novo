@@ -31,22 +31,14 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, profile, signOut, loading } = useAuth();
   
-  // DEBUG: Log simplificado
-  useEffect(() => {
-    console.log('🔍 Navbar Estado:', {
-      loading,
-      hasUser: !!user,
-      userEmail: user?.email,
-      timestamp: new Date().toLocaleTimeString()
-    });
-  }, [user, loading]);
+
   
   // Escolher navegação baseada no status de autenticação
   const navItems = user ? privateNavItems : publicNavItems;
 
   const handleSignOut = async () => {
     try {
-      console.log('🚪 Fazendo logout...');
+
       await signOut();
       setIsUserMenuOpen(false);
       
@@ -66,7 +58,7 @@ export default function Navbar() {
   };
 
   const handleClearSession = () => {
-    console.log('🗑️ Limpando sessão forçadamente...');
+
     
     // Verificar se estamos no cliente
     if (typeof window !== 'undefined') {
@@ -88,7 +80,7 @@ export default function Navbar() {
 
   // Renderização condicional mais clara
   const renderAuthButtons = () => {
-    console.log('🎯 Renderizando botões auth:', { loading, user: !!user });
+
     
     if (loading) {
       return (

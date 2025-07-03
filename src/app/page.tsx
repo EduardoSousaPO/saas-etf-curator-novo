@@ -7,63 +7,13 @@ import Navbar from "@/components/layout/Navbar";
 import HeroStats from "@/components/landing/HeroStats";
 import ETFShowcase from "@/components/landing/ETFShowcase";
 import { ROISection } from "@/components/landing/ROISection";
-import { useAuth } from "@/hooks/useAuth";
 
-// Componente de Debug temporário
-function AuthDebug() {
-  const { user, loading, profile } = useAuth();
-  
-  return (
-    <div className="fixed top-20 right-4 bg-yellow-100 border border-yellow-300 p-4 rounded-lg shadow-lg z-50 max-w-sm">
-      <h3 className="font-bold text-yellow-800 mb-2">🔍 Debug Auth</h3>
-      <div className="text-sm text-yellow-700 space-y-1">
-        <p><strong>Loading:</strong> {loading ? 'Sim' : 'Não'}</p>
-        <p><strong>User:</strong> {user ? 'Logado' : 'Não logado'}</p>
-        <p><strong>Email:</strong> {user?.email || 'N/A'}</p>
-        <p><strong>Profile:</strong> {profile ? 'Existe' : 'Não existe'}</p>
-        <p><strong>Timestamp:</strong> {new Date().toLocaleTimeString()}</p>
-      </div>
-      
-      {/* Teste direto dos botões */}
-      <div className="mt-4 pt-3 border-t border-yellow-300">
-        <p className="font-bold text-yellow-800 mb-2">Teste Direto:</p>
-        {loading ? (
-          <p className="text-yellow-700">⏳ Carregando...</p>
-        ) : user ? (
-          <p className="text-green-700">✅ Usuário logado: {user.email}</p>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-red-700">❌ Usuário não logado</p>
-            <Link 
-              href="/auth/login"
-              className="block bg-blue-600 text-white px-3 py-1 rounded text-center text-sm hover:bg-blue-700"
-            >
-              Entrar (Teste)
-            </Link>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
-      {/* DEBUG: Componente de debug */}
-      <AuthDebug />
-      
-      {/* DEBUG: Botão de teste temporário */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <Link 
-          href="/auth/login"
-          className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-red-600 transition-colors"
-        >
-          🔧 Debug: Entrar
-        </Link>
-      </div>
       
       <main className="pt-16">
         {/* Hero Section Tesla-style */}
