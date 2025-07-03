@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     };
     
     // Tentar criar uma instância do serviço
-    let serviceTest = null;
+    let serviceTest: { success: boolean; message: string } | null = null;
     try {
       // const service = new MercadoPagoService();
       serviceTest = { success: true, message: 'Serviço MercadoPago configurado (teste)' };

@@ -137,15 +137,15 @@ export class UsageMiddleware {
       return {
         screenerQueries: {
           used: limits.screener_queries_used,
-          limit: limits.screener_queries_limit
+          limit: limits.screener_queries_limit ?? null
         },
         exportReports: {
           used: limits.export_reports_used,
-          limit: limits.export_reports_limit
+          limit: limits.export_reports_limit ?? null
         },
         portfolioSimulations: {
           used: limits.portfolio_simulations_used,
-          limit: limits.portfolio_simulations_limit
+          limit: limits.portfolio_simulations_limit ?? null
         },
         periodStart: limits.period_start,
         periodEnd: limits.period_end

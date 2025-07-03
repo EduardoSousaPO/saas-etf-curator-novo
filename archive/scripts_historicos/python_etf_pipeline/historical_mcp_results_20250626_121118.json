@@ -1,0 +1,45 @@
+{
+  "processed_etfs": 3,
+  "successful_prices": 3,
+  "successful_dividends": 3,
+  "errors": [],
+  "start_time": "2025-06-26T12:11:06.627887",
+  "etf_details": [
+    {
+      "symbol": "SPY",
+      "success": true,
+      "prices_count": 8158,
+      "dividends_count": 131,
+      "date_range": {
+        "start": "1993-01-29",
+        "end": "2025-06-26"
+      },
+      "metrics_calculated": 16
+    },
+    {
+      "symbol": "VTI",
+      "success": true,
+      "prices_count": 6043,
+      "dividends_count": 96,
+      "date_range": {
+        "start": "2001-06-15",
+        "end": "2025-06-26"
+      },
+      "metrics_calculated": 16
+    },
+    {
+      "symbol": "QQQ",
+      "success": true,
+      "prices_count": 6616,
+      "dividends_count": 85,
+      "date_range": {
+        "start": "1999-03-10",
+        "end": "2025-06-26"
+      },
+      "metrics_calculated": 16
+    }
+  ],
+  "end_time": "2025-06-26T12:11:18.053582",
+  "total_etfs": 3,
+  "success_rate": 100.0
+}

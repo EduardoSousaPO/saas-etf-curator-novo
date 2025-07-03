@@ -1,0 +1,9 @@
+=== RESUMO DO PIPELINE DE DIVIDENDOS - PRODUCAO ===
+
+Total de ETFs processados: 3480
+ETFs com dividendos: 3121 (89.7%)
+ETFs sem dividendos: 359
+Tempo de processamento: 65.9 minutos
+Velocidade: 0.9 ETFs/segundo
+Iniciado em: 2025-06-27T00:11:40.346276
+Concluido em: 2025-06-27T01:17:35.138949

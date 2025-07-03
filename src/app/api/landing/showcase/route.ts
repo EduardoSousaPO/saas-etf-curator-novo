@@ -6,26 +6,26 @@ export async function GET() {
     console.log('🔍 Carregando ETFs de destaque para showcase...');
 
     // Verificar se há dados na view active_etfs
-    const activeETFsCount = await prisma.$queryRaw<[{count: string}]>`SELECT COUNT(*) as count FROM active_etfs`;
+    const activeETFsCount = await prisma.$queryRaw<[{count: string}]>`SELECT COUNT(*) as count FROM etfs_ativos_reais`;
     const totalCount = parseInt(activeETFsCount[0].count);
     console.log(`📊 Total de ETFs ativos na view: ${totalCount}`);
 
     if (totalCount === 0) {
-      console.error('❌ ERRO CRÍTICO: Nenhum ETF encontrado na view active_etfs');
+      console.error('❌ ERRO CRÍTICO: Nenhum ETF encontrado na tabela etfs_ativos_reais');
       return NextResponse.json({
         success: false,
-        error: 'View active_etfs vazia - nenhum ETF ativo encontrado',
-        message: 'Verificar view active_etfs e critérios de filtragem.',
+        error: 'Tabela etfs_ativos_reais vazia - nenhum ETF ativo encontrado',
+        message: 'Verificar tabela etfs_ativos_reais e critérios de filtragem.',
         timestamp: new Date().toISOString()
       }, { status: 500 });
     }
 
-    // Buscar ETFs com métricas válidas usando a nova view active_etfs
+    // Buscar ETFs com métricas válidas usando a nova view etfs_ativos_reais
     const etfsWithMetrics = await prisma.$queryRaw<any[]>`
       SELECT 
         symbol, name, assetclass, etfcompany, nav,
         returns_12m, volatility_12m, sharpe_12m, dividends_12m
-      FROM active_etfs
+      FROM etfs_ativos_reais
       WHERE sharpe_12m IS NOT NULL 
         AND returns_12m IS NOT NULL
         AND returns_12m BETWEEN -0.95 AND 5.0
@@ -41,7 +41,7 @@ export async function GET() {
       return NextResponse.json({
         success: false,
         error: 'Nenhum ETF com métricas válidas encontrado',
-        message: 'Verificar se existem dados de performance na view active_etfs',
+        message: 'Verificar se existem dados de performance na tabela etfs_ativos_reais',
         timestamp: new Date().toISOString()
       }, { status: 404 });
     }
@@ -51,7 +51,7 @@ export async function GET() {
       SELECT 
         symbol, name, assetclass, etfcompany,
         returns_12m, volatility_12m, sharpe_12m
-      FROM active_etfs
+      FROM etfs_ativos_reais
       WHERE returns_12m IS NOT NULL 
         AND returns_12m BETWEEN -0.95 AND 5.0
         AND sharpe_12m IS NOT NULL
@@ -65,7 +65,7 @@ export async function GET() {
       SELECT 
         symbol, name, assetclass, etfcompany,
         returns_12m, volatility_12m, sharpe_12m
-      FROM active_etfs
+      FROM etfs_ativos_reais
       WHERE sharpe_12m IS NOT NULL 
         AND sharpe_12m BETWEEN -10 AND 10
         AND returns_12m IS NOT NULL
@@ -79,7 +79,7 @@ export async function GET() {
       SELECT 
         symbol, name, assetclass, etfcompany,
         returns_12m, volatility_12m, sharpe_12m
-      FROM active_etfs
+      FROM etfs_ativos_reais
       WHERE volatility_12m IS NOT NULL 
         AND volatility_12m BETWEEN 0.01 AND 2.0
         AND returns_12m IS NOT NULL
@@ -93,7 +93,7 @@ export async function GET() {
       SELECT 
         symbol, name, assetclass, etfcompany,
         returns_12m, volatility_12m, dividends_12m
-      FROM active_etfs
+      FROM etfs_ativos_reais
       WHERE dividends_12m IS NOT NULL 
         AND dividends_12m > 0
         AND dividends_12m < 1.0

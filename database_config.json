@@ -1,0 +1,138 @@
+{
+  "database": {
+    "project_id": "nniabnjuwzeqmflrruga",
+    "environment": "production"
+  },
+  "backup_settings": {
+    "critical_tables": [
+      {
+        "name": "etfs_ativos_reais",
+        "frequency": "daily",
+        "retention_days": 90,
+        "auto_backup": true
+      },
+      {
+        "name": "user_profiles", 
+        "frequency": "daily",
+        "retention_days": 365,
+        "auto_backup": true
+      },
+      {
+        "name": "subscriptions",
+        "frequency": "hourly", 
+        "retention_days": 365,
+        "auto_backup": true
+      },
+      {
+        "name": "payments",
+        "frequency": "hourly",
+        "retention_days": 2555,
+        "auto_backup": true,
+        "compliance": "financial_7_years"
+      }
+    ],
+    "secondary_tables": [
+      {
+        "name": "etf_rankings",
+        "frequency": "daily",
+        "retention_days": 30,
+        "auto_backup": true
+      },
+      {
+        "name": "etf_prices",
+        "frequency": "daily", 
+        "retention_days": 365,
+        "auto_backup": true
+      },
+      {
+        "name": "historic_etfs_dividends",
+        "frequency": "weekly",
+        "retention_days": 365,
+        "auto_backup": true
+      }
+    ]
+  },
+  "quality_metrics": {
+    "etfs_ativos_reais": {
+      "missing_expense_ratio_percentage": {
+        "threshold": 5.0,
+        "severity": "critical"
+      },
+      "missing_inception_date_percentage": {
+        "threshold": 10.0,
+        "severity": "critical"  
+      },
+      "dividend_coverage_percentage": {
+        "threshold": 70.0,
+        "severity": "warning"
+      },
+      "low_liquidity_percentage": {
+        "threshold": 5.0,
+        "severity": "warning"
+      }
+    }
+  },
+  "maintenance_schedule": {
+    "daily_maintenance": "02:00",
+    "weekly_maintenance": "sunday_03:00",
+    "quality_check_frequency": "daily",
+    "backup_cleanup_frequency": "weekly"
+  },
+  "alerts": {
+    "enabled": true,
+    "email_notifications": false,
+    "slack_webhook": null,
+    "log_file": "database_maintenance.log",
+    "severity_levels": ["INFO", "WARNING", "ERROR", "CRITICAL"]
+  },
+  "current_status": {
+    "total_etfs": 1370,
+    "etfs_with_dividends": 1060, 
+    "dividend_coverage": "77.37%",
+    "avg_daily_volume": 2536831,
+    "avg_aum_millions": 9183,
+    "last_audit": "2025-06-30",
+    "critical_issues": 2,
+    "warning_issues": 0
+  },
+  "data_issues": {
+    "critical": [
+      {
+        "table": "etfs_ativos_reais",
+        "issue": "missing_expense_ratio_percentage", 
+        "value": 99.20,
+        "description": "99.20% dos ETFs não possuem expense ratio"
+      },
+      {
+        "table": "etfs_ativos_reais",
+        "issue": "missing_inception_date_percentage",
+        "value": 99.05,
+        "description": "99.05% dos ETFs não possuem data de criação"
+      }
+    ],
+    "resolved": [
+      {
+        "date": "2025-06-30",
+        "issue": "orphaned_etf_rankings",
+        "description": "Removidos 31 rankings órfãos após limpeza de liquidez"
+      }
+    ]
+  },
+  "recommendations": {
+    "immediate": [
+      "Implementar pipeline para coletar expense ratios via API",
+      "Buscar inception dates para ETFs principais",
+      "Configurar alertas automáticos para issues críticos"
+    ],
+    "short_term": [
+      "Automatizar backups com triggers",
+      "Criar dashboard de monitoramento",
+      "Implementar sistema de rollback"
+    ],
+    "long_term": [
+      "Expandir métricas de qualidade",
+      "Implementar versionamento de dados",
+      "Criar sistema de compliance automático"
+    ]
+  }
+} 

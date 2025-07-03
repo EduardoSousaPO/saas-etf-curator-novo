@@ -26,20 +26,36 @@ export class SubscriptionService {
         .eq('status', 'ACTIVE')
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('❌ Erro na query de assinatura:', error);
+      // Tratar erro de "nenhum registro encontrado" como caso normal
+      if (error && error.code === 'PGRST116') {
+        console.log('⚠️ Nenhuma assinatura ativa encontrada para o usuário');
+        return null;
+      }
+
+      // Tratar outros erros como problemas reais
+      if (error) {
+        console.error('❌ Erro na query de assinatura:', {
+          code: error.code,
+          message: error.message,
+          details: error.details
+        });
+        
+        // Em caso de erro de permissão, retornar null para usar fallback
+        if (error.code === '42501' || error.message?.includes('permission denied')) {
+          console.warn('🔒 Erro de permissão detectado. Sistema usará fallback STARTER.');
+          return null;
+        }
+        
         throw error;
       }
 
-      if (error && error.code === 'PGRST116') {
-        console.log('⚠️ Nenhuma assinatura ativa encontrada para o usuário');
-      } else {
-        console.log('✅ Assinatura encontrada:', data?.plan, data?.status);
+      if (data) {
+        console.log('✅ Assinatura encontrada:', data.plan, data.status);
       }
 
       return data;
-    } catch (error) {
-      console.error('❌ Erro ao buscar assinatura:', error);
+    } catch (error: any) {
+      console.error('❌ Erro ao buscar assinatura:', error?.message || error);
       return null;
     }
   }
@@ -149,18 +165,68 @@ export class SubscriptionService {
         .select('*')
         .eq('plan', plan);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao buscar features do plano:', {
+          plan,
+          code: error.code,
+          message: error.message
+        });
+        
+        // Em caso de erro de permissão, retornar features básicas do STARTER
+        if (error.code === '42501' || error.message?.includes('permission denied')) {
+          console.warn('🔒 Erro de permissão. Retornando features básicas do STARTER.');
+          return this.getDefaultStarterFeatures();
+        }
+        
+        throw error;
+      }
 
       return data || [];
-    } catch (error) {
-      console.error('Erro ao buscar features do plano:', error);
-      return [];
+    } catch (error: any) {
+      console.error('Erro ao buscar features do plano:', error?.message || error);
+      // Retornar features básicas em caso de erro
+      return this.getDefaultStarterFeatures();
     }
+  }
+
+  // Features padrão do plano STARTER (fallback)
+  private static getDefaultStarterFeatures(): PlanFeature[] {
+    return [
+      {
+        id: 'fallback-1',
+        plan: 'STARTER',
+        feature_key: 'basic_screener',
+        feature_name: 'Screener Básico',
+        feature_description: 'Filtros básicos de ETFs',
+        is_enabled: true,
+        limit_value: 20,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: 'fallback-2',
+        plan: 'STARTER',
+        feature_key: 'basic_simulator',
+        feature_name: 'Simulador Básico',
+        feature_description: 'Simulação de carteiras simples',
+        is_enabled: true,
+        limit_value: 3,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    ];
   }
 
   // Verificar se usuário pode acessar funcionalidade
   static async canUserAccessFeature(userId: string, featureKey: string): Promise<boolean> {
     try {
+      // ACESSO TOTAL PARA O ADMINISTRADOR
+      // Verificar se é o usuário administrador através do ID
+      if (await this.isAdminUser(userId)) {
+        console.log('🔑 Acesso total concedido para usuário administrador');
+        return true;
+      }
+      
       const subscription = await this.getUserSubscription(userId);
       if (!subscription) {
         // Usuário sem assinatura = plano STARTER
@@ -174,6 +240,59 @@ export class SubscriptionService {
       return feature?.is_enabled ?? false;
     } catch (error) {
       console.error('Erro ao verificar acesso à funcionalidade:', error);
+      
+      // Fallback: verificar se é admin por ID
+      if (await this.isAdminUser(userId)) {
+        console.log('🔑 Fallback: Acesso total concedido para usuário administrador');
+        return true;
+      }
+      
+      return false;
+    }
+  }
+
+  // Método para verificar se é usuário administrador
+  private static async isAdminUser(userId: string): Promise<boolean> {
+    try {
+      // Lista de emails/IDs de administradores
+      const adminEmails = ['eduspires123@gmail.com'];
+      const adminUserIds = ['b8f7c123-4567-8901-2345-6789abcdef01']; // IDs conhecidos se houver
+      
+      // Verificar por ID primeiro (mais rápido)
+      if (adminUserIds.includes(userId)) {
+        return true;
+      }
+      
+      // Tentar buscar o email do usuário
+      try {
+        const { data: { user }, error } = await supabase.auth.admin.getUserById(userId);
+        if (!error && user?.email && adminEmails.includes(user.email)) {
+          console.log(`✅ Usuário administrador identificado: ${user.email}`);
+          return true;
+        }
+      } catch (authError) {
+        console.warn('⚠️ Não foi possível verificar email do usuário via auth.admin');
+      }
+      
+      // Fallback: tentar buscar na tabela de usuários se existir
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', userId)
+          .single();
+          
+        if (!profileError && profile?.email && adminEmails.includes(profile.email)) {
+          console.log(`✅ Usuário administrador identificado via profiles: ${profile.email}`);
+          return true;
+        }
+      } catch (profileError) {
+        console.warn('⚠️ Não foi possível verificar email via tabela profiles');
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Erro ao verificar usuário administrador:', error);
       return false;
     }
   }
@@ -193,13 +312,31 @@ export class SubscriptionService {
         .lte('period_end', endOfPeriod)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      // Tratar "nenhum registro encontrado" como caso normal
+      if (error && error.code === 'PGRST116') {
+        console.log('⚠️ Nenhum limite de uso encontrado para o usuário');
+        return null;
+      }
+
+      if (error) {
+        console.error('❌ Erro ao buscar limites de uso:', {
+          code: error.code,
+          message: error.message,
+          userId
+        });
+        
+        // Em caso de erro de permissão, retornar null
+        if (error.code === '42501' || error.message?.includes('permission denied')) {
+          console.warn('🔒 Erro de permissão ao buscar limites de uso.');
+          return null;
+        }
+        
         throw error;
       }
 
       return data;
-    } catch (error) {
-      console.error('Erro ao buscar limites de uso:', error);
+    } catch (error: any) {
+      console.error('Erro ao buscar limites de uso:', error?.message || error);
       return null;
     }
   }

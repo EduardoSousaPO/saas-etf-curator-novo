@@ -1,0 +1,479 @@
+INSTRUÇÕES PARA EXECUÇÃO COMPLETA VIA MCP
+==================================================
+
+Total de batches: 157
+Total de ETFs: 3121
+
+Execute cada comando abaixo:
+
+# Batch 1/157
+# Execute: mcp_batch_001.sql
+
+# Batch 2/157
+# Execute: mcp_batch_002.sql
+
+# Batch 3/157
+# Execute: mcp_batch_003.sql
+
+# Batch 4/157
+# Execute: mcp_batch_004.sql
+
+# Batch 5/157
+# Execute: mcp_batch_005.sql
+
+# Batch 6/157
+# Execute: mcp_batch_006.sql
+
+# Batch 7/157
+# Execute: mcp_batch_007.sql
+
+# Batch 8/157
+# Execute: mcp_batch_008.sql
+
+# Batch 9/157
+# Execute: mcp_batch_009.sql
+
+# Batch 10/157
+# Execute: mcp_batch_010.sql
+
+# Batch 11/157
+# Execute: mcp_batch_011.sql
+
+# Batch 12/157
+# Execute: mcp_batch_012.sql
+
+# Batch 13/157
+# Execute: mcp_batch_013.sql
+
+# Batch 14/157
+# Execute: mcp_batch_014.sql
+
+# Batch 15/157
+# Execute: mcp_batch_015.sql
+
+# Batch 16/157
+# Execute: mcp_batch_016.sql
+
+# Batch 17/157
+# Execute: mcp_batch_017.sql
+
+# Batch 18/157
+# Execute: mcp_batch_018.sql
+
+# Batch 19/157
+# Execute: mcp_batch_019.sql
+
+# Batch 20/157
+# Execute: mcp_batch_020.sql
+
+# Batch 21/157
+# Execute: mcp_batch_021.sql
+
+# Batch 22/157
+# Execute: mcp_batch_022.sql
+
+# Batch 23/157
+# Execute: mcp_batch_023.sql
+
+# Batch 24/157
+# Execute: mcp_batch_024.sql
+
+# Batch 25/157
+# Execute: mcp_batch_025.sql
+
+# Batch 26/157
+# Execute: mcp_batch_026.sql
+
+# Batch 27/157
+# Execute: mcp_batch_027.sql
+
+# Batch 28/157
+# Execute: mcp_batch_028.sql
+
+# Batch 29/157
+# Execute: mcp_batch_029.sql
+
+# Batch 30/157
+# Execute: mcp_batch_030.sql
+
+# Batch 31/157
+# Execute: mcp_batch_031.sql
+
+# Batch 32/157
+# Execute: mcp_batch_032.sql
+
+# Batch 33/157
+# Execute: mcp_batch_033.sql
+
+# Batch 34/157
+# Execute: mcp_batch_034.sql
+
+# Batch 35/157
+# Execute: mcp_batch_035.sql
+
+# Batch 36/157
+# Execute: mcp_batch_036.sql
+
+# Batch 37/157
+# Execute: mcp_batch_037.sql
+
+# Batch 38/157
+# Execute: mcp_batch_038.sql
+
+# Batch 39/157
+# Execute: mcp_batch_039.sql
+
+# Batch 40/157
+# Execute: mcp_batch_040.sql
+
+# Batch 41/157
+# Execute: mcp_batch_041.sql
+
+# Batch 42/157
+# Execute: mcp_batch_042.sql
+
+# Batch 43/157
+# Execute: mcp_batch_043.sql
+
+# Batch 44/157
+# Execute: mcp_batch_044.sql
+
+# Batch 45/157
+# Execute: mcp_batch_045.sql
+
+# Batch 46/157
+# Execute: mcp_batch_046.sql
+
+# Batch 47/157
+# Execute: mcp_batch_047.sql
+
+# Batch 48/157
+# Execute: mcp_batch_048.sql
+
+# Batch 49/157
+# Execute: mcp_batch_049.sql
+
+# Batch 50/157
+# Execute: mcp_batch_050.sql
+
+# Batch 51/157
+# Execute: mcp_batch_051.sql
+
+# Batch 52/157
+# Execute: mcp_batch_052.sql
+
+# Batch 53/157
+# Execute: mcp_batch_053.sql
+
+# Batch 54/157
+# Execute: mcp_batch_054.sql
+
+# Batch 55/157
+# Execute: mcp_batch_055.sql
+
+# Batch 56/157
+# Execute: mcp_batch_056.sql
+
+# Batch 57/157
+# Execute: mcp_batch_057.sql
+
+# Batch 58/157
+# Execute: mcp_batch_058.sql
+
+# Batch 59/157
+# Execute: mcp_batch_059.sql
+
+# Batch 60/157
+# Execute: mcp_batch_060.sql
+
+# Batch 61/157
+# Execute: mcp_batch_061.sql
+
+# Batch 62/157
+# Execute: mcp_batch_062.sql
+
+# Batch 63/157
+# Execute: mcp_batch_063.sql
+
+# Batch 64/157
+# Execute: mcp_batch_064.sql
+
+# Batch 65/157
+# Execute: mcp_batch_065.sql
+
+# Batch 66/157
+# Execute: mcp_batch_066.sql
+
+# Batch 67/157
+# Execute: mcp_batch_067.sql
+
+# Batch 68/157
+# Execute: mcp_batch_068.sql
+
+# Batch 69/157
+# Execute: mcp_batch_069.sql
+
+# Batch 70/157
+# Execute: mcp_batch_070.sql
+
+# Batch 71/157
+# Execute: mcp_batch_071.sql
+
+# Batch 72/157
+# Execute: mcp_batch_072.sql
+
+# Batch 73/157
+# Execute: mcp_batch_073.sql
+
+# Batch 74/157
+# Execute: mcp_batch_074.sql
+
+# Batch 75/157
+# Execute: mcp_batch_075.sql
+
+# Batch 76/157
+# Execute: mcp_batch_076.sql
+
+# Batch 77/157
+# Execute: mcp_batch_077.sql
+
+# Batch 78/157
+# Execute: mcp_batch_078.sql
+
+# Batch 79/157
+# Execute: mcp_batch_079.sql
+
+# Batch 80/157
+# Execute: mcp_batch_080.sql
+
+# Batch 81/157
+# Execute: mcp_batch_081.sql
+
+# Batch 82/157
+# Execute: mcp_batch_082.sql
+
+# Batch 83/157
+# Execute: mcp_batch_083.sql
+
+# Batch 84/157
+# Execute: mcp_batch_084.sql
+
+# Batch 85/157
+# Execute: mcp_batch_085.sql
+
+# Batch 86/157
+# Execute: mcp_batch_086.sql
+
+# Batch 87/157
+# Execute: mcp_batch_087.sql
+
+# Batch 88/157
+# Execute: mcp_batch_088.sql
+
+# Batch 89/157
+# Execute: mcp_batch_089.sql
+
+# Batch 90/157
+# Execute: mcp_batch_090.sql
+
+# Batch 91/157
+# Execute: mcp_batch_091.sql
+
+# Batch 92/157
+# Execute: mcp_batch_092.sql
+
+# Batch 93/157
+# Execute: mcp_batch_093.sql
+
+# Batch 94/157
+# Execute: mcp_batch_094.sql
+
+# Batch 95/157
+# Execute: mcp_batch_095.sql
+
+# Batch 96/157
+# Execute: mcp_batch_096.sql
+
+# Batch 97/157
+# Execute: mcp_batch_097.sql
+
+# Batch 98/157
+# Execute: mcp_batch_098.sql
+
+# Batch 99/157
+# Execute: mcp_batch_099.sql
+
+# Batch 100/157
+# Execute: mcp_batch_100.sql
+
+# Batch 101/157
+# Execute: mcp_batch_101.sql
+
+# Batch 102/157
+# Execute: mcp_batch_102.sql
+
+# Batch 103/157
+# Execute: mcp_batch_103.sql
+
+# Batch 104/157
+# Execute: mcp_batch_104.sql
+
+# Batch 105/157
+# Execute: mcp_batch_105.sql
+
+# Batch 106/157
+# Execute: mcp_batch_106.sql
+
+# Batch 107/157
+# Execute: mcp_batch_107.sql
+
+# Batch 108/157
+# Execute: mcp_batch_108.sql
+
+# Batch 109/157
+# Execute: mcp_batch_109.sql
+
+# Batch 110/157
+# Execute: mcp_batch_110.sql
+
+# Batch 111/157
+# Execute: mcp_batch_111.sql
+
+# Batch 112/157
+# Execute: mcp_batch_112.sql
+
+# Batch 113/157
+# Execute: mcp_batch_113.sql
+
+# Batch 114/157
+# Execute: mcp_batch_114.sql
+
+# Batch 115/157
+# Execute: mcp_batch_115.sql
+
+# Batch 116/157
+# Execute: mcp_batch_116.sql
+
+# Batch 117/157
+# Execute: mcp_batch_117.sql
+
+# Batch 118/157
+# Execute: mcp_batch_118.sql
+
+# Batch 119/157
+# Execute: mcp_batch_119.sql
+
+# Batch 120/157
+# Execute: mcp_batch_120.sql
+
+# Batch 121/157
+# Execute: mcp_batch_121.sql
+
+# Batch 122/157
+# Execute: mcp_batch_122.sql
+
+# Batch 123/157
+# Execute: mcp_batch_123.sql
+
+# Batch 124/157
+# Execute: mcp_batch_124.sql
+
+# Batch 125/157
+# Execute: mcp_batch_125.sql
+
+# Batch 126/157
+# Execute: mcp_batch_126.sql
+
+# Batch 127/157
+# Execute: mcp_batch_127.sql
+
+# Batch 128/157
+# Execute: mcp_batch_128.sql
+
+# Batch 129/157
+# Execute: mcp_batch_129.sql
+
+# Batch 130/157
+# Execute: mcp_batch_130.sql
+
+# Batch 131/157
+# Execute: mcp_batch_131.sql
+
+# Batch 132/157
+# Execute: mcp_batch_132.sql
+
+# Batch 133/157
+# Execute: mcp_batch_133.sql
+
+# Batch 134/157
+# Execute: mcp_batch_134.sql
+
+# Batch 135/157
+# Execute: mcp_batch_135.sql
+
+# Batch 136/157
+# Execute: mcp_batch_136.sql
+
+# Batch 137/157
+# Execute: mcp_batch_137.sql
+
+# Batch 138/157
+# Execute: mcp_batch_138.sql
+
+# Batch 139/157
+# Execute: mcp_batch_139.sql
+
+# Batch 140/157
+# Execute: mcp_batch_140.sql
+
+# Batch 141/157
+# Execute: mcp_batch_141.sql
+
+# Batch 142/157
+# Execute: mcp_batch_142.sql
+
+# Batch 143/157
+# Execute: mcp_batch_143.sql
+
+# Batch 144/157
+# Execute: mcp_batch_144.sql
+
+# Batch 145/157
+# Execute: mcp_batch_145.sql
+
+# Batch 146/157
+# Execute: mcp_batch_146.sql
+
+# Batch 147/157
+# Execute: mcp_batch_147.sql
+
+# Batch 148/157
+# Execute: mcp_batch_148.sql
+
+# Batch 149/157
+# Execute: mcp_batch_149.sql
+
+# Batch 150/157
+# Execute: mcp_batch_150.sql
+
+# Batch 151/157
+# Execute: mcp_batch_151.sql
+
+# Batch 152/157
+# Execute: mcp_batch_152.sql
+
+# Batch 153/157
+# Execute: mcp_batch_153.sql
+
+# Batch 154/157
+# Execute: mcp_batch_154.sql
+
+# Batch 155/157
+# Execute: mcp_batch_155.sql
+
+# Batch 156/157
+# Execute: mcp_batch_156.sql
+
+# Batch 157/157
+# Execute: mcp_batch_157.sql
+

@@ -13,7 +13,7 @@ export async function GET() {
       companyStats
     ] = await Promise.all([
       // Total de ETFs ativos
-      prisma.$queryRaw<[{count: string}]>`SELECT COUNT(*) as count FROM active_etfs`,
+      prisma.$queryRaw<[{count: string}]>`SELECT COUNT(*) as count FROM etfs_ativos_reais`,
       
       // Métricas de performance
       prisma.$queryRaw<any[]>`
@@ -22,7 +22,7 @@ export async function GET() {
           volatility_12m,
           sharpe_12m,
           totalasset
-        FROM active_etfs
+        FROM etfs_ativos_reais
         WHERE returns_12m IS NOT NULL 
           AND volatility_12m IS NOT NULL
           AND sharpe_12m IS NOT NULL
@@ -36,7 +36,7 @@ export async function GET() {
           COUNT(*) as count,
           AVG(totalasset) as avg_assets,
           SUM(totalasset) as total_assets
-        FROM active_etfs
+        FROM etfs_ativos_reais
         WHERE assetclass IS NOT NULL
         GROUP BY assetclass
         ORDER BY count DESC
@@ -50,7 +50,7 @@ export async function GET() {
           COUNT(*) as count,
           AVG(totalasset) as avg_assets,
           SUM(totalasset) as total_assets
-        FROM active_etfs
+        FROM etfs_ativos_reais
         WHERE etfcompany IS NOT NULL
         GROUP BY etfcompany
         ORDER BY count DESC

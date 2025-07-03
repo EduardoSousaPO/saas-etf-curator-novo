@@ -4,20 +4,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Menu, X, LogOut, Settings } from "lucide-react";
 
 // Navegação para usuários não autenticados (público)
-const publicNavItems = [
+const publicNavItems: Array<{href: string, label: string, highlight?: boolean}> = [
   { href: "/", label: "Início" },
   { href: "/pricing", label: "Preços" },
 ];
 
 // Navegação para usuários autenticados (privado)
-const privateNavItems = [
+const privateNavItems: Array<{href: string, label: string, highlight?: boolean}> = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/comparador", label: "Comparador" },
-  { href: "/simulador", label: "Simulador" },
+  { href: "/portfolio-master", label: "Portfolio Master", highlight: true },
   { href: "/rankings", label: "Rankings" },
   { href: "/screener", label: "Screener" },
   { href: "/profile", label: "Perfil" },
@@ -28,6 +28,16 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, profile, signOut, loading } = useAuth();
+  
+  // DEBUG: Log simplificado
+  useEffect(() => {
+    console.log('🔍 Navbar Estado:', {
+      loading,
+      hasUser: !!user,
+      userEmail: user?.email,
+      timestamp: new Date().toLocaleTimeString()
+    });
+  }, [user, loading]);
   
   // Escolher navegação baseada no status de autenticação
   const navItems = user ? privateNavItems : publicNavItems;
@@ -74,6 +84,100 @@ export default function Navbar() {
     }
   };
 
+  // Renderização condicional mais clara
+  const renderAuthButtons = () => {
+    console.log('🎯 Renderizando botões auth:', { loading, user: !!user });
+    
+    if (loading) {
+      return (
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
+          <span className="text-sm text-gray-500">Carregando...</span>
+        </div>
+      );
+    }
+
+    if (user) {
+      return (
+        <div className="relative">
+          <button
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-medium">
+                {profile?.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {profile?.name || user.email?.split('@')[0]}
+            </span>
+          </button>
+
+          {/* User Dropdown */}
+          {isUserMenuOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1">
+              <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {profile?.name || 'Usuário'}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {user.email}
+                </p>
+              </div>
+              
+              <Link
+                href="/profile"
+                onClick={() => setIsUserMenuOpen(false)}
+                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Perfil
+              </Link>
+              
+              <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+              
+              <button
+                onClick={handleClearSession}
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                title="Resolver problemas de login"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Limpar Cache
+              </button>
+              
+              <button
+                onClick={handleSignOut}
+                className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Usuário não autenticado - BOTÕES PRINCIPAIS
+    return (
+      <div className="flex items-center space-x-3">
+        <Link
+          href="/auth/login"
+          className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
+        >
+          Entrar
+        </Link>
+        <Link
+          href="/auth/register"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        >
+          Cadastrar
+        </Link>
+      </div>
+    );
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-black/90 backdrop-blur-md border-b border-gray-200/20 dark:border-gray-800/20">
       <div className="max-w-7xl mx-auto px-6">
@@ -90,14 +194,18 @@ export default function Navbar() {
                 key={item.label}
                 href={item.href}
                 className={`text-sm font-medium transition-all duration-200 relative ${
-                  pathname === item.href 
-                    ? "text-gray-900 dark:text-white" 
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  item.highlight
+                    ? "text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold"
+                    : pathname === item.href 
+                      ? "text-gray-900 dark:text-white" 
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                 }`}
               >
-                {item.label}
+                {item.highlight && "🎯 "}{item.label}
                 {pathname === item.href && (
-                  <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-black dark:bg-white"></div>
+                  <div className={`absolute -bottom-1 left-0 right-0 h-0.5 ${
+                    item.highlight ? "bg-blue-600 dark:bg-blue-400" : "bg-black dark:bg-white"
+                  }`}></div>
                 )}
               </Link>
             ))}
@@ -105,82 +213,7 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            {loading ? (
-              <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
-            ) : user ? (
-              <div className="relative">
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {profile?.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {profile?.name || user.email?.split('@')[0]}
-                  </span>
-                </button>
-
-                {/* User Dropdown */}
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1">
-                    <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {profile?.name || 'Usuário'}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {user.email}
-                      </p>
-                    </div>
-                    
-                    <Link
-                      href="/profile"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      Perfil
-                    </Link>
-                    
-                    <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
-                    
-                    <button
-                      onClick={handleClearSession}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      title="Resolver problemas de login"
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      Limpar Cache
-                    </button>
-                    
-                    <button
-                      onClick={handleSignOut}
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sair
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center space-x-3">
-                <Link
-                  href="/auth/login"
-                  className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Entrar
-                </Link>
-                <Link
-                  href="/auth/register"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  Cadastrar
-                </Link>
-              </div>
-            )}
+            {renderAuthButtons()}
           </div>
 
           {/* Mobile menu button */}
@@ -202,12 +235,14 @@ export default function Navbar() {
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
                   className={`text-base font-medium transition-colors ${
-                    pathname === item.href 
-                      ? "text-gray-900 dark:text-white" 
-                      : "text-gray-600 dark:text-gray-400"
+                    item.highlight
+                      ? "text-blue-600 dark:text-blue-400 font-semibold"
+                      : pathname === item.href 
+                        ? "text-gray-900 dark:text-white" 
+                        : "text-gray-600 dark:text-gray-400"
                   }`}
                 >
-                  {item.label}
+                  {item.highlight && "🎯 "}{item.label}
                 </Link>
               ))}
               

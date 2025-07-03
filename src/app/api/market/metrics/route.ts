@@ -7,10 +7,10 @@ export async function GET() {
     console.log('🔍 Calculando métricas de mercado em tempo real...');
 
     // Buscar estatísticas gerais
-    const totalETFs = await prisma.etf_list.count();
+    const totalETFs = await prisma.etfs_ativos_reais.count();
 
     // Buscar métricas de performance
-    const metricsData = await prisma.calculated_metrics_teste.findMany({
+    const metricsData = await prisma.etfs_ativos_reais.findMany({
       where: {
         returns_12m: { not: null },
         volatility_12m: { not: null }
@@ -69,7 +69,7 @@ export async function GET() {
     }
 
     // Buscar distribuição por asset class
-    const assetClassData = await prisma.etf_list.findMany({
+    const assetClassData = await prisma.etfs_ativos_reais.findMany({
       where: {
         assetclass: { not: null }
       },

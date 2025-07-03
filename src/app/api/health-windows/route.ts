@@ -14,10 +14,10 @@ export async function GET(_request: NextRequest) {
     const result = await prisma.$queryRaw`SELECT 1 as test, NOW() as timestamp`;
     
     // Contar ETFs
-    const etfCount = await prisma.etf_list.count();
+    const etfCount = await prisma.etfs_ativos_reais.count();
     
     // Buscar uma amostra
-    const sampleETF = await prisma.etf_list.findFirst({
+    const sampleETF = await prisma.etfs_ativos_reais.findFirst({
       select: {
         symbol: true,
         name: true,

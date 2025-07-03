@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
 
     // Verificar se os símbolos existem no nosso banco usando active_etfs
     const { data: etfData, error: etfError } = await supabase
-      .from('active_etfs')
+      .from('etfs_ativos_reais')
       .select('symbol, name, nav')
       .in('symbol', symbolsUpper);
 

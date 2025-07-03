@@ -5,11 +5,11 @@ generator client {
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
-  directUrl         = env("DIRECT_URL")
-  extensions        = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
-  schemas           = ["auth", "public"]
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
+  schemas    = ["auth", "public"]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -283,169 +283,78 @@ model sso_providers {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model users {
-  instance_id                 String?           @db.Uuid
-  id                          String            @id @db.Uuid
-  aud                         String?           @db.VarChar(255)
-  role                        String?           @db.VarChar(255)
-  email                       String?           @db.VarChar(255)
-  encrypted_password          String?           @db.VarChar(255)
-  email_confirmed_at          DateTime?         @db.Timestamptz(6)
-  invited_at                  DateTime?         @db.Timestamptz(6)
-  confirmation_token          String?           @db.VarChar(255)
-  confirmation_sent_at        DateTime?         @db.Timestamptz(6)
-  recovery_token              String?           @db.VarChar(255)
-  recovery_sent_at            DateTime?         @db.Timestamptz(6)
-  email_change_token_new      String?           @db.VarChar(255)
-  email_change                String?           @db.VarChar(255)
-  email_change_sent_at        DateTime?         @db.Timestamptz(6)
-  last_sign_in_at             DateTime?         @db.Timestamptz(6)
-  raw_app_meta_data           Json?
-  raw_user_meta_data          Json?
-  is_super_admin              Boolean?
-  created_at                  DateTime?         @db.Timestamptz(6)
-  updated_at                  DateTime?         @db.Timestamptz(6)
-  phone                       String?           @unique
-  phone_confirmed_at          DateTime?         @db.Timestamptz(6)
-  phone_change                String?           @default("")
-  phone_change_token          String?           @default("") @db.VarChar(255)
-  phone_change_sent_at        DateTime?         @db.Timestamptz(6)
-  confirmed_at                DateTime?         @default(dbgenerated("LEAST(email_confirmed_at, phone_confirmed_at)")) @db.Timestamptz(6)
-  email_change_token_current  String?           @default("") @db.VarChar(255)
-  email_change_confirm_status Int?              @default(0) @db.SmallInt
-  banned_until                DateTime?         @db.Timestamptz(6)
-  reauthentication_token      String?           @default("") @db.VarChar(255)
-  reauthentication_sent_at    DateTime?         @db.Timestamptz(6)
-  is_sso_user                 Boolean           @default(false)
-  deleted_at                  DateTime?         @db.Timestamptz(6)
-  is_anonymous                Boolean           @default(false)
-  identities                  identities[]
-  mfa_factors                 mfa_factors[]
-  one_time_tokens             one_time_tokens[]
-  sessions                    sessions[]
-  user_profiles               user_profiles?
-  subscriptions               subscriptions[]
-  payments                    payments[]
-  usage_limits                usage_limits[]
-  wealth_onboarding           wealth_onboarding?
-  offshore_onboarding         offshore_onboarding?
+  instance_id                  String?                        @db.Uuid
+  id                           String                         @id @db.Uuid
+  aud                          String?                        @db.VarChar(255)
+  role                         String?                        @db.VarChar(255)
+  email                        String?                        @db.VarChar(255)
+  encrypted_password           String?                        @db.VarChar(255)
+  email_confirmed_at           DateTime?                      @db.Timestamptz(6)
+  invited_at                   DateTime?                      @db.Timestamptz(6)
+  confirmation_token           String?                        @db.VarChar(255)
+  confirmation_sent_at         DateTime?                      @db.Timestamptz(6)
+  recovery_token               String?                        @db.VarChar(255)
+  recovery_sent_at             DateTime?                      @db.Timestamptz(6)
+  email_change_token_new       String?                        @db.VarChar(255)
+  email_change                 String?                        @db.VarChar(255)
+  email_change_sent_at         DateTime?                      @db.Timestamptz(6)
+  last_sign_in_at              DateTime?                      @db.Timestamptz(6)
+  raw_app_meta_data            Json?
+  raw_user_meta_data           Json?
+  is_super_admin               Boolean?
+  created_at                   DateTime?                      @db.Timestamptz(6)
+  updated_at                   DateTime?                      @db.Timestamptz(6)
+  phone                        String?                        @unique
+  phone_confirmed_at           DateTime?                      @db.Timestamptz(6)
+  phone_change                 String?                        @default("")
+  phone_change_token           String?                        @default("") @db.VarChar(255)
+  phone_change_sent_at         DateTime?                      @db.Timestamptz(6)
+  confirmed_at                 DateTime?                      @default(dbgenerated("LEAST(email_confirmed_at, phone_confirmed_at)")) @db.Timestamptz(6)
+  email_change_token_current   String?                        @default("") @db.VarChar(255)
+  email_change_confirm_status  Int?                           @default(0) @db.SmallInt
+  banned_until                 DateTime?                      @db.Timestamptz(6)
+  reauthentication_token       String?                        @default("") @db.VarChar(255)
+  reauthentication_sent_at     DateTime?                      @db.Timestamptz(6)
+  is_sso_user                  Boolean                        @default(false)
+  deleted_at                   DateTime?                      @db.Timestamptz(6)
+  is_anonymous                 Boolean                        @default(false)
+  identities                   identities[]
+  mfa_factors                  mfa_factors[]
+  one_time_tokens              one_time_tokens[]
+  sessions                     sessions[]
+  efficient_frontier_points    efficient_frontier_points[]
+  offshore_onboarding          offshore_onboarding[]
+  payments                     payments[]
+  portfolio_rebalancing_alerts portfolio_rebalancing_alerts[]
+  portfolio_recommendations    portfolio_recommendations[]
+  portfolio_simulations        portfolio_simulations[]
+  subscriptions                subscriptions[]
+  usage_limits                 usage_limits[]
+  user_portfolio_allocations   user_portfolio_allocations[]
+  user_profiles                user_profiles?
+  wealth_onboarding            wealth_onboarding?
 
   @@index([instance_id])
   @@index([is_anonymous])
   @@schema("auth")
 }
 
-model calculated_metrics {
-  symbol              String   @id
-  returns_12m         Decimal? @db.Decimal
-  returns_24m         Decimal? @db.Decimal
-  returns_36m         Decimal? @db.Decimal
-  returns_5y          Decimal? @db.Decimal
-  ten_year_return     Decimal? @db.Decimal
-  volatility_12m      Decimal? @db.Decimal
-  volatility_24m      Decimal? @db.Decimal
-  volatility_36m      Decimal? @db.Decimal
-  ten_year_volatility Decimal? @db.Decimal
-  sharpe_12m          Decimal? @db.Decimal
-  sharpe_24m          Decimal? @db.Decimal
-  sharpe_36m          Decimal? @db.Decimal
-  ten_year_sharpe     Decimal? @db.Decimal
-  max_drawdown        Decimal? @db.Decimal
-  dividends_12m       Decimal? @db.Decimal
-  dividends_24m       Decimal? @db.Decimal
-  dividends_36m       Decimal? @db.Decimal
-  dividends_all_time  Decimal? @db.Decimal
-
-  @@schema("public")
-}
-
-/// Tabela de teste para cálculo de métricas dos ETFs usando dados do yfinance
-model calculated_metrics_teste {
-  symbol              String   @id
-  returns_12m         Decimal? @db.Decimal
-  returns_24m         Decimal? @db.Decimal
-  returns_36m         Decimal? @db.Decimal
-  returns_5y          Decimal? @db.Decimal
-  ten_year_return     Decimal? @db.Decimal
-  volatility_12m      Decimal? @db.Decimal
-  volatility_24m      Decimal? @db.Decimal
-  volatility_36m      Decimal? @db.Decimal
-  ten_year_volatility Decimal? @db.Decimal
-  sharpe_12m          Decimal? @db.Decimal
-  sharpe_24m          Decimal? @db.Decimal
-  sharpe_36m          Decimal? @db.Decimal
-  ten_year_sharpe     Decimal? @db.Decimal
-  max_drawdown        Decimal? @db.Decimal
-  dividends_12m       Decimal? @db.Decimal
-  dividends_24m       Decimal? @db.Decimal
-  dividends_36m       Decimal? @db.Decimal
-  dividends_all_time  Decimal? @db.Decimal
-
-  @@schema("public")
-}
-
-model etf_dividends {
-  symbol       String
-  date         DateTime @db.Date
-  dividend     Decimal? @db.Decimal
-  adj_dividend Decimal? @db.Decimal
-  label        String?
-
-  @@id([symbol, date])
-  @@schema("public")
-}
-
-model etf_holdings {
-  symbol         String
-  holding_symbol String
-  holding_name   String?
-  weight         Decimal? @db.Decimal
-  shares         Decimal? @db.Decimal
-  market_value   Decimal? @db.Decimal
-
-  @@id([symbol, holding_symbol])
-  @@index([symbol], map: "idx_etf_holdings_symbol")
-  @@schema("public")
-}
-
-model etf_list {
-  symbol        String    @id
-  name          String?
-  description   String?
-  isin          String?
-  assetclass    String?
-  securitycusip String?
-  domicile      String?
-  website       String?
-  etfcompany    String?
-  expenseratio  Decimal?  @db.Decimal
-  totalasset    Decimal?  @db.Decimal
-  avgvolume     Decimal?  @db.Decimal
-  inceptiondate DateTime? @db.Date
-  nav           Decimal?  @db.Decimal
-  navcurrency   String?
-  holdingscount Int?
-  updatedat     DateTime? @db.Timestamp(6)
-  sectorslist   Json?
-
-  @@schema("public")
-}
-
 model etf_prices {
-  symbol    String
-  date      DateTime @db.Date
-  open      Decimal? @db.Decimal
-  high      Decimal? @db.Decimal
-  low       Decimal? @db.Decimal
-  close     Decimal? @db.Decimal
-  volume    Decimal? @db.Decimal
-  nav       Decimal? @db.Decimal
-  return_1m Decimal? @db.Decimal
-  return_3m Decimal? @db.Decimal
-  return_1y Decimal? @db.Decimal
-  adj_close Decimal? @db.Decimal
+  symbol            String            @db.VarChar(10)
+  date              DateTime          @db.Date
+  open              Decimal?          @db.Decimal(12, 4)
+  high              Decimal?          @db.Decimal(12, 4)
+  low               Decimal?          @db.Decimal(12, 4)
+  close             Decimal           @db.Decimal(12, 4)
+  adjusted_close    Decimal?          @db.Decimal(12, 4)
+  volume            BigInt?
+  created_at        DateTime?         @default(now()) @db.Timestamp(6)
+  etfs_ativos_reais etfs_ativos_reais @relation(fields: [symbol], references: [symbol], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([symbol, date])
-  @@index([symbol, date], map: "idx_etf_prices_symbol_date")
+  @@index([symbol, date(sort: Desc)], map: "idx_etf_prices_symbol_date")
+  @@index([date], map: "idx_etf_prices_date")
+  @@index([symbol], map: "idx_etf_prices_symbol")
   @@schema("public")
 }
 
@@ -488,6 +397,514 @@ model user_profiles {
   @@index([country], map: "idx_user_profiles_country")
   @@index([risk_tolerance], map: "idx_user_profiles_risk_tolerance")
   @@index([investment_experience], map: "idx_user_profiles_investment_experience")
+  @@schema("public")
+}
+
+model subscriptions {
+  id                      String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                 String              @db.Uuid
+  plan                    subscription_plan
+  status                  subscription_status @default(PENDING)
+  started_at              DateTime            @default(now()) @db.Timestamptz(6)
+  expires_at              DateTime?           @db.Timestamptz(6)
+  cancelled_at            DateTime?           @db.Timestamptz(6)
+  trial_ends_at           DateTime?           @db.Timestamptz(6)
+  assets_under_management Decimal?            @db.Decimal(15, 2)
+  annual_fee              Decimal?            @db.Decimal(10, 2)
+  monthly_fee             Decimal?            @db.Decimal(10, 2)
+  metadata                Json?               @db.Json
+  created_at              DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime            @updatedAt @db.Timestamptz(6)
+  payments                payments[]
+  user                    users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  usage_limits            usage_limits[]
+
+  @@index([user_id])
+  @@index([status])
+  @@index([plan])
+  @@index([expires_at])
+  @@schema("public")
+}
+
+model payments {
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscription_id     String          @db.Uuid
+  user_id             String          @db.Uuid
+  amount              Decimal         @db.Decimal(10, 2)
+  currency            String          @default("BRL") @db.VarChar(3)
+  status              payment_status  @default(PENDING)
+  method              payment_method?
+  period_start        DateTime        @db.Timestamptz(6)
+  period_end          DateTime        @db.Timestamptz(6)
+  external_payment_id String?         @unique @db.VarChar(255)
+  external_data       Json?           @db.Json
+  description         String?
+  metadata            Json?           @db.Json
+  paid_at             DateTime?       @db.Timestamptz(6)
+  created_at          DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime        @updatedAt @db.Timestamptz(6)
+  subscription        subscriptions   @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
+  user                users           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([subscription_id])
+  @@index([user_id])
+  @@index([status])
+  @@index([external_payment_id])
+  @@index([created_at])
+  @@schema("public")
+}
+
+model usage_limits {
+  id                          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscription_id             String        @db.Uuid
+  user_id                     String        @db.Uuid
+  screener_queries_limit      Int?
+  screener_queries_used       Int           @default(0)
+  export_reports_limit        Int?
+  export_reports_used         Int           @default(0)
+  portfolio_simulations_limit Int?
+  portfolio_simulations_used  Int           @default(0)
+  period_start                DateTime      @db.Timestamptz(6)
+  period_end                  DateTime      @db.Timestamptz(6)
+  created_at                  DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime      @updatedAt @db.Timestamptz(6)
+  subscription                subscriptions @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
+  user                        users         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([subscription_id, period_start])
+  @@index([user_id])
+  @@index([period_start, period_end])
+  @@schema("public")
+}
+
+model plan_features {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan                subscription_plan
+  feature_key         String            @db.VarChar(100)
+  feature_name        String            @db.VarChar(255)
+  feature_description String?
+  is_enabled          Boolean           @default(true)
+  limit_value         Int?
+  created_at          DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime          @updatedAt @db.Timestamptz(6)
+
+  @@unique([plan, feature_key])
+  @@index([plan])
+  @@index([feature_key])
+  @@schema("public")
+}
+
+model wealth_onboarding {
+  id                        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                   String    @unique @db.Uuid
+  status                    String    @default("INITIAL") @db.VarChar(50)
+  current_portfolio_value   Decimal?  @db.Decimal(15, 2)
+  investment_goals          Json?     @db.Json
+  risk_tolerance            String?   @db.VarChar(50)
+  investment_experience     String?   @db.VarChar(50)
+  diagnosis_scheduled_at    DateTime? @db.Timestamptz(6)
+  presentation_scheduled_at DateTime? @db.Timestamptz(6)
+  consultant_notes          Json?     @db.Json
+  approval_reason           String?
+  rejection_reason          String?
+  created_at                DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime  @updatedAt @db.Timestamptz(6)
+  users                     users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([created_at])
+  @@schema("public")
+}
+
+model offshore_onboarding {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id            String   @db.Uuid
+  full_name          String   @db.VarChar(100)
+  email              String   @db.VarChar(255)
+  phone              String?  @db.VarChar(20)
+  birth_date         DateTime @db.Date
+  nationality        String   @db.VarChar(50)
+  country_residence  String   @db.VarChar(50)
+  passport_number    String   @db.VarChar(50)
+  passport_expiry    DateTime @db.Date
+  tax_id             String?  @db.VarChar(50)
+  us_tax_resident    Boolean  @default(false)
+  annual_income      Decimal? @db.Decimal(15, 2)
+  net_worth          Decimal? @db.Decimal(15, 2)
+  investment_amount  Decimal  @db.Decimal(15, 2)
+  investment_purpose String   @db.VarChar(100)
+  risk_tolerance     Int
+  documents_uploaded Json?
+  status             String   @default("pending") @db.VarChar(20)
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime @default(now()) @db.Timestamptz(6)
+  users              users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_offshore_onboarding_user_id")
+  @@index([status], map: "idx_offshore_onboarding_status")
+  @@index([created_at], map: "idx_offshore_onboarding_created_at")
+  @@schema("public")
+}
+
+/// Matriz de correlação entre ETFs para otimização de Markowitz
+model portfolio_correlations {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  symbol_a      String   @db.VarChar(10)
+  symbol_b      String   @db.VarChar(10)
+  correlation   Decimal  @db.Decimal(5, 4)
+  covariance    Decimal  @db.Decimal(10, 8)
+  period_days   Int      @default(252)
+  calculated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([symbol_a, symbol_b, period_days])
+  @@index([symbol_a])
+  @@index([symbol_b])
+  @@index([calculated_at])
+  @@schema("public")
+}
+
+/// Cache de simulações Monte Carlo para performance
+model portfolio_simulations {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String   @db.Uuid
+  simulation_hash     String   @unique @db.VarChar(64)
+  etf_symbols         Json
+  allocations         Json
+  expected_return     Decimal  @db.Decimal(8, 4)
+  volatility          Decimal  @db.Decimal(8, 4)
+  sharpe_ratio        Decimal  @db.Decimal(8, 4)
+  var_95              Decimal  @db.Decimal(8, 4)
+  max_drawdown        Decimal  @db.Decimal(8, 4)
+  monte_carlo_results Json
+  projection_12m      Json
+  scenarios           Json
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+  expires_at          DateTime @db.Timestamptz(6)
+  users               users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([simulation_hash])
+  @@index([expires_at])
+  @@schema("public")
+}
+
+/// Recomendações personalizadas de portfólio baseadas em perfil do usuário
+model portfolio_recommendations {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String   @db.Uuid
+  recommendation_type String   @db.VarChar(50)
+  etf_symbols         Json
+  target_allocations  Json
+  current_allocations Json?
+  expected_return     Decimal  @db.Decimal(8, 4)
+  volatility          Decimal  @db.Decimal(8, 4)
+  sharpe_ratio        Decimal  @db.Decimal(8, 4)
+  risk_score          Int
+  justification       String
+  confidence_score    Decimal  @db.Decimal(3, 2)
+  status              String   @default("active") @db.VarChar(20)
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+  expires_at          DateTime @db.Timestamptz(6)
+  users               users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([recommendation_type])
+  @@index([status])
+  @@index([created_at])
+  @@schema("public")
+}
+
+/// Alertas de rebalanceamento automático
+model portfolio_rebalancing_alerts {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id            String   @db.Uuid
+  portfolio_id       String?  @db.Uuid
+  alert_type         String   @db.VarChar(50)
+  trigger_condition  Json
+  current_state      Json
+  recommended_action Json
+  severity           String   @db.VarChar(20)
+  message            String
+  is_read            Boolean  @default(false)
+  is_dismissed       Boolean  @default(false)
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
+  users              users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([alert_type])
+  @@index([severity])
+  @@index([is_read])
+  @@index([created_at])
+  @@schema("public")
+}
+
+/// Pontos da fronteira eficiente para visualização
+model efficient_frontier_points {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String   @db.Uuid
+  risk_level      Decimal  @db.Decimal(8, 4)
+  expected_return Decimal  @db.Decimal(8, 4)
+  allocations     Json
+  sharpe_ratio    Decimal  @db.Decimal(8, 4)
+  is_optimal      Boolean  @default(false)
+  calculation_id  String   @db.VarChar(64)
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  users           users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([calculation_id])
+  @@index([is_optimal])
+  @@index([created_at])
+  @@schema("public")
+}
+
+/// Carteiras ativas dos usuários
+model user_portfolio_allocations {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String    @db.Uuid
+  portfolio_name      String    @db.VarChar(100)
+  etf_symbols         Json
+  target_allocations  Json
+  current_allocations Json?
+  invested_amounts    Json?
+  total_invested      Decimal?  @db.Decimal(15, 2)
+  last_rebalanced_at  DateTime? @db.Timestamptz(6)
+  rebalance_threshold Decimal   @default(5.0) @db.Decimal(4, 2)
+  auto_rebalance      Boolean   @default(false)
+  is_active           Boolean   @default(true)
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
+  users               users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([is_active])
+  @@index([last_rebalanced_at])
+  @@index([created_at])
+  @@schema("public")
+}
+
+model backup_config {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  table_name        String    @unique @db.VarChar(100)
+  backup_enabled    Boolean?  @default(true)
+  backup_frequency  String?   @default("daily") @db.VarChar(20)
+  retention_days    Int?      @default(30)
+  backup_conditions Json?
+  last_backup_at    DateTime? @db.Timestamptz(6)
+  backup_size_mb    Decimal?  @db.Decimal(10, 2)
+  backup_location   String?
+  is_critical       Boolean?  @default(false)
+  created_at        DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+model data_quality_metrics {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  table_name       String    @db.VarChar(100)
+  metric_name      String    @db.VarChar(100)
+  metric_value     Decimal?  @db.Decimal
+  metric_threshold Decimal?  @db.Decimal
+  status           String?   @default("OK") @db.VarChar(20)
+  details          Json?
+  checked_at       DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([checked_at], map: "idx_data_quality_checked_at")
+  @@index([status], map: "idx_data_quality_status")
+  @@index([table_name, metric_name], map: "idx_data_quality_table_metric")
+  @@schema("public")
+}
+
+model database_audit_log {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  audit_type       String    @db.VarChar(50)
+  table_name       String    @db.VarChar(100)
+  operation        String    @db.VarChar(50)
+  records_affected Int?      @default(0)
+  old_values       Json?
+  new_values       Json?
+  metadata         Json?
+  severity         String?   @default("INFO") @db.VarChar(20)
+  message          String?
+  performed_by     String?   @default("system") @db.VarChar(100)
+  created_at       DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([audit_type], map: "idx_audit_log_audit_type")
+  @@index([created_at], map: "idx_audit_log_created_at")
+  @@index([severity], map: "idx_audit_log_severity")
+  @@index([table_name], map: "idx_audit_log_table_name")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model etfs_ativos_reais {
+  symbol                  String                    @id @db.VarChar(10)
+  name                    String?
+  description             String?
+  isin                    String?                   @db.VarChar(12)
+  assetclass              String?                   @db.VarChar(50)
+  securitycusip           String?                   @db.VarChar(9)
+  domicile                String?                   @db.VarChar(2)
+  website                 String?
+  etfcompany              String?                   @db.VarChar(100)
+  expenseratio            Decimal?                  @db.Decimal(5, 4)
+  totalasset              BigInt?
+  avgvolume               BigInt?
+  inceptiondate           DateTime?                 @db.Date
+  nav                     Decimal?                  @db.Decimal(10, 4)
+  navcurrency             String?                   @db.VarChar(3)
+  holdingscount           Int?
+  updatedat               DateTime?                 @default(now()) @db.Timestamp(6)
+  sectorslist             Json?
+  returns_12m             Decimal?                  @db.Decimal(8, 4)
+  returns_24m             Decimal?                  @db.Decimal(8, 4)
+  returns_36m             Decimal?                  @db.Decimal(8, 4)
+  returns_5y              Decimal?                  @db.Decimal(8, 4)
+  ten_year_return         Decimal?                  @db.Decimal(8, 4)
+  volatility_12m          Decimal?                  @db.Decimal(8, 4)
+  volatility_24m          Decimal?                  @db.Decimal(8, 4)
+  volatility_36m          Decimal?                  @db.Decimal(8, 4)
+  ten_year_volatility     Decimal?                  @db.Decimal(8, 4)
+  sharpe_12m              Decimal?                  @db.Decimal(8, 4)
+  sharpe_24m              Decimal?                  @db.Decimal(8, 4)
+  sharpe_36m              Decimal?                  @db.Decimal(8, 4)
+  ten_year_sharpe         Decimal?                  @db.Decimal(8, 4)
+  max_drawdown            Decimal?                  @db.Decimal(8, 4)
+  dividends_12m           Decimal?                  @db.Decimal(8, 4)
+  dividends_24m           Decimal?                  @db.Decimal(8, 4)
+  dividends_36m           Decimal?                  @db.Decimal(8, 4)
+  dividends_all_time      Decimal?                  @db.Decimal(8, 4)
+  size_category           String?                   @db.VarChar(20)
+  liquidity_category      String?                   @db.VarChar(20)
+  etf_type                String?                   @db.VarChar(50)
+  liquidity_rating        String?                   @db.VarChar(20)
+  size_rating             String?                   @db.VarChar(20)
+  etf_prices              etf_prices[]
+  historic_etfs_dividends historic_etfs_dividends[]
+
+  @@index([assetclass], map: "idx_etfs_assetclass")
+  @@index([etfcompany], map: "idx_etfs_etfcompany")
+  @@index([expenseratio], map: "idx_etfs_expenseratio")
+  @@index([name], map: "idx_etfs_name")
+  @@index([returns_12m], map: "idx_etfs_returns_12m")
+  @@index([sectorslist], map: "idx_etfs_sectors_gin", type: Gin)
+  @@index([symbol], map: "idx_etfs_symbol")
+  @@index([totalasset], map: "idx_etfs_totalasset")
+  @@index([updatedat], map: "idx_etfs_updatedat")
+  @@schema("public")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model etfs_ativos_reais_backup_sistema_auditoria_inicial {
+  symbol              String?   @db.VarChar(10)
+  name                String?
+  description         String?
+  isin                String?   @db.VarChar(12)
+  assetclass          String?   @db.VarChar(50)
+  securitycusip       String?   @db.VarChar(9)
+  domicile            String?   @db.VarChar(2)
+  website             String?
+  etfcompany          String?   @db.VarChar(100)
+  expenseratio        Decimal?  @db.Decimal(5, 4)
+  totalasset          BigInt?
+  avgvolume           BigInt?
+  inceptiondate       DateTime? @db.Date
+  nav                 Decimal?  @db.Decimal(10, 4)
+  navcurrency         String?   @db.VarChar(3)
+  holdingscount       Int?
+  updatedat           DateTime? @db.Timestamp(6)
+  sectorslist         Json?
+  returns_12m         Decimal?  @db.Decimal(8, 4)
+  returns_24m         Decimal?  @db.Decimal(8, 4)
+  returns_36m         Decimal?  @db.Decimal(8, 4)
+  returns_5y          Decimal?  @db.Decimal(8, 4)
+  ten_year_return     Decimal?  @db.Decimal(8, 4)
+  volatility_12m      Decimal?  @db.Decimal(8, 4)
+  volatility_24m      Decimal?  @db.Decimal(8, 4)
+  volatility_36m      Decimal?  @db.Decimal(8, 4)
+  ten_year_volatility Decimal?  @db.Decimal(8, 4)
+  sharpe_12m          Decimal?  @db.Decimal(8, 4)
+  sharpe_24m          Decimal?  @db.Decimal(8, 4)
+  sharpe_36m          Decimal?  @db.Decimal(8, 4)
+  ten_year_sharpe     Decimal?  @db.Decimal(8, 4)
+  max_drawdown        Decimal?  @db.Decimal(8, 4)
+  dividends_12m       Decimal?  @db.Decimal(8, 4)
+  dividends_24m       Decimal?  @db.Decimal(8, 4)
+  dividends_36m       Decimal?  @db.Decimal(8, 4)
+  dividends_all_time  Decimal?  @db.Decimal(8, 4)
+  size_category       String?   @db.VarChar(20)
+  liquidity_category  String?   @db.VarChar(20)
+  etf_type            String?   @db.VarChar(50)
+  liquidity_rating    String?   @db.VarChar(20)
+  size_rating         String?   @db.VarChar(20)
+
+  @@ignore
+  @@schema("public")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model etfs_removidos_backup {
+  symbol              String?   @db.VarChar(10)
+  name                String?
+  description         String?
+  isin                String?   @db.VarChar(12)
+  assetclass          String?   @db.VarChar(50)
+  securitycusip       String?   @db.VarChar(9)
+  domicile            String?   @db.VarChar(2)
+  website             String?
+  etfcompany          String?   @db.VarChar(100)
+  expenseratio        Decimal?  @db.Decimal(5, 4)
+  totalasset          BigInt?
+  avgvolume           BigInt?
+  inceptiondate       DateTime? @db.Date
+  nav                 Decimal?  @db.Decimal(10, 4)
+  navcurrency         String?   @db.VarChar(3)
+  holdingscount       Int?
+  updatedat           DateTime? @db.Timestamp(6)
+  sectorslist         Json?
+  returns_12m         Decimal?  @db.Decimal(8, 4)
+  returns_24m         Decimal?  @db.Decimal(8, 4)
+  returns_36m         Decimal?  @db.Decimal(8, 4)
+  returns_5y          Decimal?  @db.Decimal(8, 4)
+  ten_year_return     Decimal?  @db.Decimal(8, 4)
+  volatility_12m      Decimal?  @db.Decimal(8, 4)
+  volatility_24m      Decimal?  @db.Decimal(8, 4)
+  volatility_36m      Decimal?  @db.Decimal(8, 4)
+  ten_year_volatility Decimal?  @db.Decimal(8, 4)
+  sharpe_12m          Decimal?  @db.Decimal(8, 4)
+  sharpe_24m          Decimal?  @db.Decimal(8, 4)
+  sharpe_36m          Decimal?  @db.Decimal(8, 4)
+  ten_year_sharpe     Decimal?  @db.Decimal(8, 4)
+  max_drawdown        Decimal?  @db.Decimal(8, 4)
+  dividends_12m       Decimal?  @db.Decimal(8, 4)
+  dividends_24m       Decimal?  @db.Decimal(8, 4)
+  dividends_36m       Decimal?  @db.Decimal(8, 4)
+  dividends_all_time  Decimal?  @db.Decimal(8, 4)
+  size_category       String?   @db.VarChar(20)
+  liquidity_category  String?   @db.VarChar(20)
+  etf_type            String?   @db.VarChar(50)
+  removed_at          DateTime? @db.Timestamptz(6)
+  removal_reason      String?
+
+  @@ignore
+  @@schema("public")
+}
+
+model historic_etfs_dividends {
+  symbol            String            @db.VarChar(10)
+  ex_date           DateTime          @db.Date
+  pay_date          DateTime?         @db.Date
+  amount            Decimal           @db.Decimal(10, 6)
+  frequency         String?           @db.VarChar(20)
+  yield_percentage  Decimal?          @db.Decimal(8, 4)
+  created_at        DateTime?         @default(now()) @db.Timestamp(6)
+  etfs_ativos_reais etfs_ativos_reais @relation(fields: [symbol], references: [symbol], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([symbol, ex_date])
+  @@index([ex_date], map: "idx_historic_dividends_ex_date")
+  @@index([symbol], map: "idx_historic_dividends_symbol")
+  @@index([symbol, ex_date(sort: Desc)], map: "idx_historic_dividends_symbol_date")
   @@schema("public")
 }
 
@@ -543,7 +960,6 @@ enum alert_type {
   @@schema("public")
 }
 
-// Enums para sistema de assinaturas
 enum subscription_plan {
   STARTER
   PRO
@@ -579,204 +995,5 @@ enum payment_method {
   PIX
   BANK_TRANSFER
 
-  @@schema("public")
-}
-
-// Tabelas do sistema de assinaturas
-model subscriptions {
-  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id               String              @db.Uuid
-  plan                  subscription_plan
-  status                subscription_status @default(PENDING)
-  started_at            DateTime            @default(now()) @db.Timestamptz(6)
-  expires_at            DateTime?           @db.Timestamptz(6)
-  cancelled_at          DateTime?           @db.Timestamptz(6)
-  trial_ends_at         DateTime?           @db.Timestamptz(6)
-  
-  // Campos específicos para planos Wealth e Offshore
-  assets_under_management Decimal?          @db.Decimal(15, 2) // Para cálculo do fee
-  annual_fee             Decimal?           @db.Decimal(10, 2) // Fee calculado anualmente
-  monthly_fee            Decimal?           @db.Decimal(10, 2) // Fee dividido por 12
-  
-  // Metadados
-  metadata              Json?               @db.Json
-  created_at            DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime            @updatedAt @db.Timestamptz(6)
-  
-  // Relacionamentos
-  user                  users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  payments              payments[]
-  usage_limits          usage_limits[]
-  
-  @@index([user_id])
-  @@index([status])
-  @@index([plan])
-  @@index([expires_at])
-  @@schema("public")
-}
-
-model payments {
-  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  subscription_id       String              @db.Uuid
-  user_id               String              @db.Uuid
-  
-  // Dados do pagamento
-  amount                Decimal             @db.Decimal(10, 2)
-  currency              String              @default("BRL") @db.VarChar(3)
-  status                payment_status      @default(PENDING)
-  method                payment_method?
-  
-  // Dados do período
-  period_start          DateTime            @db.Timestamptz(6)
-  period_end            DateTime            @db.Timestamptz(6)
-  
-  // Integração com Mercado Pago
-  external_payment_id   String?             @unique @db.VarChar(255) // ID do Mercado Pago
-  external_data         Json?               @db.Json // Dados completos da resposta do MP
-  
-  // Metadados
-  description           String?             @db.Text
-  metadata              Json?               @db.Json
-  paid_at               DateTime?           @db.Timestamptz(6)
-  created_at            DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime            @updatedAt @db.Timestamptz(6)
-  
-  // Relacionamentos
-  subscription          subscriptions       @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
-  user                  users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
-  @@index([subscription_id])
-  @@index([user_id])
-  @@index([status])
-  @@index([external_payment_id])
-  @@index([created_at])
-  @@schema("public")
-}
-
-model usage_limits {
-  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  subscription_id       String              @db.Uuid
-  user_id               String              @db.Uuid
-  
-  // Limites por funcionalidade
-  screener_queries_limit Int?               // Limite de consultas no screener por dia
-  screener_queries_used  Int                @default(0)
-  
-  export_reports_limit   Int?               // Limite de relatórios exportados por mês
-  export_reports_used    Int                @default(0)
-  
-  portfolio_simulations_limit Int?          // Limite de simulações por dia
-  portfolio_simulations_used   Int          @default(0)
-  
-  // Controle de período
-  period_start          DateTime            @db.Timestamptz(6)
-  period_end            DateTime            @db.Timestamptz(6)
-  
-  // Metadados
-  created_at            DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime            @updatedAt @db.Timestamptz(6)
-  
-  // Relacionamentos
-  subscription          subscriptions       @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
-  user                  users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
-  @@unique([subscription_id, period_start])
-  @@index([user_id])
-  @@index([period_start, period_end])
-  @@schema("public")
-}
-
-model plan_features {
-  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  plan                  subscription_plan
-  feature_key           String              @db.VarChar(100) // Ex: "screener_advanced", "dashboard_widgets"
-  feature_name          String              @db.VarChar(255)
-  feature_description   String?             @db.Text
-  is_enabled            Boolean             @default(true)
-  limit_value           Int?                // Valor numérico do limite (se aplicável)
-  
-  // Metadados
-  created_at            DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime            @updatedAt @db.Timestamptz(6)
-  
-  @@unique([plan, feature_key])
-  @@index([plan])
-  @@index([feature_key])
-  @@schema("public")
-}
-
-model wealth_onboarding {
-  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id               String              @unique @db.Uuid
-  
-  // Status do processo
-  status                String              @default("INITIAL") @db.VarChar(50) // INITIAL, DIAGNOSIS_SCHEDULED, DIAGNOSIS_COMPLETED, PRESENTATION_SCHEDULED, APPROVED, REJECTED
-  
-  // Dados do diagnóstico
-  current_portfolio_value Decimal?          @db.Decimal(15, 2)
-  investment_goals      Json?               @db.Json // Objetivos estruturados
-  risk_tolerance        String?             @db.VarChar(50)
-  investment_experience String?             @db.VarChar(50)
-  
-  // Agendamentos
-  diagnosis_scheduled_at DateTime?          @db.Timestamptz(6)
-  presentation_scheduled_at DateTime?       @db.Timestamptz(6)
-  
-  // Notas do consultor
-  consultant_notes      Json?               @db.Json
-  approval_reason       String?             @db.Text
-  rejection_reason      String?             @db.Text
-  
-  // Metadados
-  created_at            DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime            @updatedAt @db.Timestamptz(6)
-  
-  // Relacionamentos
-  user                  users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
-  @@index([status])
-  @@index([created_at])
-  @@schema("public")
-}
-
-model offshore_onboarding {
-  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id               String              @unique @db.Uuid
-  
-  // Status do processo
-  status                String              @default("INITIAL") @db.VarChar(50) // INITIAL, DIAGNOSIS_SCHEDULED, DUE_DILIGENCE, STRUCTURE_PLANNED, APPROVED, REJECTED
-  
-  // Dados do diagnóstico offshore
-  total_assets          Decimal?            @db.Decimal(15, 2)
-  offshore_goals        Json?               @db.Json // Objetivos de estruturação
-  tax_residency         String?             @db.VarChar(100)
-  business_activities   Json?               @db.Json
-  
-  // Due diligence
-  compliance_check      Json?               @db.Json
-  documentation_status  Json?               @db.Json
-  
-  // Estruturação
-  recommended_structure Json?               @db.Json
-  estimated_costs       Decimal?            @db.Decimal(10, 2)
-  
-  // Agendamentos
-  diagnosis_scheduled_at DateTime?          @db.Timestamptz(6)
-  structure_meeting_at  DateTime?          @db.Timestamptz(6)
-  
-  // Notas do consultor
-  consultant_notes      Json?               @db.Json
-  approval_reason       String?             @db.Text
-  rejection_reason      String?             @db.Text
-  
-  // Metadados
-  created_at            DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime            @updatedAt @db.Timestamptz(6)
-  
-  // Relacionamentos
-  user                  users               @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
-  @@index([status])
-  @@index([created_at])
   @@schema("public")
 }

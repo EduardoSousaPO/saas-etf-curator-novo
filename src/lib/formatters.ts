@@ -40,23 +40,47 @@ export const formatPercentageAlready = (value: number | null | undefined, decima
 /**
  * Formata um valor monetário
  * @param value - Valor em dólares
- * @returns String formatada com símbolo de dólar e sufixo (B/M)
+ * @param currency - Moeda (USD/BRL) ou boolean para abbreviated
+ * @param abbreviated - Se deve usar abreviações (B/M/K)
+ * @returns String formatada com símbolo de moeda e sufixo (B/M)
  */
-export const formatCurrency = (value: number | null | undefined): string => {
+export const formatCurrency = (
+  value: number | null | undefined, 
+  currency: string | boolean = true, 
+  abbreviated?: boolean
+): string => {
   if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
   
   const numValue = Number(value);
   
+  // Backward compatibility: se currency é boolean, é o parâmetro abbreviated
+  let currencyCode = 'USD';
+  let useAbbreviated = true;
+  
+  if (typeof currency === 'boolean') {
+    useAbbreviated = currency;
+  } else if (typeof currency === 'string') {
+    currencyCode = currency;
+    useAbbreviated = abbreviated !== undefined ? abbreviated : true;
+  }
+  
+  // Símbolo da moeda
+  const currencySymbol = currencyCode === 'BRL' ? 'R$' : '$';
+  
+  if (!useAbbreviated) {
+    return `${currencySymbol}${numValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+  
   if (numValue >= 1_000_000_000) {
-    return `$${(numValue / 1_000_000_000).toFixed(2)}B`;
+    return `${currencySymbol}${(numValue / 1_000_000_000).toFixed(2)}B`;
   }
   if (numValue >= 1_000_000) {
-    return `$${(numValue / 1_000_000).toFixed(2)}M`;
+    return `${currencySymbol}${(numValue / 1_000_000).toFixed(2)}M`;
   }
   if (numValue >= 1_000) {
-    return `$${(numValue / 1_000).toFixed(2)}K`;
+    return `${currencySymbol}${(numValue / 1_000).toFixed(2)}K`;
   }
-  return `$${numValue.toFixed(2)}`;
+  return `${currencySymbol}${numValue.toFixed(2)}`;
 };
 
 /**

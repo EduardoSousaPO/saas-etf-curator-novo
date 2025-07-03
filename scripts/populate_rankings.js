@@ -3,49 +3,50 @@ const prisma = new PrismaClient();
 
 async function populateRankings() {
   try {
-    console.log('🔄 Iniciando população da tabela etf_rankings usando active_etfs...');
+    console.log('🔄 Iniciando população da tabela etf_rankings com filtros flexibilizados...');
     
     // Limpar dados antigos
     await prisma.$executeRaw`DELETE FROM etf_rankings`;
     console.log('🧹 Dados antigos removidos');
     
-    // 1. TOP RETURNS 12M - usando active_etfs
+    // 1. TOP RETURNS 12M - FILTROS FLEXIBILIZADOS: -98% a +1000%
+    // Permitir retornos extremos válidos (alguns ETFs podem ter 200%+ em anos excepcionais)
     console.log('📈 Calculando top returns 12m...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
       SELECT 
         'top_returns_12m' as category,
-        ROW_NUMBER() OVER (ORDER BY returns_12m DESC) as rank_position,
-        symbol,
-        returns_12m as value,
-        returns_12m * 100 as percentage_value
-      FROM active_etfs
-      WHERE returns_12m IS NOT NULL 
-        AND returns_12m >= -0.98 
-        AND returns_12m <= 10.0
-      ORDER BY returns_12m DESC
+        ROW_NUMBER() OVER (ORDER BY cm.returns_12m DESC) as rank_position,
+        cm.symbol,
+        cm.returns_12m as value,
+        cm.returns_12m * 100 as percentage_value
+      FROM calculated_metrics_teste cm
+      WHERE cm.returns_12m IS NOT NULL 
+        AND cm.returns_12m >= -0.98 
+        AND cm.returns_12m <= 10.0
+      ORDER BY cm.returns_12m DESC
       LIMIT 10
     `;
     
-    // 2. TOP SHARPE 12M - usando active_etfs
+    // 2. TOP SHARPE 12M - FILTROS FLEXIBILIZADOS: -15 a +15
     console.log('🏆 Calculando top sharpe 12m...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
       SELECT 
         'top_sharpe_12m' as category,
-        ROW_NUMBER() OVER (ORDER BY sharpe_12m DESC) as rank_position,
-        symbol,
-        sharpe_12m as value,
+        ROW_NUMBER() OVER (ORDER BY cm.sharpe_12m DESC) as rank_position,
+        cm.symbol,
+        cm.sharpe_12m as value,
         NULL as percentage_value
-      FROM active_etfs
-      WHERE sharpe_12m IS NOT NULL 
-        AND sharpe_12m >= -15.0 
-        AND sharpe_12m <= 15.0
-      ORDER BY sharpe_12m DESC
+      FROM calculated_metrics_teste cm
+      WHERE cm.sharpe_12m IS NOT NULL 
+        AND cm.sharpe_12m >= -15.0 
+        AND cm.sharpe_12m <= 15.0
+      ORDER BY cm.sharpe_12m DESC
       LIMIT 10
     `;
     
-    // 3. TOP DIVIDEND YIELD - usando active_etfs
+    // 3. TOP DIVIDEND YIELD - FILTROS FLEXIBILIZADOS: até 25% (REITs podem ter yields altos)
     console.log('💰 Calculando top dividend yield...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
@@ -57,19 +58,20 @@ async function populateRankings() {
         dividend_yield as percentage_value
       FROM (
         SELECT 
-          symbol,
-          dividends_12m,
+          cm.symbol,
+          cm.dividends_12m,
           CASE 
-            WHEN nav > 0 AND dividends_12m > 0 
-            THEN (dividends_12m / nav) * 100
+            WHEN el.nav > 0 AND cm.dividends_12m > 0 
+            THEN (cm.dividends_12m / el.nav) * 100
             ELSE NULL
           END as dividend_yield
-        FROM active_etfs
-        WHERE dividends_12m IS NOT NULL 
-          AND dividends_12m > 0 
-          AND dividends_12m <= 500
-          AND nav IS NOT NULL 
-          AND nav > 1
+        FROM calculated_metrics_teste cm
+        JOIN etf_list el ON cm.symbol = el.symbol
+        WHERE cm.dividends_12m IS NOT NULL 
+          AND cm.dividends_12m > 0 
+          AND cm.dividends_12m <= 500
+          AND el.nav IS NOT NULL 
+          AND el.nav > 1
       ) ranked_dividends
       WHERE dividend_yield IS NOT NULL
         AND dividend_yield >= 0.05
@@ -78,56 +80,56 @@ async function populateRankings() {
       LIMIT 10
     `;
     
-    // 4. HIGHEST VOLUME - usando active_etfs
+    // 4. HIGHEST VOLUME - SEM LIMITE SUPERIOR RÍGIDO
     console.log('📊 Calculando highest volume...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
       SELECT 
         'highest_volume' as category,
-        ROW_NUMBER() OVER (ORDER BY avgvolume DESC) as rank_position,
-        symbol,
-        avgvolume as value,
+        ROW_NUMBER() OVER (ORDER BY el.avgvolume DESC) as rank_position,
+        el.symbol,
+        el.avgvolume as value,
         NULL as percentage_value
-      FROM active_etfs
-      WHERE avgvolume IS NOT NULL 
-        AND avgvolume > 0
-      ORDER BY avgvolume DESC
+      FROM etf_list el
+      WHERE el.avgvolume IS NOT NULL 
+        AND el.avgvolume > 0
+      ORDER BY el.avgvolume DESC
       LIMIT 10
     `;
     
-    // 5. LOWEST MAX DRAWDOWN - usando active_etfs
+    // 5. LOWEST MAX DRAWDOWN - FILTROS FLEXIBILIZADOS: até -99%
     console.log('🛡️ Calculando lowest max drawdown...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
       SELECT 
         'lowest_max_drawdown' as category,
-        ROW_NUMBER() OVER (ORDER BY max_drawdown DESC) as rank_position,
-        symbol,
-        max_drawdown as value,
-        max_drawdown * 100 as percentage_value
-      FROM active_etfs
-      WHERE max_drawdown IS NOT NULL 
-        AND max_drawdown >= -0.99
-        AND max_drawdown <= 0
-      ORDER BY max_drawdown DESC
+        ROW_NUMBER() OVER (ORDER BY cm.max_drawdown DESC) as rank_position,
+        cm.symbol,
+        cm.max_drawdown as value,
+        cm.max_drawdown * 100 as percentage_value
+      FROM calculated_metrics_teste cm
+      WHERE cm.max_drawdown IS NOT NULL 
+        AND cm.max_drawdown >= -0.99
+        AND cm.max_drawdown <= 0
+      ORDER BY cm.max_drawdown DESC
       LIMIT 10
     `;
     
-    // 6. LOWEST VOLATILITY 12M - usando active_etfs
+    // 6. LOWEST VOLATILITY 12M - FILTROS FLEXIBILIZADOS: até 300%
     console.log('📉 Calculando lowest volatility 12m...');
     await prisma.$executeRaw`
       INSERT INTO etf_rankings (category, rank_position, symbol, value, percentage_value)
       SELECT 
         'lowest_volatility_12m' as category,
-        ROW_NUMBER() OVER (ORDER BY volatility_12m ASC) as rank_position,
-        symbol,
-        volatility_12m as value,
-        volatility_12m * 100 as percentage_value
-      FROM active_etfs
-      WHERE volatility_12m IS NOT NULL 
-        AND volatility_12m >= 0.0001
-        AND volatility_12m <= 3.0
-      ORDER BY volatility_12m ASC
+        ROW_NUMBER() OVER (ORDER BY cm.volatility_12m ASC) as rank_position,
+        cm.symbol,
+        cm.volatility_12m as value,
+        cm.volatility_12m * 100 as percentage_value
+      FROM calculated_metrics_teste cm
+      WHERE cm.volatility_12m IS NOT NULL 
+        AND cm.volatility_12m >= 0.0001
+        AND cm.volatility_12m <= 3.0
+      ORDER BY cm.volatility_12m ASC
       LIMIT 10
     `;
     
@@ -152,7 +154,7 @@ async function populateRankings() {
       GROUP BY category
     `;
     
-    console.log('✅ Rankings populados com sucesso usando active_etfs!');
+    console.log('✅ Rankings populados com sucesso usando filtros flexibilizados!');
     console.log('📊 Estatísticas por categoria:');
     totalRankings.forEach(stat => {
       console.log(`   ${stat.category}: ${stat.count} ETFs`);

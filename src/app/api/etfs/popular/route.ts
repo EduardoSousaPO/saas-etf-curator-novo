@@ -17,7 +17,7 @@ export async function GET() {
         symbol, name, assetclass, expenseratio, totalasset, avgvolume,
         returns_12m, volatility_12m, sharpe_12m,
         size_category, liquidity_category, etf_type
-      FROM active_etfs
+      FROM etfs_ativos_reais
       WHERE symbol = ANY(${popularSymbols})
       ORDER BY totalasset DESC
     `;

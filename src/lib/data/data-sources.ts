@@ -32,9 +32,9 @@ export class DatabaseDataSource implements DataSource {
       const { PrismaClient } = await import('@prisma/client');
       const prisma = new PrismaClient();
       
-      // Usar a view active_etfs que já tem todos os dados unidos
+      // Usar a tabela etfs_ativos_reais que já tem todos os dados unidos
       const etf = await prisma.$queryRaw`
-        SELECT * FROM active_etfs WHERE symbol = ${symbol} LIMIT 1
+        SELECT * FROM etfs_ativos_reais WHERE symbol = ${symbol} LIMIT 1
       `;
       
       await prisma.$disconnect();
@@ -60,9 +60,9 @@ export class DatabaseDataSource implements DataSource {
       const { PrismaClient } = await import('@prisma/client');
       const prisma = new PrismaClient();
       
-      // Usar a view active_etfs para buscar múltiplos ETFs
+      // Usar a tabela etfs_ativos_reais para buscar múltiplos ETFs
       const etfList = await prisma.$queryRaw`
-        SELECT * FROM active_etfs WHERE symbol = ANY(${symbols})
+        SELECT * FROM etfs_ativos_reais WHERE symbol = ANY(${symbols})
       `;
       
       await prisma.$disconnect();
@@ -89,12 +89,18 @@ export class DatabaseDataSource implements DataSource {
     try {
       const { PrismaClient } = await import('@prisma/client');
       const prisma = new PrismaClient();
-      const result = await prisma.etf_list.findFirst({
-        orderBy: { updatedat: 'desc' },
-        select: { updatedat: true }
-      });
+      
+      // Usar a tabela etfs_ativos_reais que realmente existe
+      const result = await prisma.$queryRaw`
+        SELECT updated_at FROM etfs_ativos_reais 
+        ORDER BY updated_at DESC 
+        LIMIT 1
+      `;
+      
       await prisma.$disconnect();
-      return result?.updatedat || null;
+      
+      if (!result || (result as any[]).length === 0) return null;
+      return (result as any[])[0].updated_at || null;
     } catch {
       return null;
     }

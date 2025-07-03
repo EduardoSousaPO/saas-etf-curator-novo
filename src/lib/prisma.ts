@@ -28,12 +28,12 @@ const createPrismaClient = () => {
     },
     errorFormat: 'pretty',
     // Configurações de timeout e pool de conexões
-    __internal: {
-      engine: {
-        connectTimeout: 30000, // 30 segundos
-        queryTimeout: 60000,   // 60 segundos
-      },
-    },
+    // __internal: {
+    //   engine: {
+    //     connectTimeout: 30000, // 30 segundos
+    //     queryTimeout: 60000,   // 60 segundos
+    //   },
+    // },
   });
 };
 

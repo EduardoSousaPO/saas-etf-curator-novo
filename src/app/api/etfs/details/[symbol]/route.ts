@@ -50,7 +50,7 @@ export async function GET(
         size_category,
         liquidity_category,
         etf_type
-      FROM active_etfs
+      FROM etfs_ativos_reais
       WHERE symbol = ${symbol}
       LIMIT 1
     `;

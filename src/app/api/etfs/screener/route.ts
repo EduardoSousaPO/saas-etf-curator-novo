@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
         size_category,
         liquidity_category,
         etf_type
-      FROM active_etfs
+      FROM etfs_ativos_reais
       WHERE 
         (${safeSearchTerm} = '' OR symbol ILIKE CONCAT('%', ${safeSearchTerm}, '%') OR name ILIKE CONCAT('%', ${safeSearchTerm}, '%'))
         AND (${safeAssetClass} = '' OR ${safeAssetClass} = 'all' OR assetclass ILIKE CONCAT('%', ${safeAssetClass}, '%'))
@@ -219,7 +219,7 @@ export async function GET(request: NextRequest) {
     const countResult = await prisma.$queryRaw<[{ count: bigint }]>(
       Prisma.sql`
       SELECT COUNT(*) as count
-      FROM active_etfs
+      FROM etfs_ativos_reais
       WHERE 
         (${safeSearchTerm} = '' OR symbol ILIKE CONCAT('%', ${safeSearchTerm}, '%') OR name ILIKE CONCAT('%', ${safeSearchTerm}, '%'))
         AND (${safeAssetClass} = '' OR ${safeAssetClass} = 'all' OR assetclass ILIKE CONCAT('%', ${safeAssetClass}, '%'))

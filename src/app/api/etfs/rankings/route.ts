@@ -74,7 +74,7 @@ export async function GET() {
         ae.totalasset,
         ae.avgvolume
       FROM etf_rankings r
-      LEFT JOIN active_etfs ae ON r.symbol = ae.symbol
+      LEFT JOIN etfs_ativos_reais ae ON r.symbol = ae.symbol
       ORDER BY r.category, r.rank_position
     `;
 
@@ -98,7 +98,7 @@ export async function GET() {
       SELECT 
         'total_etfs_with_returns' as metric,
         COUNT(*) as count
-      FROM active_etfs 
+      FROM etfs_ativos_reais 
       WHERE returns_12m IS NOT NULL 
         AND returns_12m >= -0.95 
         AND returns_12m <= 0.5
@@ -106,7 +106,7 @@ export async function GET() {
       SELECT 
         'total_etfs_with_sharpe' as metric,
         COUNT(*) as count
-      FROM active_etfs 
+      FROM etfs_ativos_reais 
       WHERE sharpe_12m IS NOT NULL 
         AND sharpe_12m >= -10.0 
         AND sharpe_12m <= 10.0
@@ -114,7 +114,7 @@ export async function GET() {
       SELECT 
         'total_etfs_with_volume' as metric,
         COUNT(*) as count
-      FROM active_etfs 
+      FROM etfs_ativos_reais 
       WHERE avgvolume IS NOT NULL 
         AND avgvolume > 0
         AND avgvolume < 1000000000

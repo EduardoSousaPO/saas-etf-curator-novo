@@ -149,7 +149,7 @@ async function main() {
         sectorslist: undefined, // Seria preenchido com dados de holdings
       };
 
-      await prisma.etf_list.upsert({
+      await prisma.etfs_ativos_reais.upsert({
         where: { symbol: excelSymbol.symbol },
         update: dataToUpsert,
         create: dataToUpsert,
