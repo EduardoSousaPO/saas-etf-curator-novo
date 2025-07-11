@@ -38,6 +38,8 @@ interface ETF {
   dividend_yield?: number | null;
   nav?: number | null;
   volume?: number | null;
+  totalasset?: number | null;
+  dividends_12m?: number | null;
 }
 
 interface UserProfile {
@@ -65,6 +67,10 @@ export default function ComparadorPage() {
 
   // Adicionar ETF à comparação
   const addETF = (etf: ETF) => {
+    if (selectedETFs.length >= 5) {
+      alert('Máximo de 5 ETFs para comparação');
+      return;
+    }
     setSelectedETFs([...selectedETFs, etf]);
   };
 
@@ -75,10 +81,10 @@ export default function ComparadorPage() {
 
   // Formatação de valores
   const formatPercentage = (value: number | null | undefined): string => {
-  if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
-  // CORREÇÃO: Os dados vêm em formato decimal do banco (0.359224 = 35.92%)
-  return `${(Number(value) * 100).toFixed(2)}%`;
-};
+    if (value === null || value === undefined || isNaN(Number(value))) return 'N/A';
+    // CORREÇÃO: Os dados vêm em formato decimal do banco (0.359224 = 35.92%)
+    return `${(Number(value) * 100).toFixed(2)}%`;
+  };
 
   const formatCurrency = (value: number | null | undefined): string => {
     if (value === null || value === undefined || isNaN(value)) return 'N/A';
@@ -93,6 +99,14 @@ export default function ComparadorPage() {
   const formatNumber = (value: number | null | undefined, decimals: number = 2): string => {
     if (value === null || value === undefined || isNaN(value)) return 'N/A';
     return value.toFixed(decimals);
+  };
+
+  const formatAssets = (value: number | null | undefined): string => {
+    if (value === null || value === undefined || isNaN(value)) return 'N/A';
+    if (value >= 1000000000) return `$${(value / 1000000000).toFixed(1)}B`;
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
+    return `$${value.toLocaleString()}`;
   };
 
   // Cor baseada no retorno
@@ -129,6 +143,40 @@ export default function ComparadorPage() {
         return '';
     }
   };
+
+  // Análise rápida dos ETFs selecionados
+  const getQuickAnalysis = () => {
+    if (selectedETFs.length === 0) return null;
+
+    // Melhor performance
+    const bestPerformance = selectedETFs.reduce((best, etf) => {
+      const bestReturn = best.returns_12m || -Infinity;
+      const etfReturn = etf.returns_12m || -Infinity;
+      return etfReturn > bestReturn ? etf : best;
+    });
+
+    // Menor risco (volatilidade)
+    const lowestRisk = selectedETFs.reduce((lowest, etf) => {
+      const lowestVol = lowest.volatility_12m || Infinity;
+      const etfVol = etf.volatility_12m || Infinity;
+      return etfVol < lowestVol ? etf : lowest;
+    });
+
+    // Melhor custo-benefício (menor expense ratio)
+    const bestCostBenefit = selectedETFs.reduce((best, etf) => {
+      const bestRatio = best.expense_ratio || Infinity;
+      const etfRatio = etf.expense_ratio || Infinity;
+      return etfRatio < bestRatio ? etf : best;
+    });
+
+    return {
+      bestPerformance,
+      lowestRisk,
+      bestCostBenefit
+    };
+  };
+
+  const quickAnalysis = getQuickAnalysis();
 
   return (
     <RequireAuth>
@@ -189,51 +237,96 @@ export default function ComparadorPage() {
           {/* Selected ETFs */}
           <div className="mb-20">
             <h2 className="text-3xl font-light text-gray-900 mb-12">
-              ETFs Selecionados
+              ETFs Selecionados ({selectedETFs.length}/5)
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Placeholder Cards */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 border-dashed">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <Plus className="w-8 h-8 text-gray-400" />
+              {/* ETFs Selecionados Dinamicamente */}
+              {selectedETFs.map((etf) => (
+                <div key={etf.symbol} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 relative">
+                  {/* Botão de remover */}
+                  <button
+                    onClick={() => removeETF(etf.symbol)}
+                    className="absolute top-4 right-4 w-8 h-8 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center transition-colors"
+                  >
+                    <X className="w-4 h-4 text-red-600" />
+                  </button>
+
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <BarChart3 className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <h3 className="text-xl font-medium text-gray-900 text-center mb-2">
+                      {etf.symbol}
+                    </h3>
+                    <p className="text-sm text-gray-500 text-center truncate">
+                      {etf.name || 'N/A'}
+                    </p>
+                    {etf.assetclass && (
+                      <div className="flex justify-center mt-2">
+                        <Badge className="bg-blue-100 text-blue-800 font-light text-xs">
+                          {etf.assetclass}
+                        </Badge>
+                      </div>
+                    )}
                   </div>
-                  <h3 className="text-lg font-light text-gray-600 mb-2">
-                    Adicionar ETF
-                  </h3>
-                  <p className="text-sm text-gray-500 font-light">
-                    Use a busca acima para adicionar ETFs
-                  </p>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 border-dashed">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <Plus className="w-8 h-8 text-gray-400" />
+
+                  {/* Métricas rápidas */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">Retorno 12m</span>
+                      <span className={`text-sm font-medium ${getReturnColor(etf.returns_12m)}`}>
+                        {formatPercentage(etf.returns_12m)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">Volatilidade</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {formatPercentage(etf.volatility_12m)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">Sharpe</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {formatNumber(etf.sharpe_12m)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">Taxa</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {formatPercentage(etf.expense_ratio)}
+                      </span>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-light text-gray-600 mb-2">
-                    Adicionar ETF
-                  </h3>
-                  <p className="text-sm text-gray-500 font-light">
-                    Compare até 5 ETFs simultaneamente
-                  </p>
+
+                  {/* Recomendação baseada no perfil */}
+                  {userProfile && (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <p className="text-xs text-gray-600">
+                        {getProfileRecommendation(etf)}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 border-dashed">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <Plus className="w-8 h-8 text-gray-400" />
+              ))}
+
+              {/* Placeholder Cards para slots vazios */}
+              {Array.from({ length: Math.max(0, 3 - selectedETFs.length) }).map((_, index) => (
+                <div key={`placeholder-${index}`} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 border-dashed">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <Plus className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-light text-gray-600 mb-2">
+                      Adicionar ETF
+                    </h3>
+                    <p className="text-sm text-gray-500 font-light">
+                      {selectedETFs.length === 0 ? 'Use a busca acima para adicionar ETFs' : 
+                       selectedETFs.length === 1 ? 'Compare até 5 ETFs simultaneamente' : 
+                       'Análise detalhada de cada ETF'}
+                    </p>
                   </div>
-                  <h3 className="text-lg font-light text-gray-600 mb-2">
-                    Adicionar ETF
-                  </h3>
-                  <p className="text-sm text-gray-500 font-light">
-                    Análise detalhada de cada ETF
-                  </p>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
 
@@ -242,46 +335,51 @@ export default function ComparadorPage() {
             <h2 className="text-3xl font-light text-gray-900 mb-12">
               Comparação de Performance
             </h2>
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
-                    <BarChart3 className="w-6 h-6 text-green-600" />
+            
+            {selectedETFs.length > 0 ? (
+              <PerformanceChart etfs={selectedETFs} period="1y" />
+            ) : (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
+                      <BarChart3 className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-light text-gray-900">
+                        Gráfico de Performance
+                      </h3>
+                      <p className="text-gray-600 font-light">
+                        Evolução histórica dos ETFs selecionados
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-light text-gray-900">
-                      Gráfico de Performance
-                    </h3>
-                    <p className="text-gray-600 font-light">
-                      Evolução histórica dos ETFs selecionados
+                  <div className="flex items-center space-x-3">
+                    <Badge className="bg-gray-100 text-gray-700 font-light">
+                      1 Ano
+                    </Badge>
+                    <Badge className="bg-blue-100 text-blue-700 font-light">
+                      5 Anos
+                    </Badge>
+                    <Badge className="bg-gray-100 text-gray-700 font-light">
+                      Máximo
+                    </Badge>
+                  </div>
+                </div>
+                
+                <div className="h-80 flex items-center justify-center bg-gray-50 rounded-xl">
+                  <div className="text-center">
+                    <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-lg font-light text-gray-600 mb-2">
+                      Selecione ETFs para ver a comparação
+                    </p>
+                    <p className="text-sm text-gray-500 font-light">
+                      O gráfico será exibido automaticamente
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Badge className="bg-gray-100 text-gray-700 font-light">
-                    1 Ano
-                  </Badge>
-                  <Badge className="bg-blue-100 text-blue-700 font-light">
-                    5 Anos
-                  </Badge>
-                  <Badge className="bg-gray-100 text-gray-700 font-light">
-                    Máximo
-                  </Badge>
-                </div>
               </div>
-              
-              <div className="h-80 flex items-center justify-center bg-gray-50 rounded-xl">
-                <div className="text-center">
-                  <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg font-light text-gray-600 mb-2">
-                    Selecione ETFs para ver a comparação
-                  </p>
-                  <p className="text-sm text-gray-500 font-light">
-                    O gráfico será exibido automaticamente
-                  </p>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Metrics Comparison */}
@@ -295,47 +393,117 @@ export default function ComparadorPage() {
                   <thead>
                     <tr className="border-b border-gray-100">
                       <th className="text-left p-8 font-light text-gray-900 text-lg">Métrica</th>
-                      <th className="text-center p-8 font-light text-gray-600 text-lg">ETF 1</th>
-                      <th className="text-center p-8 font-light text-gray-600 text-lg bg-gray-50">ETF 2</th>
-                      <th className="text-center p-8 font-light text-gray-600 text-lg">ETF 3</th>
+                      {selectedETFs.length > 0 ? (
+                        selectedETFs.map((etf, index) => (
+                          <th key={etf.symbol} className={`text-center p-8 font-light text-gray-600 text-lg ${index % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                            {etf.symbol}
+                          </th>
+                        ))
+                      ) : (
+                        <>
+                          <th className="text-center p-8 font-light text-gray-600 text-lg">ETF 1</th>
+                          <th className="text-center p-8 font-light text-gray-600 text-lg bg-gray-50">ETF 2</th>
+                          <th className="text-center p-8 font-light text-gray-600 text-lg">ETF 3</th>
+                        </>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="border-b border-gray-100">
                       <td className="p-8 font-light text-gray-900">Retorno 1 Ano</td>
-                      <td className="text-center p-8 text-gray-400">—</td>
-                      <td className="text-center p-8 bg-gray-50 text-gray-400">—</td>
-                      <td className="text-center p-8 text-gray-400">—</td>
+                      {selectedETFs.length > 0 ? (
+                        selectedETFs.map((etf, index) => (
+                          <td key={etf.symbol} className={`text-center p-8 ${getReturnColor(etf.returns_12m)} ${index % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                            {formatPercentage(etf.returns_12m)}
+                          </td>
+                        ))
+                      ) : (
+                        <>
+                          <td className="text-center p-8 text-gray-400">—</td>
+                          <td className="text-center p-8 bg-gray-50 text-gray-400">—</td>
+                          <td className="text-center p-8 text-gray-400">—</td>
+                        </>
+                      )}
                     </tr>
                     <tr className="border-b border-gray-100">
                       <td className="p-8 font-light text-gray-900">Volatilidade</td>
-                      <td className="text-center p-8 text-gray-400">—</td>
-                      <td className="text-center p-8 bg-gray-50 text-gray-400">—</td>
-                      <td className="text-center p-8 text-gray-400">—</td>
+                      {selectedETFs.length > 0 ? (
+                        selectedETFs.map((etf, index) => (
+                          <td key={etf.symbol} className={`text-center p-8 text-gray-700 ${index % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                            {formatPercentage(etf.volatility_12m)}
+                          </td>
+                        ))
+                      ) : (
+                        <>
+                          <td className="text-center p-8 text-gray-400">—</td>
+                          <td className="text-center p-8 bg-gray-50 text-gray-400">—</td>
+                          <td className="text-center p-8 text-gray-400">—</td>
+                        </>
+                      )}
                     </tr>
                     <tr className="border-b border-gray-100">
                       <td className="p-8 font-light text-gray-900">Sharpe Ratio</td>
-                      <td className="text-center p-8 text-gray-400">—</td>
-                      <td className="text-center p-8 bg-gray-50 text-gray-400">—</td>
-                      <td className="text-center p-8 text-gray-400">—</td>
+                      {selectedETFs.length > 0 ? (
+                        selectedETFs.map((etf, index) => (
+                          <td key={etf.symbol} className={`text-center p-8 text-gray-700 ${index % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                            {formatNumber(etf.sharpe_12m)}
+                          </td>
+                        ))
+                      ) : (
+                        <>
+                          <td className="text-center p-8 text-gray-400">—</td>
+                          <td className="text-center p-8 bg-gray-50 text-gray-400">—</td>
+                          <td className="text-center p-8 text-gray-400">—</td>
+                        </>
+                      )}
                     </tr>
                     <tr className="border-b border-gray-100">
                       <td className="p-8 font-light text-gray-900">Expense Ratio</td>
-                      <td className="text-center p-8 text-gray-400">—</td>
-                      <td className="text-center p-8 bg-gray-50 text-gray-400">—</td>
-                      <td className="text-center p-8 text-gray-400">—</td>
+                      {selectedETFs.length > 0 ? (
+                        selectedETFs.map((etf, index) => (
+                          <td key={etf.symbol} className={`text-center p-8 text-gray-700 ${index % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                            {formatPercentage(etf.expense_ratio)}
+                          </td>
+                        ))
+                      ) : (
+                        <>
+                          <td className="text-center p-8 text-gray-400">—</td>
+                          <td className="text-center p-8 bg-gray-50 text-gray-400">—</td>
+                          <td className="text-center p-8 text-gray-400">—</td>
+                        </>
+                      )}
                     </tr>
                     <tr className="border-b border-gray-100">
                       <td className="p-8 font-light text-gray-900">AUM</td>
-                      <td className="text-center p-8 text-gray-400">—</td>
-                      <td className="text-center p-8 bg-gray-50 text-gray-400">—</td>
-                      <td className="text-center p-8 text-gray-400">—</td>
+                      {selectedETFs.length > 0 ? (
+                        selectedETFs.map((etf, index) => (
+                          <td key={etf.symbol} className={`text-center p-8 text-gray-700 ${index % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                            {formatAssets(etf.totalasset)}
+                          </td>
+                        ))
+                      ) : (
+                        <>
+                          <td className="text-center p-8 text-gray-400">—</td>
+                          <td className="text-center p-8 bg-gray-50 text-gray-400">—</td>
+                          <td className="text-center p-8 text-gray-400">—</td>
+                        </>
+                      )}
                     </tr>
                     <tr>
                       <td className="p-8 font-light text-gray-900">Dividend Yield</td>
-                      <td className="text-center p-8 text-gray-400">—</td>
-                      <td className="text-center p-8 bg-gray-50 text-gray-400">—</td>
-                      <td className="text-center p-8 text-gray-400">—</td>
+                      {selectedETFs.length > 0 ? (
+                        selectedETFs.map((etf, index) => (
+                          <td key={etf.symbol} className={`text-center p-8 text-gray-700 ${index % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                            {formatPercentage(etf.dividends_12m)}
+                          </td>
+                        ))
+                      ) : (
+                        <>
+                          <td className="text-center p-8 text-gray-400">—</td>
+                          <td className="text-center p-8 bg-gray-50 text-gray-400">—</td>
+                          <td className="text-center p-8 text-gray-400">—</td>
+                        </>
+                      )}
                     </tr>
                   </tbody>
                 </table>
@@ -356,9 +524,19 @@ export default function ComparadorPage() {
                 <h3 className="text-xl font-light text-gray-900 mb-4">
                   Melhor Performance
                 </h3>
-                <p className="text-gray-600 font-light leading-relaxed">
-                  Selecione ETFs para ver qual apresenta melhor retorno histórico
-                </p>
+                {quickAnalysis?.bestPerformance ? (
+                  <div>
+                    <p className="font-medium text-gray-900 mb-2">{quickAnalysis.bestPerformance.symbol}</p>
+                    <p className={`text-lg font-bold ${getReturnColor(quickAnalysis.bestPerformance.returns_12m)}`}>
+                      {formatPercentage(quickAnalysis.bestPerformance.returns_12m)}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">Retorno 12 meses</p>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 font-light leading-relaxed">
+                    Selecione ETFs para ver qual apresenta melhor retorno histórico
+                  </p>
+                )}
               </div>
               
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
@@ -368,9 +546,19 @@ export default function ComparadorPage() {
                 <h3 className="text-xl font-light text-gray-900 mb-4">
                   Menor Risco
                 </h3>
-                <p className="text-gray-600 font-light leading-relaxed">
-                  Identifique o ETF com menor volatilidade e melhor gestão de risco
-                </p>
+                {quickAnalysis?.lowestRisk ? (
+                  <div>
+                    <p className="font-medium text-gray-900 mb-2">{quickAnalysis.lowestRisk.symbol}</p>
+                    <p className="text-lg font-bold text-blue-600">
+                      {formatPercentage(quickAnalysis.lowestRisk.volatility_12m)}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">Volatilidade</p>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 font-light leading-relaxed">
+                    Identifique o ETF com menor volatilidade e melhor gestão de risco
+                  </p>
+                )}
               </div>
               
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
@@ -380,9 +568,19 @@ export default function ComparadorPage() {
                 <h3 className="text-xl font-light text-gray-900 mb-4">
                   Melhor Custo-Benefício
                 </h3>
-                <p className="text-gray-600 font-light leading-relaxed">
-                  Compare expense ratios e encontre a melhor relação custo-benefício
-                </p>
+                {quickAnalysis?.bestCostBenefit ? (
+                  <div>
+                    <p className="font-medium text-gray-900 mb-2">{quickAnalysis.bestCostBenefit.symbol}</p>
+                    <p className="text-lg font-bold text-purple-600">
+                      {formatPercentage(quickAnalysis.bestCostBenefit.expense_ratio)}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">Taxa de administração</p>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 font-light leading-relaxed">
+                    Compare expense ratios e encontre a melhor relação custo-benefício
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -496,7 +694,7 @@ export default function ComparadorPage() {
           </div>
 
           {/* CTA Section */}
-          <div className="bg-gray-900 rounded-2xl p-12 text-center">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-12 text-center">
             <h2 className="text-3xl font-light text-white mb-6">
               Precisa de Ajuda na Comparação?
             </h2>

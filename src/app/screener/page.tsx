@@ -14,11 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Filter, ChevronLeft, ChevronRight, AlertCircle, Database, Target, BarChart3, TrendingUp, Eye } from "lucide-react";
 import { ETF, ETFDetails, AdvancedFilters } from "@/types/etf";
 import { Button } from "@/components/ui/button";
-import { DebugSubscription } from "@/components/screener/DebugSubscription";
-import FeatureGateDebug from '@/components/screener/FeatureGateDebug';
-import ForceRenderTest from '@/components/screener/ForceRenderTest';
-import DataFormatDebug from '@/components/screener/DataFormatDebug';
-import FinalDiagnostic from '@/components/screener/FinalDiagnostic';
+
 
 export default function ScreenerPage() {
   const [etfs, setEtfs] = useState<ETF[]>([]);
@@ -408,12 +404,7 @@ export default function ScreenerPage() {
       
         <div className="max-w-7xl mx-auto px-6 py-12">
           
-          {/* Debug Components - Remover em produção */}
-          <div className="mb-8 space-y-4">
-            <DebugSubscription />
-            <DataFormatDebug />
-            <FinalDiagnostic />
-          </div>
+
           
           {/* Header Tesla-style */}
           <div className="text-center mb-16">

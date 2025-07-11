@@ -29,18 +29,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 
 interface RankingsData {
-  top_returns_12m: ETF[];
-  top_sharpe_12m: ETF[];
-  top_dividend_yield: ETF[];
-  highest_volume: ETF[];
-  lowest_max_drawdown: ETF[];
-  lowest_volatility_12m: ETF[];
-  _metadata?: {
-    timestamp: string;
-    source: string;
-    total_categories: number;
-    total_etfs: number;
+  data: {
+    top_returns_12m: ETF[];
+    top_sharpe_12m: ETF[];
+    top_dividend_yield: ETF[];
+    highest_volume: ETF[];
+    lowest_max_drawdown: ETF[];
+    lowest_volatility_12m: ETF[];
+  };
+  metadata: {
+    total_etfs_analyzed: number;
+    categories_count: number;
+    etfs_per_category: number;
+    data_source: string;
     last_updated: string;
+    methodology: string;
+    quality_filters: {
+      minimum_assets: number;
+      data_validation: string;
+      ranking_criteria: string;
+    };
+    statistics: {
+      valid_returns_12m: number;
+      valid_sharpe_12m: number;
+      valid_dividends: number;
+      valid_volume: number;
+      valid_drawdown: number;
+      valid_volatility: number;
+    };
   };
 }
 
@@ -198,14 +214,14 @@ export default function RankingsPage() {
             </p>
             
             {/* Stats - Tesla minimalist style */}
-            {rankings?._metadata && (
+            {rankings?.metadata && (
               <div className="flex items-center justify-center gap-16 text-gray-500">
                 <div className="text-center">
-                  <div className="text-3xl font-light text-black">{rankings._metadata.total_categories}</div>
+                  <div className="text-3xl font-light text-black">{rankings.metadata.categories_count}</div>
                   <div className="text-sm uppercase tracking-wide">Categories</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-light text-black">{rankings._metadata.total_etfs}</div>
+                  <div className="text-3xl font-light text-black">{rankings.metadata.total_etfs_analyzed}</div>
                   <div className="text-sm uppercase tracking-wide">ETFs Analyzed</div>
                 </div>
                 <div className="text-center">
@@ -222,7 +238,7 @@ export default function RankingsPage() {
           <div className="max-w-7xl mx-auto px-6 py-24">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {Object.entries(RANKING_CATEGORIES).map(([key, category]) => {
-                const data = rankings?.[key as keyof RankingsData] as ETF[] || [];
+                const data = rankings?.data?.[key as keyof typeof rankings.data] as ETF[] || [];
                 const hasData = data && data.length > 0;
                 
                 return (
@@ -313,7 +329,7 @@ export default function RankingsPage() {
                 
                 {/* Full Rankings List */}
                 <div className="space-y-4">
-                  {(rankings[selectedCategory as keyof RankingsData] as ETF[])?.map((etf, index) => (
+                  {(rankings.data?.[selectedCategory as keyof typeof rankings.data] as ETF[])?.map((etf, index) => (
                     <div key={etf.symbol} className="flex items-center justify-between py-6 border-b border-gray-100 last:border-0">
                       <div className="flex items-center gap-6">
                         <div className={`w-12 h-12 flex items-center justify-center text-lg font-light ${
