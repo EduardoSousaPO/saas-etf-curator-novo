@@ -84,7 +84,7 @@ export async function GET(
         { status: 404 }
       );
     }
-    
+
     console.log(`✅ ETF encontrado: ${etfDetails.symbol}`);
 
     // Mapear campos para compatibilidade com o frontend

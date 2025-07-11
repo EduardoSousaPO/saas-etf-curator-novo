@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
     const volatility5yMax = parseFloat(searchParams.get('volatility_5y_max') || '0') || null;
     const volatility10yMin = parseFloat(searchParams.get('volatility_10y_min') || '0') || null;
     const volatility10yMax = parseFloat(searchParams.get('volatility_10y_max') || '0') || null;
-    
+
     // Filtros Sharpe - todos os períodos
     const sharpe12mMin = parseFloat(searchParams.get('sharpe_12m_min') || '0') || null;
     const sharpe12mMax = parseFloat(searchParams.get('sharpe_12m_max') || '0') || null;

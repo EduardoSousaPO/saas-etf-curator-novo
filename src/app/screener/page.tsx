@@ -374,6 +374,12 @@ export default function ScreenerPage() {
     setCurrentPage(1); // Reset para primeira página
   };
 
+  const handleSortChange = (sortBy: string, sortOrder: string) => {
+    setSortBy(sortBy);
+    setSortOrder(sortOrder as "asc" | "desc");
+    setCurrentPage(1); // Reset para primeira página
+  };
+
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1); // Reset para primeira página quando muda itens por página
@@ -456,13 +462,14 @@ export default function ScreenerPage() {
 
           {/* Sistema de Filtros Avançados */}
           <div className="mb-8">
-            <Filters
+                <Filters 
               filters={filters}
               onFiltersChange={handleFilterChange}
               onSearch={handleSearch}
+              onSortChange={handleSortChange}
               isLoading={loading}
               totalResults={totalETFs}
-            />
+                />
           </div>
 
           {/* Alertas */}
@@ -483,11 +490,11 @@ export default function ScreenerPage() {
               </Badge>
               {remainingQueries !== null && (
                 <Badge variant="secondary" className="text-sm">
-                  {remainingQueries} consultas restantes
-                </Badge>
+                    {remainingQueries} consultas restantes
+                  </Badge>
               )}
             </div>
-            
+
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Itens por página:</span>
               <select
@@ -500,28 +507,28 @@ export default function ScreenerPage() {
                 <option value={50}>50</option>
                 <option value={100}>100</option>
               </select>
-            </div>
-          </div>
+                </div>
+              </div>
 
-          {/* Tabela de ETFs */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <ETFTable
-              etfs={etfs}
+            {/* Tabela de ETFs */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <ETFTable 
+                    etfs={etfs}
               loading={loading}
               onSort={handleSort}
               sortBy={sortBy}
               sortOrder={sortOrder}
-              onETFClick={handleETFClick}
+                    onETFClick={handleETFClick}
               expandedETF={expandedETF}
             />
-          </div>
-
+                </div>
+                
           {/* Card de Detalhes */}
           {expandedETF && etfDetails && (
             <div className="mt-8">
-              <ETFDetailCard
-                etf={etfDetails}
-                onClose={handleCloseDetails}
+                  <ETFDetailCard 
+                    etf={etfDetails}
+                    onClose={handleCloseDetails}
                 loading={loadingDetails}
               />
             </div>
@@ -572,17 +579,17 @@ export default function ScreenerPage() {
                 )}
               </div>
               
-              <Button
-                variant="outline"
+                  <Button 
+                    variant="outline" 
                 size="sm"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages || loading}
-              >
+                  >
                 Próxima
                 <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+                  </Button>
+              </div>
+            )}
         </div>
       </div>
     </RequireAuth>

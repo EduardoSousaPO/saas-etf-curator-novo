@@ -135,20 +135,20 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
               <div className="p-3 bg-blue-100 rounded-lg">
                 <PieChart className="w-8 h-8 text-blue-600" />
               </div>
-              <div>
+          <div>
                 <h2 className="text-3xl font-bold text-gray-900">{etf.symbol}</h2>
                 <p className="text-lg text-gray-600 mt-1">{etf.name || "Nome não disponível"}</p>
                 {etf.description && (
                   <p className="text-sm text-gray-500 mt-2 max-w-2xl">{etf.description}</p>
                 )}
               </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
           </div>
           
           {/* Badges de Categoria */}
@@ -165,7 +165,7 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
         <div className="p-6 space-y-8">
           {/* Seção 1: Informações Básicas e Financeiras */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Informações Básicas */}
+          {/* Informações Básicas */}
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-gray-900 flex items-center border-b pb-2">
                 <Building2 className="w-5 h-5 mr-2" />
@@ -199,7 +199,7 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                     <div className="flex items-center space-x-2">
                       <Globe className="w-4 h-4 text-gray-500" />
                       <span className="text-sm text-gray-600">Website</span>
-                    </div>
+                </div>
                     <a 
                       href={etf.website} 
                       target="_blank" 
@@ -208,7 +208,7 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                     >
                       <ExternalLink className="w-4 h-4" />
                     </a>
-                  </div>
+                </div>
                 )}
               </div>
             </div>
@@ -268,7 +268,7 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
               <h3 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
                 <DollarSign className="w-5 h-5 mr-2" />
                 Distribuições e Dividendos
-              </h3>
+            </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
                   <MetricItem 
@@ -278,7 +278,7 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                     fieldName="dividend_yield"
                     showTrend={true}
                   />
-                </div>
+                  </div>
                 <div className="space-y-3">
                   <h4 className="font-semibold text-gray-900">Histórico de Dividendos</h4>
                   {dividendData.map((item, index) => (
@@ -286,12 +286,12 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                       <div key={index} className="flex justify-between text-sm">
                         <span className="text-gray-600">{item.period}:</span>
                         <span className="font-mono">{formatPercentage(item.amount)}</span>
-                      </div>
+                  </div>
                     )
                   ))}
                 </div>
               </div>
-            </div>
+                  </div>
           )}
 
           {/* Seção 4: Classificações e Ratings */}
@@ -309,8 +309,8 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                 {etf.liquidity_rating && (
                   <CategoryBadge label="Rating de Liquidez" value={etf.liquidity_rating} color="bg-blue-100 text-blue-800" />
                 )}
+                </div>
               </div>
-            </div>
 
             {/* Informações Técnicas */}
             <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-6 rounded-xl">
@@ -347,7 +347,7 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
               <h3 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
                 <PieChart className="w-5 h-5 mr-2" />
                 Composição Setorial
-              </h3>
+            </h3>
               <div className="bg-white p-4 rounded-lg">
                 <pre className="text-sm text-gray-700 whitespace-pre-wrap">
                   {JSON.stringify(etf.sectorslist, null, 2)}
@@ -360,7 +360,7 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
           <div className="border-t pt-6 flex justify-between items-center">
             <div className="text-sm text-gray-500">
               Dados atualizados em: {etf.updatedat ? formatDate(etf.updatedat) : 'N/A'}
-            </div>
+              </div>
             <div className="flex space-x-3">
               {etf.website && (
                 <a
