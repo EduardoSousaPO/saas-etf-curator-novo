@@ -60,7 +60,7 @@ const METRIC_EXPLANATIONS: Record<string, MetricExplanation> = {
     example: 'Yield de 4% = a cada R$ 100, você recebe R$ 4 por ano.',
     formula: 'Dividendos Anuais / Preço Atual × 100'
   },
-  total_assets: {
+  totalasset: {
     title: 'Patrimônio Líquido',
     explanation: 'Valor total dos ativos sob gestão do ETF.',
     example: 'Maior patrimônio geralmente indica maior liquidez.',

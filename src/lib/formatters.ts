@@ -95,6 +95,17 @@ export const formatNumber = (value: number | null | undefined, decimals: number 
 };
 
 /**
+ * Alias para formatNumber - usado nas APIs
+ * @param value - Valor numérico
+ * @param decimals - Número de casas decimais
+ * @returns Número formatado
+ */
+export const formatNumeric = (value: number | null | undefined, decimals: number = 2): number | null => {
+  if (value === null || value === undefined || isNaN(Number(value))) return null;
+  return Number(Number(value).toFixed(decimals));
+};
+
+/**
  * Formata volume de negociação
  * @param value - Volume em unidades
  * @returns String formatada com sufixo (M/K)
@@ -118,15 +129,105 @@ export const formatVolume = (value: number | null | undefined): string => {
  * @param date - Data em string ou Date
  * @returns String formatada em pt-BR
  */
-export const formatDate = (date: string | Date | null | undefined): string => {
-  if (!date) return 'N/A';
+export const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return 'N/A';
   
   try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleDateString('pt-BR');
-  } catch {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    
+    return date.toLocaleDateString('pt-BR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (error) {
     return 'N/A';
   }
+};
+
+/**
+ * Formata data e hora
+ * @param dateString - Data em string ou Date
+ * @returns String formatada em pt-BR
+ */
+export const formatDateTime = (dateString: string | null | undefined): string => {
+  if (!dateString) return 'N/A';
+  
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    
+    return date.toLocaleDateString('pt-BR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    return 'N/A';
+  }
+};
+
+/**
+ * Formata tempo relativo (ex: "há 2 dias")
+ * @param dateString - Data em string ou Date
+ * @returns String formatada
+ */
+export const formatRelativeTime = (dateString: string | null | undefined): string => {
+  if (!dateString) return 'N/A';
+  
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Agora mesmo';
+    if (diffInSeconds < 3600) return `Há ${Math.floor(diffInSeconds / 60)} min`;
+    if (diffInSeconds < 86400) return `Há ${Math.floor(diffInSeconds / 3600)} h`;
+    if (diffInSeconds < 2592000) return `Há ${Math.floor(diffInSeconds / 86400)} dias`;
+    if (diffInSeconds < 31536000) return `Há ${Math.floor(diffInSeconds / 2592000)} meses`;
+    
+    return `Há ${Math.floor(diffInSeconds / 31536000)} anos`;
+  } catch (error) {
+    return 'N/A';
+  }
+};
+
+/**
+ * Formata ISIN/CUSIP
+ * @param code - Código ISIN ou CUSIP
+ * @returns String formatado
+ */
+export const formatSecurityCode = (code: string | null | undefined): string => {
+  if (!code) return 'N/A';
+  
+  // Formatar ISIN (12 caracteres) com espaços
+  if (code.length === 12) {
+    return `${code.slice(0, 2)} ${code.slice(2, 6)} ${code.slice(6, 9)} ${code.slice(9)}`;
+  }
+  
+  // Formatar CUSIP (9 caracteres) com espaços
+  if (code.length === 9) {
+    return `${code.slice(0, 3)} ${code.slice(3, 6)} ${code.slice(6)}`;
+  }
+  
+  return code;
+};
+
+/**
+ * Formata website
+ * @param website - URL do website
+ * @returns String formatado
+ */
+export const formatWebsite = (website: string | null | undefined): string => {
+  if (!website) return 'N/A';
+  
+  // Remover protocolo para exibição mais limpa
+  return website.replace(/^https?:\/\//, '').replace(/^www\./, '');
 };
 
 /**
@@ -139,6 +240,112 @@ export const getValueColor = (value: number | null | undefined): string => {
   if (value > 0) return 'text-green-600';
   if (value < 0) return 'text-red-600';
   return 'text-gray-600';
+};
+
+/**
+ * Função para determinar cor baseada na categoria de tamanho
+ * @param category - Categoria de tamanho (ex: "Large", "Medium", "Small")
+ * @returns Classe CSS para a cor
+ */
+export const getSizeCategoryColor = (category: string | null): string => {
+  if (!category) return 'bg-gray-100 text-gray-800';
+  
+  const lowerCategory = category.toLowerCase();
+  
+  if (lowerCategory.includes('large') || lowerCategory.includes('grande')) {
+    return 'bg-green-100 text-green-800';
+  }
+  if (lowerCategory.includes('medium') || lowerCategory.includes('médio')) {
+    return 'bg-yellow-100 text-yellow-800';
+  }
+  if (lowerCategory.includes('small') || lowerCategory.includes('pequeno')) {
+    return 'bg-orange-100 text-orange-800';
+  }
+  
+  return 'bg-gray-100 text-gray-800';
+};
+
+/**
+ * Função para determinar cor baseada na categoria de liquidez
+ * @param category - Categoria de liquidez (ex: "High", "Medium", "Low")
+ * @returns Classe CSS para a cor
+ */
+export const getLiquidityCategoryColor = (category: string | null): string => {
+  if (!category) return 'bg-gray-100 text-gray-800';
+  
+  const lowerCategory = category.toLowerCase();
+  
+  if (lowerCategory.includes('high') || lowerCategory.includes('alta')) {
+    return 'bg-green-100 text-green-800';
+  }
+  if (lowerCategory.includes('medium') || lowerCategory.includes('média')) {
+    return 'bg-yellow-100 text-yellow-800';
+  }
+  if (lowerCategory.includes('low') || lowerCategory.includes('baixa')) {
+    return 'bg-red-100 text-red-800';
+  }
+  
+  return 'bg-gray-100 text-gray-800';
+};
+
+/**
+ * Função para determinar cor baseada no rating
+ * @param rating - Rating (ex: "A", "B", "C", "D")
+ * @returns Classe CSS para a cor
+ */
+export const getRatingColor = (rating: string | null): string => {
+  if (!rating) return 'bg-gray-100 text-gray-800';
+  
+  const lowerRating = rating.toLowerCase();
+  
+  if (lowerRating.includes('a') || lowerRating.includes('excellent') || lowerRating.includes('excelente')) {
+    return 'bg-green-100 text-green-800';
+  }
+  if (lowerRating.includes('b') || lowerRating.includes('good') || lowerRating.includes('bom')) {
+    return 'bg-blue-100 text-blue-800';
+  }
+  if (lowerRating.includes('c') || lowerRating.includes('average') || lowerRating.includes('médio')) {
+    return 'bg-yellow-100 text-yellow-800';
+  }
+  if (lowerRating.includes('d') || lowerRating.includes('poor') || lowerRating.includes('ruim')) {
+    return 'bg-red-100 text-red-800';
+  }
+  
+  return 'bg-gray-100 text-gray-800';
+};
+
+/**
+ * Formata setor/composição
+ * @param sectorData - Dados do setor (pode ser um objeto JSON ou string)
+ * @returns String formatado
+ */
+export const formatSectorData = (sectorData: any): string => {
+  if (!sectorData) return 'N/A';
+  
+  if (typeof sectorData === 'string') {
+    try {
+      const parsed = JSON.parse(sectorData);
+      return formatSectorData(parsed);
+    } catch {
+      return sectorData;
+    }
+  }
+  
+  if (typeof sectorData === 'object') {
+    if (Array.isArray(sectorData)) {
+      return sectorData.map(item => 
+        typeof item === 'object' ? 
+          `${item.name || item.sector}: ${formatPercentage(item.percentage || item.weight)}` :
+          item.toString()
+      ).join(', ');
+    }
+    
+    return Object.entries(sectorData)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(', ');
+  }
+  
+  return sectorData.toString();
 };
 
 /**
@@ -170,39 +377,57 @@ export const formatMetric = (value: number | null | undefined, type: MetricType)
 /**
  * Mapa de tipos de métricas para facilitar formatação
  */
-export const METRIC_TYPES: Record<string, MetricType> = {
+export const METRIC_TYPES = {
   // Retornos
-  returns_12m: 'percentage',
-  returns_24m: 'percentage',
-  returns_36m: 'percentage',
-  returns_5y: 'percentage',
-  ten_year_return: 'percentage',
+  returns_12m: 'percentage' as const,
+  returns_24m: 'percentage' as const,
+  returns_36m: 'percentage' as const,
+  returns_5y: 'percentage' as const,
+  ten_year_return: 'percentage' as const,
   
   // Volatilidade
-  volatility_12m: 'percentage',
-  volatility_24m: 'percentage',
-  volatility_36m: 'percentage',
-  ten_year_volatility: 'percentage',
+  volatility_12m: 'percentage' as const,
+  volatility_24m: 'percentage' as const,
+  volatility_36m: 'percentage' as const,
+  ten_year_volatility: 'percentage' as const,
   
   // Sharpe (NÃO é percentual)
-  sharpe_12m: 'sharpe',
-  sharpe_24m: 'sharpe',
-  sharpe_36m: 'sharpe',
-  ten_year_sharpe: 'sharpe',
+  sharpe_12m: 'sharpe' as const,
+  sharpe_24m: 'sharpe' as const,
+  sharpe_36m: 'sharpe' as const,
+  ten_year_sharpe: 'sharpe' as const,
   
   // Dividendos - CORRIGIDO: dividends_12m é percentual, não currency
-  dividend_yield: 'percentage',
-  dividends_12m: 'percentage', // CORRIGIDO: era currency, agora é percentage
-  dividends_24m: 'percentage', // CORRIGIDO: era currency, agora é percentage
-  dividends_36m: 'percentage', // CORRIGIDO: era currency, agora é percentage
-  dividends_all_time: 'percentage', // CORRIGIDO: era currency, agora é percentage
+  dividend_yield: 'percentage' as const,
+  dividends_12m: 'percentage' as const, // CORRIGIDO: era currency, agora é percentage
+  dividends_24m: 'percentage' as const, // CORRIGIDO: era currency, agora é percentage
+  dividends_36m: 'percentage' as const, // CORRIGIDO: era currency, agora é percentage
+  dividends_all_time: 'percentage' as const, // CORRIGIDO: era currency, agora é percentage
   
   // Outros
-  expense_ratio: 'percentage_already', // Expense ratio já vem em formato percentual
-  total_assets: 'currency',
-  volume: 'volume',
-  max_drawdown: 'percentage',
-  beta: 'number',
-  pe_ratio: 'number',
-  pb_ratio: 'number',
-}; 
+  expense_ratio: 'percentage_already' as const, // Expense ratio já vem em formato percentual
+  totalasset: 'currency' as const,
+  volume: 'volume' as const,
+  max_drawdown: 'percentage' as const,
+  beta: 'number' as const,
+  pe_ratio: 'number' as const,
+  pb_ratio: 'number' as const,
+  
+  // Novos tipos para campos adicionais
+  'isin': 'text' as const,
+  'securitycusip': 'text' as const,
+  'domicile': 'text' as const,
+  'website': 'text' as const,
+  'navcurrency': 'text' as const,
+  'size_category': 'text' as const,
+  'liquidity_category': 'text' as const,
+  'etf_type': 'text' as const,
+  'liquidity_rating': 'text' as const,
+  'size_rating': 'text' as const,
+  'sectorslist': 'text' as const,
+  'updatedat': 'date' as const,
+  'inceptiondate': 'date' as const,
+  'inception_date': 'date' as const,
+  
+  // Performance adicional (removidas duplicatas)
+} as const; 

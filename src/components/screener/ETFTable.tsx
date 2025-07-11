@@ -18,18 +18,22 @@ import { ETF } from "@/types/etf";
 // Interface correta das props
 interface ETFTableProps {
   etfs: ETF[];
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
+  loading?: boolean;
+  onSort?: (field: string, order: string) => void;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
   onETFClick?: (symbol: string) => void;
+  expandedETF?: string | null;
 }
 
 const ETFTable: React.FC<ETFTableProps> = ({
   etfs,
-  currentPage,
-  totalPages,
-  onPageChange,
+  loading = false,
+  onSort,
+  sortBy,
+  sortOrder,
   onETFClick,
+  expandedETF,
 }) => {
   const tableRef = useRef<HTMLDivElement>(null);
 
@@ -38,6 +42,16 @@ const ETFTable: React.FC<ETFTableProps> = ({
       onETFClick(symbol);
     }
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Carregando ETFs...</p>
+      </div>
+    );
+  }
 
   // Se não houver dados, mostrar mensagem
   if (!etfs || etfs.length === 0) {
@@ -49,7 +63,7 @@ const ETFTable: React.FC<ETFTableProps> = ({
     { key: "symbol", label: "Símbolo" },
     { key: "name", label: "Nome" },
     { key: "assetclass", label: "Asset Class" },
-    { key: "total_assets", label: "Total Assets (M)", numeric: true },
+    { key: "totalasset", label: "Total Assets (M)", numeric: true },
     { key: "returns_12m", label: "Retorno 12m", numeric: true },
     { key: "sharpe_12m", label: "Sharpe 12m", numeric: true },
     { key: "dividend_yield", label: "Dividendos 12m", numeric: true },
@@ -68,7 +82,7 @@ const ETFTable: React.FC<ETFTableProps> = ({
     
     // Para colunas específicas não mapeadas
     switch (columnKey) {
-      case 'total_assets':
+      case 'totalasset':
         return formatCurrency(value);
       case 'dividend_yield':
         return formatPercentage(value);
@@ -118,32 +132,7 @@ const ETFTable: React.FC<ETFTableProps> = ({
         </Table>
       </div>
 
-      {/* Paginação */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between space-x-2 py-4">
-          <div className="text-sm text-gray-600">
-            Página {currentPage} de {totalPages}
-          </div>
-          <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage <= 1}
-            >
-              Anterior
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage >= totalPages}
-            >
-              Próxima
-            </Button>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

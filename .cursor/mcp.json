@@ -16,6 +16,20 @@
     "excel": {
       "command": "npx",
       "args": ["-y", "excel-mcp-server"]
+    },
+    "raygun-mcp-server": {
+      "command": "node",
+      "args": ["raygun-mcp-server.js"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    "vector-search-mcp-server": {
+      "command": "node", 
+      "args": ["vector-search-mcp-server.js"],
+      "env": {
+        "NODE_ENV": "development"
+      }
     }
   }
 } 

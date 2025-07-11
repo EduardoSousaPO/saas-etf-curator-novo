@@ -183,20 +183,40 @@ export function useSubscription(): UseSubscriptionReturn {
     // Verificação baseada no plano atual (mais confiável)
     const planBasedAccess = getPlanBasedAccess(currentPlan, featureKey);
     
-
+    // DEBUG: Log para identificar problemas
+    console.log(`🔍 canAccessFeature DEBUG:`, {
+      featureKey,
+      currentPlan,
+      planBasedAccess,
+      featuresLength: features.length,
+      subscription: subscription?.plan,
+      userId: user?.id
+    });
     
     // Se temos features carregadas, usar elas
     if (features.length > 0) {
       const feature = features.find(f => f.feature_key === featureKey);
       const result = feature?.is_enabled ?? planBasedAccess;
+      
+      console.log(`✅ Feature found in DB:`, {
+        featureKey,
+        found: !!feature,
+        enabled: feature?.is_enabled,
+        finalResult: result
+      });
 
       return result;
     }
     
     // Fallback para verificação baseada no plano
+    console.log(`⚠️ Using plan-based fallback:`, {
+      featureKey,
+      currentPlan,
+      planBasedAccess
+    });
 
     return planBasedAccess;
-  }, [features, currentPlan]);
+  }, [features, currentPlan, subscription, user?.id]);
 
   // Verificar se atingiu limite
   const hasReachedLimit = useCallback(async (
@@ -229,7 +249,17 @@ export function useSubscription(): UseSubscriptionReturn {
 
   // Atualizar dados da assinatura
   const refreshSubscription = useCallback(async () => {
+    console.log('🔄 Forçando refresh da assinatura...');
+    
+    // Limpar estados locais
+    setSubscription(null);
+    setFeatures([]);
+    setUsageLimits(null);
+    
+    // Recarregar dados
     await loadSubscriptionData();
+    
+    console.log('✅ Refresh da assinatura concluído');
   }, [loadSubscriptionData]);
 
   // Criar onboarding Wealth
