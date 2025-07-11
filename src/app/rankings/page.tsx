@@ -1,23 +1,32 @@
 // src/app/rankings/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { ETF } from "../../types";
 import Navbar from "@/components/layout/Navbar";
 import RequireAuth from "@/components/auth/RequireAuth";
-
 import { toast } from "react-hot-toast";
-import { TrendingUp, Award, DollarSign, BarChart3, Volume2, Shield, Activity, Info, CheckCircle, Clock, Database, Target } from "lucide-react";
-import { Badge } from '@/components/ui/badge';
 import { 
-  TrendingDown, 
-  Trophy, 
+  TrendingUp, 
+  Award, 
+  DollarSign, 
+  BarChart3, 
+  Volume2, 
+  Shield, 
+  Star,
+  Info,
+  ChevronRight,
+  Trophy,
+  Target,
+  Zap,
+  TrendingDown,
+  HelpCircle,
   ArrowUp,
-  ArrowDown,
-  Filter,
-  Search,
-  Eye
-} from 'lucide-react';
+  ArrowDown
+} from "lucide-react";
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface RankingsData {
   top_returns_12m: ETF[];
@@ -32,37 +41,81 @@ interface RankingsData {
     total_categories: number;
     total_etfs: number;
     last_updated: string;
-    performance: string;
-    methodology?: {
-      description: string;
-      ranking_criteria: Record<string, string>;
-      percentile_system: string;
-      data_filters: string;
-      update_frequency: string;
-    };
-    dataQuality?: {
-      totalRawData: number;
-      validData: number;
-      outliersRemoved: number;
-      filterEfficiency: string;
-      qualityByCategory?: Record<string, any>;
-    };
-    universeStats?: Record<string, number>;
-    validationCriteria?: Record<string, string>;
   };
 }
+
+// Configuração das categorias com design Tesla - sem emojis, linguagem limpa
+const RANKING_CATEGORIES = {
+  top_returns_12m: {
+    title: "Best Performance",
+    subtitle: "Highest 12-month returns",
+    description: "ETFs with the strongest performance over the past 12 months",
+    icon: TrendingUp,
+    valueKey: "returns_12m",
+    valueFormatter: (value: number) => `+${value.toFixed(2)}%`,
+    explanation: "12-month return percentage"
+  },
+  top_sharpe_12m: {
+    title: "Risk-Adjusted Returns",
+    subtitle: "Optimal risk-return ratio",
+    description: "ETFs delivering superior returns relative to risk taken",
+    icon: Star,
+    valueKey: "sharpe_12m",
+    valueFormatter: (value: number) => value.toFixed(2),
+    explanation: "Sharpe ratio measures return per unit of risk"
+  },
+  top_dividend_yield: {
+    title: "Income Generation",
+    subtitle: "Highest dividend yields",
+    description: "ETFs providing consistent dividend income",
+    icon: DollarSign,
+    valueKey: "dividend_yield",
+    valueFormatter: (value: number) => `${value.toFixed(2)}%`,
+    explanation: "Annual dividend yield percentage"
+  },
+  highest_volume: {
+    title: "Market Liquidity",
+    subtitle: "Most traded ETFs",
+    description: "ETFs with highest trading volume and liquidity",
+    icon: Volume2,
+    valueKey: "avgvolume",
+    valueFormatter: (value: number) => {
+      if (value >= 1000000000) return `${(value / 1000000000).toFixed(1)}B`;
+      if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+      if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+      return value.toLocaleString();
+    },
+    explanation: "Average daily trading volume"
+  },
+  lowest_max_drawdown: {
+    title: "Downside Protection",
+    subtitle: "Lowest maximum drawdown",
+    description: "ETFs with minimal peak-to-trough decline",
+    icon: Shield,
+    valueKey: "max_drawdown",
+    valueFormatter: (value: number) => `${Math.abs(value).toFixed(2)}%`,
+    explanation: "Maximum decline from peak to trough"
+  },
+  lowest_volatility_12m: {
+    title: "Price Stability",
+    subtitle: "Lowest volatility",
+    description: "ETFs with most consistent price movements",
+    icon: BarChart3,
+    valueKey: "volatility_12m",
+    valueFormatter: (value: number) => `${value.toFixed(2)}%`,
+    explanation: "12-month price volatility"
+  }
+};
 
 export default function RankingsPage() {
   const [rankings, setRankings] = useState<RankingsData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [showMethodology, setShowMethodology] = useState<boolean>(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRankings = async () => {
       try {
-    
-        
         const response = await fetch('/api/etfs/rankings');
         
         if (!response.ok) {
@@ -70,15 +123,13 @@ export default function RankingsPage() {
         }
         
         const data = await response.json();
-        
-        
         setRankings(data);
         setError(null);
         
       } catch (err) {
-        console.error('❌ Erro ao buscar rankings:', err);
-        setError(err instanceof Error ? err.message : 'Erro desconhecido');
-        toast.error('Erro ao carregar rankings');
+        console.error('Error loading rankings:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        toast.error('Error loading rankings');
       } finally {
         setLoading(false);
       }
@@ -87,218 +138,44 @@ export default function RankingsPage() {
     fetchRankings();
   }, []);
 
-  // Função para formatar valores monetários (não utilizada atualmente)
-  // const formatCurrency = (value: number | null | undefined): string => {
-  //   if (value === null || value === undefined || isNaN(value)) return 'N/A';
-  //   return new Intl.NumberFormat('pt-BR', {
-  //     style: 'currency',
-  //     currency: 'USD',
-  //     minimumFractionDigits: 2,
-  //     maximumFractionDigits: 2
-  //   }).format(value);
-  // };
-
-  // Função para formatar valores grandes (volume, etc.)
-  const formatLargeNumber = (value: number | null | undefined): string => {
-    if (value === null || value === undefined || isNaN(value)) return 'N/A';
-    
-    if (value >= 1000000000) {
-      return `${(value / 1000000000).toFixed(1)}B`;
-    } else if (value >= 1000000) {
-      return `${(value / 1000000).toFixed(1)}M`;
-    } else if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)}K`;
-    }
-    return value.toLocaleString('pt-BR');
-  };
-
-  // Função para formatar números genéricos (ex: Sharpe Ratio)
-  const formatNumber = (value: number | string | null | undefined): string => {
-    if (value === null || value === undefined) return 'N/A';
-    const num = Number(value);
-    if (isNaN(num)) return 'N/A';
-    return num.toFixed(2);
-  };
-
-  // Função para formatar percentuais
-  const formatPercentage = (value: number | null | undefined): string => {
-    if (value === null || value === undefined) return 'N/A';
-    
-    // Garantir que o valor é um número válido
-    const numValue = Number(value);
-    if (isNaN(numValue)) return 'N/A';
-    
-    // Os dados já vêm em formato percentual do banco
-    return `${numValue.toFixed(2)}%`;
-  };
-
-  // Função para obter cor baseada no valor
-  const getValueColor = (value: number | null | undefined, isPositiveBetter: boolean = true): string => {
-    if (value === null || value === undefined || isNaN(value)) return 'text-gray-500';
-    
-    if (isPositiveBetter) {
-      return value >= 0 ? 'text-green-600' : 'text-red-600';
-    } else {
-      return value <= 0 ? 'text-green-600' : 'text-red-600';
-    }
-  };
-
-  // Função para obter badge de qualidade baseado no percentil
-  const getQualityBadge = (rank: number) => {
-    if (rank <= 2) return { label: 'Elite', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
-    if (rank <= 5) return { label: 'Excelente', color: 'bg-green-100 text-green-800 border-green-200' };
-    return { label: 'Selecionado', color: 'bg-blue-100 text-blue-800 border-blue-200' };
-  };
-
-  // Componente para renderizar uma tabela de ranking minimalista
-  const RankingTable = ({ 
-    title, 
-    data, 
-    icon, 
-    valueKey, 
-    valueFormatter, 
-    description 
-  }: {
-    title: string;
-    data: ETF[];
-    icon: React.ReactNode;
-    valueKey: keyof ETF;
-    valueFormatter: (value: any) => string;
-    description: string;
-  }) => (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      {/* Header mais limpo */}
-      <div className="px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            {icon}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-              <p className="text-xs text-gray-500">Top {data.length} ETFs</p>
-            </div>
-          </div>
-          <div className="text-xs text-green-600 font-medium">✓ Validado</div>
-        </div>
-      </div>
-      
-      {/* Tabela minimalista */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">#</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETF</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {data.map((etf, index) => {
-              const percentile = Math.round(((10 - index) / 10) * 100);
-              
-              return (
-                <tr key={etf.symbol} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center space-x-2">
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                        index === 0 ? 'bg-yellow-500' :
-                        index === 1 ? 'bg-gray-400' :
-                        index === 2 ? 'bg-orange-500' :
-                        'bg-blue-500'
-                      }`}>
-                        {index + 1}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div>
-                      <div className="font-semibold text-gray-900">{etf.symbol}</div>
-                      <div className="text-sm text-gray-500 truncate max-w-xs">
-                        {etf.name || 'Nome não disponível'}
-                      </div>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <span className="text-xs text-gray-400">{etf.assetclass}</span>
-                        {etf.expense_ratio && (
-                          <span className="text-xs text-gray-400">
-                            • {(etf.expense_ratio * 100).toFixed(2)}%
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div>
-                      <div className={`font-bold text-lg ${
-                        valueKey === 'returns_12m' ? getValueColor(etf[valueKey] as number) :
-                        valueKey === 'max_drawdown' ? getValueColor(etf[valueKey] as number, false) :
-                        'text-gray-900'
-                      }`}>
-                        {valueFormatter(etf[valueKey])}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        Top {percentile}%
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
+  // Loading state - Tesla style
   if (loading) {
     return (
       <RequireAuth>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-white">
           <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-2 text-gray-600">Carregando rankings...</p>
+          <div className="max-w-7xl mx-auto px-6 py-24">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-black border-t-transparent mx-auto mb-8"></div>
+              <p className="text-lg text-gray-600">Loading rankings...</p>
+            </div>
           </div>
-        </div>
         </div>
       </RequireAuth>
     );
   }
 
+  // Error state - Tesla style
   if (error) {
     return (
       <RequireAuth>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-white">
           <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center py-12">
-            <div className="text-red-600 mb-4">
-              <BarChart3 className="mx-auto h-12 w-12" />
+          <div className="max-w-7xl mx-auto px-6 py-24">
+            <div className="text-center">
+              <div className="text-red-500 mb-8">
+                <TrendingDown className="h-12 w-12 mx-auto" />
+              </div>
+              <h2 className="text-2xl font-light text-black mb-4">Unable to load rankings</h2>
+              <p className="text-lg text-gray-600 mb-8">{error}</p>
+              <Button 
+                onClick={() => window.location.reload()}
+                className="bg-black text-white px-8 py-3 rounded-none hover:bg-gray-800"
+              >
+                Try Again
+              </Button>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Erro ao carregar rankings</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-            >
-              Tentar novamente
-            </button>
           </div>
-        </div>
-        </div>
-      </RequireAuth>
-    );
-  }
-
-  if (!rankings) {
-    return (
-      <RequireAuth>
-        <div className="min-h-screen bg-gray-50">
-          <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center py-12">
-            <p className="text-gray-600">Nenhum dado de ranking disponível</p>
-          </div>
-        </div>
         </div>
       </RequireAuth>
     );
@@ -306,457 +183,185 @@ export default function RankingsPage() {
 
   return (
     <RequireAuth>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         <Navbar />
-      
-        <div className="max-w-6xl mx-auto px-6 py-20">
-          
-          {/* Header */}
-          <div className="text-center mb-20">
-            <h1 className="text-6xl md:text-7xl font-light text-gray-900 mb-8 leading-tight">
-              Rankings
-              <span className="block text-blue-600">de ETFs</span>
+        
+        {/* Hero Section - Tesla style */}
+        <div className="bg-white">
+          <div className="max-w-7xl mx-auto px-6 py-24 text-center">
+            <h1 className="text-6xl font-light text-black mb-6 tracking-tight">
+              ETF Rankings
             </h1>
-            <p className="text-xl font-light text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Descubra os ETFs com melhor performance, menor risco e melhores métricas 
-              baseado em análise quantitativa de mais de 1.370 ETFs.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-16 leading-relaxed">
+              Discover top-performing ETFs across key performance metrics. 
+              Data-driven insights to guide your investment decisions.
             </p>
+            
+            {/* Stats - Tesla minimalist style */}
+            {rankings?._metadata && (
+              <div className="flex items-center justify-center gap-16 text-gray-500">
+                <div className="text-center">
+                  <div className="text-3xl font-light text-black">{rankings._metadata.total_categories}</div>
+                  <div className="text-sm uppercase tracking-wide">Categories</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-light text-black">{rankings._metadata.total_etfs}</div>
+                  <div className="text-sm uppercase tracking-wide">ETFs Analyzed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-light text-black">Live</div>
+                  <div className="text-sm uppercase tracking-wide">Data</div>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Filter Section */}
-          <div className="mb-20">
-            <h2 className="text-3xl font-light text-gray-900 mb-12">
-              Filtros e Categorias
-            </h2>
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="space-y-4">
-                  <label className="text-sm font-light text-gray-700">Categoria</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-gray-200 font-light focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option>Todos os ETFs</option>
-                    <option>Large Cap</option>
-                    <option>Technology</option>
-                    <option>Bonds</option>
-                    <option>International</option>
-                    <option>Dividend</option>
-                  </select>
+        {/* Categories Grid - Tesla card style */}
+        <div className="bg-gray-50">
+          <div className="max-w-7xl mx-auto px-6 py-24">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {Object.entries(RANKING_CATEGORIES).map(([key, category]) => {
+                const data = rankings?.[key as keyof RankingsData] as ETF[] || [];
+                const hasData = data && data.length > 0;
+                
+                return (
+                  <div 
+                    key={key} 
+                    className="bg-white cursor-pointer transition-all duration-300 hover:shadow-lg group"
+                    onClick={() => setSelectedCategory(selectedCategory === key ? null : key)}
+                  >
+                    {/* Card Header */}
+                    <div className="p-8 border-b border-gray-100">
+                      <div className="flex items-center justify-between mb-4">
+                        <category.icon className="h-6 w-6 text-black" />
+                        <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
+                      </div>
+                      <h3 className="text-2xl font-light text-black mb-2">
+                        {category.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm uppercase tracking-wide">
+                        {category.subtitle}
+                      </p>
+                    </div>
+                    
+                    {/* Card Content */}
+                    <div className="p-8">
+                      <p className="text-gray-600 mb-8 leading-relaxed">
+                        {category.description}
+                      </p>
+                      
+                      {hasData ? (
+                        <div className="space-y-4">
+                          {/* Top 3 Preview */}
+                          {data.slice(0, 3).map((etf, index) => (
+                            <div key={etf.symbol} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                              <div className="flex items-center gap-4">
+                                <div className="w-8 h-8 bg-black text-white text-sm flex items-center justify-center font-light">
+                                  {index + 1}
+                                </div>
+                                <div>
+                                  <div className="font-medium text-black">{etf.symbol}</div>
+                                  <div className="text-sm text-gray-500 truncate max-w-[200px]">{etf.name}</div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-medium text-black">
+                                  {category.valueFormatter(etf[category.valueKey as keyof ETF] as number)}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <p className="text-gray-400">
+                            Data not available
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Detailed View - Tesla style */}
+        {selectedCategory && rankings && (
+          <div className="bg-white">
+            <div className="max-w-7xl mx-auto px-6 py-24">
+              <div className="mb-16">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h2 className="text-4xl font-light text-black mb-4">
+                      {RANKING_CATEGORIES[selectedCategory as keyof typeof RANKING_CATEGORIES].title}
+                    </h2>
+                    <p className="text-xl text-gray-600">
+                      {RANKING_CATEGORIES[selectedCategory as keyof typeof RANKING_CATEGORIES].description}
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSelectedCategory(null)}
+                    className="border-black text-black hover:bg-black hover:text-white px-8 py-3 rounded-none"
+                  >
+                    Close
+                  </Button>
                 </div>
                 
+                {/* Full Rankings List */}
                 <div className="space-y-4">
-                  <label className="text-sm font-light text-gray-700">Período</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-gray-200 font-light focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option>1 Ano</option>
-                    <option>2 Anos</option>
-                    <option>3 Anos</option>
-                    <option>5 Anos</option>
-                    <option>10 Anos</option>
-                  </select>
-                </div>
-                
-                <div className="space-y-4">
-                  <label className="text-sm font-light text-gray-700">Métrica</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-gray-200 font-light focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option>Retorno Total</option>
-                    <option>Sharpe Ratio</option>
-                    <option>Volatilidade</option>
-                    <option>Max Drawdown</option>
-                    <option>Dividend Yield</option>
-                  </select>
-                </div>
-                
-                <div className="space-y-4">
-                  <label className="text-sm font-light text-gray-700">AUM Mínimo</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-gray-200 font-light focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option>Qualquer</option>
-                    <option>$100M+</option>
-                    <option>$500M+</option>
-                    <option>$1B+</option>
-                    <option>$5B+</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100">
-                <p className="text-sm text-gray-500 font-light">
-                  💡 Use os filtros para encontrar ETFs específicos para seu perfil
-                </p>
-                <button className="bg-blue-600 text-white px-6 py-2 rounded-xl font-light transition-all duration-300 hover:bg-blue-700">
-                  Aplicar Filtros
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Top Performers */}
-          <div className="mb-20">
-            <h2 className="text-3xl font-light text-gray-900 mb-12">
-              Top Performers
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6 mb-12">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="w-12 h-12 bg-yellow-100 rounded-2xl flex items-center justify-center">
-                    <Trophy className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <Badge className="bg-yellow-100 text-yellow-800 font-light">
-                    #1
-                  </Badge>
-                </div>
-                <h3 className="text-xl font-light text-gray-900 mb-2">QQQ</h3>
-                <p className="text-gray-600 font-light mb-4">Invesco QQQ Trust</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-light text-green-600">+28.4%</span>
-                  <ArrowUp className="w-5 h-5 text-green-600" />
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
-                    <Trophy className="w-6 h-6 text-gray-600" />
-                  </div>
-                  <Badge className="bg-gray-100 text-gray-800 font-light">
-                    #2
-                  </Badge>
-                </div>
-                <h3 className="text-xl font-light text-gray-900 mb-2">SPY</h3>
-                <p className="text-gray-600 font-light mb-4">SPDR S&P 500 ETF</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-light text-green-600">+24.1%</span>
-                  <ArrowUp className="w-5 h-5 text-green-600" />
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center">
-                    <Trophy className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <Badge className="bg-orange-100 text-orange-800 font-light">
-                    #3
-                  </Badge>
-                </div>
-                <h3 className="text-xl font-light text-gray-900 mb-2">VTI</h3>
-                <p className="text-gray-600 font-light mb-4">Vanguard Total Stock</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-light text-green-600">+22.8%</span>
-                  <ArrowUp className="w-5 h-5 text-green-600" />
+                  {(rankings[selectedCategory as keyof RankingsData] as ETF[])?.map((etf, index) => (
+                    <div key={etf.symbol} className="flex items-center justify-between py-6 border-b border-gray-100 last:border-0">
+                      <div className="flex items-center gap-6">
+                        <div className={`w-12 h-12 flex items-center justify-center text-lg font-light ${
+                          index < 3 ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div className="text-xl font-medium text-black mb-1">{etf.symbol}</div>
+                          <div className="text-gray-600 max-w-md">{etf.name}</div>
+                          <div className="text-sm text-gray-400 mt-1">{etf.assetclass}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-light text-black">
+                          {RANKING_CATEGORIES[selectedCategory as keyof typeof RANKING_CATEGORIES].valueFormatter(etf[RANKING_CATEGORIES[selectedCategory as keyof typeof RANKING_CATEGORIES].valueKey as keyof ETF] as number)}
+                        </div>
+                        <div className="text-sm text-gray-500 mt-1">
+                          {RANKING_CATEGORIES[selectedCategory as keyof typeof RANKING_CATEGORIES].explanation}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Rankings Table */}
-          <div className="mb-20">
-            <h2 className="text-3xl font-light text-gray-900 mb-12">
-              Ranking Completo
-            </h2>
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="text-left p-6 font-light text-gray-900">Rank</th>
-                      <th className="text-left p-6 font-light text-gray-900">ETF</th>
-                      <th className="text-left p-6 font-light text-gray-900">Nome</th>
-                      <th className="text-center p-6 font-light text-gray-900">Retorno 1Y</th>
-                      <th className="text-center p-6 font-light text-gray-900">Volatilidade</th>
-                      <th className="text-center p-6 font-light text-gray-900">Sharpe</th>
-                      <th className="text-center p-6 font-light text-gray-900">AUM</th>
-                      <th className="text-center p-6 font-light text-gray-900">Expense</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Sample Data */}
-                    <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200">
-                      <td className="p-6">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-light text-yellow-600">1</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-6">
-                        <span className="font-light text-gray-900">QQQ</span>
-                      </td>
-                      <td className="p-6">
-                        <span className="font-light text-gray-700">Invesco QQQ Trust</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-green-600">+28.4%</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">18.2%</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">1.56</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">$220B</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">0.20%</span>
-                      </td>
-                    </tr>
-                    
-                    <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200">
-                      <td className="p-6">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-light text-gray-600">2</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-6">
-                        <span className="font-light text-gray-900">SPY</span>
-                      </td>
-                      <td className="p-6">
-                        <span className="font-light text-gray-700">SPDR S&P 500 ETF</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-green-600">+24.1%</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">16.8%</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">1.43</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">$450B</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">0.09%</span>
-                      </td>
-                    </tr>
-                    
-                    <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200">
-                      <td className="p-6">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-light text-orange-600">3</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-6">
-                        <span className="font-light text-gray-900">VTI</span>
-                      </td>
-                      <td className="p-6">
-                        <span className="font-light text-gray-700">Vanguard Total Stock</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-green-600">+22.8%</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">17.1%</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">1.33</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">$320B</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">0.03%</span>
-                      </td>
-                    </tr>
-                    
-                    <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200">
-                      <td className="p-6">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-light text-blue-600">4</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-6">
-                        <span className="font-light text-gray-900">VOO</span>
-                      </td>
-                      <td className="p-6">
-                        <span className="font-light text-gray-700">Vanguard S&P 500</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-green-600">+24.0%</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">16.9%</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">1.42</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">$280B</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">0.03%</span>
-                      </td>
-                    </tr>
-                    
-                    <tr className="hover:bg-gray-50 transition-colors duration-200">
-                      <td className="p-6">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-light text-green-600">5</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-6">
-                        <span className="font-light text-gray-900">VEA</span>
-                      </td>
-                      <td className="p-6">
-                        <span className="font-light text-gray-700">Vanguard FTSE Developed</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-green-600">+18.5%</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">19.3%</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">0.96</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">$120B</span>
-                      </td>
-                      <td className="text-center p-6">
-                        <span className="font-light text-gray-700">0.05%</span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              
-              <div className="p-6 border-t border-gray-100 text-center">
-                <button className="text-blue-600 font-light hover:text-blue-700 transition-colors duration-300">
-                  Ver Mais ETFs →
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Category Rankings */}
-          <div className="mb-20">
-            <h2 className="text-3xl font-light text-gray-900 mb-12">
-              Rankings por Categoria
-            </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-light text-gray-900">Technology</h3>
-                  <Badge className="bg-blue-100 text-blue-800 font-light">
-                    45 ETFs
-                  </Badge>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-light text-gray-600">1.</span>
-                      <span className="font-light text-gray-900">QQQ</span>
-                    </div>
-                    <span className="font-light text-green-600">+28.4%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-light text-gray-600">2.</span>
-                      <span className="font-light text-gray-900">VGT</span>
-                    </div>
-                    <span className="font-light text-green-600">+26.1%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-light text-gray-600">3.</span>
-                      <span className="font-light text-gray-900">XLK</span>
-                    </div>
-                    <span className="font-light text-green-600">+25.8%</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-light text-gray-900">Healthcare</h3>
-                  <Badge className="bg-green-100 text-green-800 font-light">
-                    28 ETFs
-                  </Badge>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-light text-gray-600">1.</span>
-                      <span className="font-light text-gray-900">VHT</span>
-                    </div>
-                    <span className="font-light text-green-600">+15.2%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-light text-gray-600">2.</span>
-                      <span className="font-light text-gray-900">XLV</span>
-                    </div>
-                    <span className="font-light text-green-600">+14.8%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-light text-gray-600">3.</span>
-                      <span className="font-light text-gray-900">IHI</span>
-                    </div>
-                    <span className="font-light text-green-600">+12.9%</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-light text-gray-900">Bonds</h3>
-                  <Badge className="bg-purple-100 text-purple-800 font-light">
-                    32 ETFs
-                  </Badge>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-light text-gray-600">1.</span>
-                      <span className="font-light text-gray-900">AGG</span>
-                    </div>
-                    <span className="font-light text-green-600">+3.8%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-light text-gray-600">2.</span>
-                      <span className="font-light text-gray-900">BND</span>
-                    </div>
-                    <span className="font-light text-green-600">+3.5%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-light text-gray-600">3.</span>
-                      <span className="font-light text-gray-900">VGIT</span>
-                    </div>
-                    <span className="font-light text-green-600">+2.9%</span>
-                  </div>
+        {/* Disclaimer - Tesla style */}
+        <div className="bg-gray-50">
+          <div className="max-w-7xl mx-auto px-6 py-16">
+            <div className="bg-white p-8 border border-gray-200">
+              <div className="flex items-start gap-4">
+                <Info className="h-6 w-6 text-gray-400 mt-1 flex-shrink-0" />
+                <div>
+                  <h3 className="text-lg font-medium text-black mb-4">
+                    Important Notice
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Past performance does not guarantee future results. These rankings are based on historical data 
+                    and are provided for educational purposes only. Always consult with a qualified financial advisor 
+                    before making investment decisions and consider your investment objectives, time horizon, and risk tolerance.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* CTA Section */}
-          <div className="bg-gray-900 rounded-2xl p-12 text-center">
-            <h2 className="text-3xl font-light text-white mb-6">
-              Quer uma Análise Personalizada?
-            </h2>
-            <p className="text-lg font-light text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Use nosso Portfolio Master para descobrir quais ETFs são ideais 
-              para seus objetivos e perfil de risco específicos.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-gray-900 px-8 py-3 rounded-xl font-light transition-all duration-300 hover:bg-gray-100">
-                Usar Portfolio Master
-              </button>
-              <button className="border border-gray-600 text-white px-8 py-3 rounded-xl font-light transition-all duration-300 hover:bg-gray-800">
-                Ver Screener
-              </button>
-            </div>
-          </div>
-
         </div>
       </div>
     </RequireAuth>
