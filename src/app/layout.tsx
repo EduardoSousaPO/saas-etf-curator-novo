@@ -10,12 +10,12 @@ import { Toaster } from 'react-hot-toast';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ETF Curator - Curadoria Inteligente de ETFs",
+  title: "Vista - Curadoria Inteligente de ETFs",
   description: "Plataforma completa para análise, comparação e simulação de ETFs com inteligência artificial",
   keywords: "ETF, investimentos, análise, simulação, curadoria, inteligência artificial",
-  authors: [{ name: "ETF Curator Team" }],
-  creator: "ETF Curator",
-  publisher: "ETF Curator",
+  authors: [{ name: "Vista Team" }],
+  creator: "Vista",
+  publisher: "Vista",
   formatDetection: {
     email: false,
     address: false,
@@ -23,16 +23,16 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://etfcurator.vercel.app'),
   openGraph: {
-    title: "ETF Curator - Curadoria Inteligente de ETFs",
+    title: "Vista - Curadoria Inteligente de ETFs",
     description: "Plataforma completa para análise, comparação e simulação de ETFs com inteligência artificial",
     url: process.env.NEXT_PUBLIC_APP_URL || 'https://etfcurator.vercel.app',
-    siteName: "ETF Curator",
+    siteName: "Vista",
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'ETF Curator - Curadoria Inteligente de ETFs',
+        alt: 'Vista - Curadoria Inteligente de ETFs',
       },
     ],
     locale: 'pt_BR',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "ETF Curator - Curadoria Inteligente de ETFs",
+    title: "Vista - Curadoria Inteligente de ETFs",
     description: "Plataforma completa para análise, comparação e simulação de ETFs com inteligência artificial",
     images: ['/og-image.png'],
   },

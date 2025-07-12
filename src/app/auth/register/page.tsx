@@ -219,7 +219,7 @@ export default function RegisterPage() {
             
             <p className="text-gray-600 mb-6">
               Enviamos um email de confirmação para <strong>{formData.email}</strong>. 
-              Clique no link para ativar sua conta e começar a usar o ETF Curator.
+                              Clique no link para ativar sua conta e começar a usar o Vista.
             </p>
 
             <div className="space-y-4">

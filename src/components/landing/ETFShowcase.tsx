@@ -225,7 +225,7 @@ export default function ETFShowcase() {
       <section className="py-16 px-6 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl font-light text-gray-900 mb-4">
               ETFs de Destaque
             </h2>
             <p className="text-lg text-gray-600">
@@ -251,7 +251,7 @@ export default function ETFShowcase() {
     <section className="py-16 px-6 bg-gray-50">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl font-light text-gray-900 mb-4">
             ETFs de Destaque
           </h2>
           <p className="text-lg text-gray-600">
@@ -298,6 +298,17 @@ export default function ETFShowcase() {
               {error ? 'Dados em cache' : 'Dados em tempo real'}
             </span>
           </div>
+        </div>
+
+        {/* Botão CTA */}
+        <div className="text-center mt-12">
+          <button
+            className="px-12 py-4 text-white font-light text-lg rounded-xl hover:opacity-90 transition-all duration-300"
+            style={{ backgroundColor: '#202636' }}
+            onClick={() => window.location.href = '/screener'}
+          >
+            Descubra aqui os melhores ETFs para você
+          </button>
         </div>
       </div>
     </section>

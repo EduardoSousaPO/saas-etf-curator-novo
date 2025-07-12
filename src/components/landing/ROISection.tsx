@@ -6,7 +6,7 @@ import { TrendingUp, DollarSign, Clock, Shield } from 'lucide-react';
 
 export function ROISection() {
   return (
-    <div className="py-16 bg-gradient-to-br from-green-50 to-blue-50">
+    <div className="py-16 bg-white">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           {/* Título da seção */}
@@ -30,9 +30,9 @@ export function ROISection() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="text-2xl font-bold text-green-600">R$ 39,90/mês</div>
-                  <div className="text-sm text-gray-600">
-                    Se evitar apenas 1 ETF ruim por mês, você já economiza mais que o custo do plano
+                  <div className="text-2xl font-bold" style={{ color: '#202636' }}>R$ 97,0/mês</div>
+                  <div className="text-sm" style={{ color: '#202636' }}>
+                    Com 1 ETF certo você já recebe mais que o dobro do plano
                   </div>
                   <div className="text-xs text-gray-500 mt-4">
                     ROI médio: 847% no primeiro ano
@@ -50,8 +50,8 @@ export function ROISection() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="text-2xl font-bold text-purple-600">1% a.a.</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-2xl font-bold" style={{ color: '#0090d8' }}>1% a.a.</div>
+                  <div className="text-sm" style={{ color: '#0090d8' }}>
                     Consultoria especializada que gera alpha de 3-5% a.a. acima do benchmark
                   </div>
                   <div className="text-xs text-gray-500 mt-4">
@@ -70,8 +70,8 @@ export function ROISection() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="text-2xl font-bold text-blue-600">40h/mês</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-2xl font-bold" style={{ color: '#202636' }}>40h/mês</div>
+                  <div className="text-sm" style={{ color: '#202636' }}>
                     Tempo economizado em pesquisa e análise manual
                   </div>
                   <div className="text-xs text-gray-500 mt-4">
@@ -90,8 +90,8 @@ export function ROISection() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="text-2xl font-bold text-emerald-600">0.8% a.a.</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-2xl font-bold" style={{ color: '#0090d8' }}>0.8% a.a.</div>
+                  <div className="text-sm" style={{ color: '#0090d8' }}>
                     Estruturação que pode economizar 15-27.5% em impostos
                   </div>
                   <div className="text-xs text-gray-500 mt-4">
@@ -105,7 +105,7 @@ export function ROISection() {
           {/* Calculadora simples de ROI */}
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h3 className="text-2xl font-bold text-center mb-6">
-              Calcule Seu Retorno Potencial
+              Veja o que você ganha
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -133,14 +133,14 @@ export function ROISection() {
                 </div>
               </div>
               
-              <div className="text-center bg-purple-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-lg mb-2 text-purple-900">Com Plano Wealth</h4>
-                <div className="space-y-2 text-sm text-purple-800">
+              <div className="text-center p-4 rounded-lg" style={{ backgroundColor: '#202636' }}>
+                <h4 className="font-semibold text-lg mb-2 text-white">Com Plano Wealth</h4>
+                <div className="space-y-2 text-sm text-white">
                   <div>• Consultoria especializada</div>
                   <div>• Estratégias personalizadas</div>
                   <div>• Acompanhamento dedicado</div>
                 </div>
-                <div className="mt-4 text-green-600 font-semibold">
+                <div className="mt-4 text-green-400 font-semibold">
                   Alpha gerado: 3-5% a.a. adicional
                 </div>
               </div>
@@ -155,13 +155,31 @@ export function ROISection() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
                 href="/pricing" 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+                className="text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+                style={{ backgroundColor: '#202636' }}
+                onMouseEnter={(e) => {
+                  const target = e.target as HTMLElement;
+                  target.style.backgroundColor = '#1a1f2e';
+                }}
+                onMouseLeave={(e) => {
+                  const target = e.target as HTMLElement;
+                  target.style.backgroundColor = '#202636';
+                }}
               >
-                Ver Todos os Planos
+                Quero ser PRO
               </a>
               <a 
                 href="#" 
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+                className="text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+                style={{ backgroundColor: '#0090d8' }}
+                onMouseEnter={(e) => {
+                  const target = e.target as HTMLElement;
+                  target.style.backgroundColor = '#007bb8';
+                }}
+                onMouseLeave={(e) => {
+                  const target = e.target as HTMLElement;
+                  target.style.backgroundColor = '#0090d8';
+                }}
               >
                 Começar Grátis Agora
               </a>

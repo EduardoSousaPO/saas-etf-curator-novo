@@ -410,7 +410,7 @@ export default function PricingPage() {
           {/* Benefits Grid */}
           <div className="mb-20">
             <h2 className="text-4xl font-light text-gray-900 text-center mb-16">
-              Por que Escolher o ETF Curator?
+                              Por que Escolher o Vista?
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center transition-all duration-300 hover:shadow-md">
@@ -579,7 +579,7 @@ export default function PricingPage() {
             </h2>
             <p className="text-xl font-light text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
               Junte-se a milhares de investidores que já transformaram suas carteiras 
-              com o ETF Curator.
+                              com o Vista.
             </p>
             <button className="bg-white text-gray-900 px-12 py-4 rounded-xl font-light text-lg transition-all duration-300 hover:bg-gray-100">
               Começar Teste Gratuito

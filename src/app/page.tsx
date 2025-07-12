@@ -27,14 +27,11 @@ export default function HomePage() {
               </div>
               
               <h1 className="text-6xl md:text-7xl font-light text-gray-900 mb-8 leading-tight">
-                Liberte Seu <span className="text-gray-900">Patrimônio</span> com
-                <br />
-                <span className="font-extralight text-gray-600">Ciência de Dados</span>
+                Liberte Seu Patrimônio dos Limites do Mercado Brasileiro
               </h1>
               
               <p className="text-xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed font-light">
-                <strong className="font-medium">Pare de perder dinheiro com "achismos".</strong> Use nossa análise científica de ETFs americanos 
-                para multiplicar seus ganhos e conquistar liberdade financeira através de decisões baseadas em dados reais.
+                Recomendações de ETFs baseadas no SEU perfil, não no lucro da corretora. Nossa engine elimina o medo de escolher errado. Receba carteiras personalizadas com dados que mostram exatamente como cada ETF vai acelerar seu crescimento patrimonial.
               </p>
 
               {/* Value Props Tesla-style */}
@@ -61,13 +58,22 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
                 <Link 
                   href="/onboarding"
-                  className="bg-gray-900 text-white px-12 py-4 rounded-xl font-light text-lg hover:bg-gray-800 transition-all duration-300 flex items-center justify-center gap-3"
+                  className="text-white px-12 py-4 rounded-xl font-light text-lg transition-all duration-300 flex items-center justify-center gap-3"
+                  style={{ backgroundColor: '#202636' }}
+                  onMouseEnter={(e) => {
+                    const target = e.target as HTMLElement;
+                    target.style.backgroundColor = '#1a1f2e';
+                  }}
+                  onMouseLeave={(e) => {
+                    const target = e.target as HTMLElement;
+                    target.style.backgroundColor = '#202636';
+                  }}
                 >
                   Descobrir Meus ETFs Ideais
                   <ArrowRight className="w-5 h-5" />
                 </Link>
                 <Link 
-                  href="/screener"
+                  href="/auth/register"
                   className="border border-gray-300 text-gray-700 px-12 py-4 rounded-xl font-light text-lg hover:border-gray-400 hover:bg-white transition-all duration-300"
                 >
                   Ver Análise Gratuita
@@ -173,8 +179,8 @@ export default function HomePage() {
               <h2 className="text-4xl font-light text-gray-900 mb-6">
                 Ferramentas que Multiplicam Resultados
               </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto font-light leading-relaxed">
-                Cada ferramenta foi desenvolvida para eliminar vieses e maximizar seus retornos através de análise científica
+              <p className="text-xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed text-center">
+                Cada ferramenta foi desenvolvida para eliminar vieses e maximizar seus retornos através de análise de dados
               </p>
             </div>
 
@@ -220,10 +226,9 @@ export default function HomePage() {
                 <div className="w-20 h-20 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-8">
                   <BarChart3 className="w-10 h-10 text-white" />
                 </div>
-                <h3 className="text-2xl font-light text-gray-900 mb-6">Comparação Profissional</h3>
+                <h3 className="text-2xl font-light text-gray-900 mb-6">COMPRADOR PRO</h3>
                 <p className="text-gray-600 mb-8 font-light leading-relaxed">
-                  <strong className="font-medium">Decisões baseadas em fatos.</strong> Compare até 4 ETFs com métricas 
-                  que realmente importam para maximizar seus ganhos.
+                  <strong className="font-medium">Decisões baseadas em fatos.</strong> Compare até 10 ETFs/métricas que realmente importam para maximizar seus ganhos.
                 </p>
                 <Link 
                   href="/comparador"
@@ -241,11 +246,13 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-20">
               <h2 className="text-4xl font-light text-gray-900 mb-8">
-                Retornos Reais por Perfil de Risco
+                Seu investimento voltando no mesmo dia
               </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto font-light leading-relaxed">
-                Baseado em análise científica de <strong className="font-medium">2.117 ETFs</strong> com dados validados. 
-                Descubra qual perfil multiplica seu patrimônio mais eficientemente.
+              <p className="text-xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed">
+                Baseado em análise científica de <strong className="font-medium">2.117 ETFs</strong> com dados validados.<br/>
+                Descubra qual perfil multiplica seu patrimônio mais eficientemente.<br/>
+                Nossa engine elimina o medo de escolher errado.<br/>
+                Receba carteiras personalizadas com dados que mostram exatamente como cada ETF vai acelerar seu crescimento patrimonial.
               </p>
             </div>
 
@@ -272,7 +279,16 @@ export default function HomePage() {
                 </div>
                 <Link 
                   href="/simulador?perfil=conservador"
-                  className="w-full bg-gray-900 text-white py-3 px-6 rounded-xl font-light hover:bg-gray-800 transition-all duration-300 text-center block"
+                  className="w-full text-white py-3 px-6 rounded-xl font-light transition-all duration-300 text-center block"
+                  style={{ backgroundColor: '#202636' }}
+                  onMouseEnter={(e) => {
+                    const target = e.target as HTMLElement;
+                    target.style.backgroundColor = '#1a1f2e';
+                  }}
+                  onMouseLeave={(e) => {
+                    const target = e.target as HTMLElement;
+                    target.style.backgroundColor = '#202636';
+                  }}
                 >
                   Simular Portfolio
                 </Link>
@@ -300,7 +316,16 @@ export default function HomePage() {
                 </div>
                 <Link 
                   href="/simulador?perfil=moderado"
-                  className="w-full bg-gray-900 text-white py-3 px-6 rounded-xl font-light hover:bg-gray-800 transition-all duration-300 text-center block"
+                  className="w-full text-white py-3 px-6 rounded-xl font-light transition-all duration-300 text-center block"
+                  style={{ backgroundColor: '#202636' }}
+                  onMouseEnter={(e) => {
+                    const target = e.target as HTMLElement;
+                    target.style.backgroundColor = '#1a1f2e';
+                  }}
+                  onMouseLeave={(e) => {
+                    const target = e.target as HTMLElement;
+                    target.style.backgroundColor = '#202636';
+                  }}
                 >
                   Simular Portfolio
                 </Link>
@@ -328,7 +353,16 @@ export default function HomePage() {
                 </div>
                 <Link 
                   href="/simulador?perfil=arrojado"
-                  className="w-full bg-gray-900 text-white py-3 px-6 rounded-xl font-light hover:bg-gray-800 transition-all duration-300 text-center block"
+                  className="w-full text-white py-3 px-6 rounded-xl font-light transition-all duration-300 text-center block"
+                  style={{ backgroundColor: '#202636' }}
+                  onMouseEnter={(e) => {
+                    const target = e.target as HTMLElement;
+                    target.style.backgroundColor = '#1a1f2e';
+                  }}
+                  onMouseLeave={(e) => {
+                    const target = e.target as HTMLElement;
+                    target.style.backgroundColor = '#202636';
+                  }}
                 >
                   Simular Portfolio
                 </Link>
@@ -345,7 +379,16 @@ export default function HomePage() {
                 </p>
                 <Link 
                   href="/onboarding"
-                  className="w-full bg-white text-gray-900 py-3 px-6 rounded-xl font-light hover:bg-gray-100 transition-all duration-300 text-center block"
+                  className="w-full text-white py-3 px-6 rounded-xl font-light transition-all duration-300 text-center block"
+                  style={{ backgroundColor: '#202636' }}
+                  onMouseEnter={(e) => {
+                    const target = e.target as HTMLElement;
+                    target.style.backgroundColor = '#1a1f2e';
+                  }}
+                  onMouseLeave={(e) => {
+                    const target = e.target as HTMLElement;
+                    target.style.backgroundColor = '#202636';
+                  }}
                 >
                   Começar Agora
                 </Link>
@@ -355,7 +398,9 @@ export default function HomePage() {
         </section>
 
         {/* ROI Section */}
-        <ROISection />
+        <div id="pricing-section">
+          <ROISection />
+        </div>
 
         {/* CTA Final Tesla-style */}
         <section className="py-20 px-6 bg-gray-900">
@@ -370,13 +415,22 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link 
                 href="/onboarding"
-                className="bg-white text-gray-900 px-12 py-4 rounded-xl font-light hover:bg-gray-100 transition-all duration-300 flex items-center justify-center gap-3 text-lg"
+                className="text-white px-12 py-4 rounded-xl font-light transition-all duration-300 flex items-center justify-center gap-3 text-lg"
+                style={{ backgroundColor: '#202636' }}
+                onMouseEnter={(e) => {
+                  const target = e.target as HTMLElement;
+                  target.style.backgroundColor = '#1a1f2e';
+                }}
+                onMouseLeave={(e) => {
+                  const target = e.target as HTMLElement;
+                  target.style.backgroundColor = '#202636';
+                }}
               >
                 Descobrir Meus ETFs Ideais
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <Link 
-                href="/screener"
+                href="/auth/register"
                 className="border border-gray-600 text-white px-12 py-4 rounded-xl font-light hover:bg-gray-800 transition-all duration-300 text-lg"
               >
                 Ver Análise Gratuita

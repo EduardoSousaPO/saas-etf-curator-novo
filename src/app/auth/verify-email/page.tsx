@@ -119,7 +119,7 @@ export default function VerifyEmailPage() {
               {email || 'seu email'}
             </p>
             <p className="mt-4 text-sm">
-              Clique no link do email para ativar sua conta e acessar todas as funcionalidades do ETF Curator.
+                              Clique no link do email para ativar sua conta e acessar todas as funcionalidades do Vista.
             </p>
           </div>
 
@@ -131,7 +131,7 @@ export default function VerifyEmailPage() {
             </h3>
             <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
               <li>Abra seu aplicativo de email</li>
-              <li>Procure por um email do ETF Curator</li>
+                                  <li>Procure por um email do Vista</li>
               <li>Clique no botão &quot;Confirmar Email&quot;</li>
               <li>Você será redirecionado automaticamente</li>
             </ol>
@@ -211,7 +211,7 @@ export default function VerifyEmailPage() {
         {/* Footer */}
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500">
-            Ao confirmar seu email, você terá acesso completo a todas as funcionalidades do ETF Curator
+                          Ao confirmar seu email, você terá acesso completo a todas as funcionalidades do Vista
           </p>
         </div>
       </div>
