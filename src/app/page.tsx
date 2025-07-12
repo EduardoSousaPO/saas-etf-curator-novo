@@ -245,10 +245,10 @@ export default function HomePage() {
         <section className="py-20 px-6 bg-gray-50">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-20">
-              <h2 className="text-4xl font-light text-gray-900 mb-8">
+              <h2 className="text-3xl md:text-4xl font-light text-gray-900 mb-8 leading-tight">
                 Seu investimento voltando no mesmo dia
               </h2>
-              <p className="text-xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed">
+              <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed">
                 Baseado em análise científica de <strong className="font-medium">2.117 ETFs</strong> com dados validados.<br/>
                 Descubra qual perfil multiplica seu patrimônio mais eficientemente.<br/>
                 Nossa engine elimina o medo de escolher errado.<br/>
@@ -258,12 +258,12 @@ export default function HomePage() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {/* Conservador */}
-              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col min-h-[400px]">
                 <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-6">
                   <Shield className="w-8 h-8 text-gray-600" />
                 </div>
                 <h3 className="text-xl font-light text-gray-900 mb-4">Conservador</h3>
-                <div className="space-y-3 mb-8">
+                <div className="space-y-3 mb-8 flex-grow">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 font-light">Retorno Anual:</span>
                     <span className="font-medium text-gray-900">+8.2%</span>
@@ -279,7 +279,7 @@ export default function HomePage() {
                 </div>
                 <Link 
                   href="/simulador?perfil=conservador"
-                  className="w-full text-white py-3 px-6 rounded-xl font-light transition-all duration-300 text-center block"
+                  className="w-full text-white py-3 px-6 rounded-xl font-light transition-all duration-300 text-center block mt-auto"
                   style={{ backgroundColor: '#202636' }}
                   onMouseEnter={(e) => {
                     const target = e.target as HTMLElement;
@@ -295,12 +295,12 @@ export default function HomePage() {
               </div>
 
               {/* Moderado */}
-              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col min-h-[400px]">
                 <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-6">
                   <TrendingUp className="w-8 h-8 text-gray-600" />
                 </div>
                 <h3 className="text-xl font-light text-gray-900 mb-4">Moderado</h3>
-                <div className="space-y-3 mb-8">
+                <div className="space-y-3 mb-8 flex-grow">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 font-light">Retorno Anual:</span>
                     <span className="font-medium text-gray-900">+11.4%</span>
@@ -316,7 +316,7 @@ export default function HomePage() {
                 </div>
                 <Link 
                   href="/simulador?perfil=moderado"
-                  className="w-full text-white py-3 px-6 rounded-xl font-light transition-all duration-300 text-center block"
+                  className="w-full text-white py-3 px-6 rounded-xl font-light transition-all duration-300 text-center block mt-auto"
                   style={{ backgroundColor: '#202636' }}
                   onMouseEnter={(e) => {
                     const target = e.target as HTMLElement;
@@ -332,12 +332,12 @@ export default function HomePage() {
               </div>
 
               {/* Arrojado */}
-              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col min-h-[400px]">
                 <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-6">
                   <BarChart3 className="w-8 h-8 text-gray-600" />
                 </div>
                 <h3 className="text-xl font-light text-gray-900 mb-4">Arrojado</h3>
-                <div className="space-y-3 mb-8">
+                <div className="space-y-3 mb-8 flex-grow">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 font-light">Retorno Anual:</span>
                     <span className="font-medium text-gray-900">+15.7%</span>
@@ -353,7 +353,7 @@ export default function HomePage() {
                 </div>
                 <Link 
                   href="/simulador?perfil=arrojado"
-                  className="w-full text-white py-3 px-6 rounded-xl font-light transition-all duration-300 text-center block"
+                  className="w-full text-white py-3 px-6 rounded-xl font-light transition-all duration-300 text-center block mt-auto"
                   style={{ backgroundColor: '#202636' }}
                   onMouseEnter={(e) => {
                     const target = e.target as HTMLElement;
@@ -369,17 +369,17 @@ export default function HomePage() {
               </div>
 
               {/* Personalizado */}
-              <div className="bg-gray-900 p-8 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="bg-gray-900 p-8 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col min-h-[400px]">
                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-6">
                   <Star className="w-8 h-8 text-gray-900" />
                 </div>
                 <h3 className="text-xl font-light text-white mb-4">Personalizado</h3>
-                <p className="text-gray-300 mb-8 text-sm font-light leading-relaxed">
+                <p className="text-gray-300 mb-8 text-sm font-light leading-relaxed flex-grow">
                   Crie seu próprio portfolio baseado em suas preferências específicas e objetivos únicos.
                 </p>
                 <Link 
                   href="/onboarding"
-                  className="w-full text-white py-3 px-6 rounded-xl font-light transition-all duration-300 text-center block"
+                  className="w-full text-white py-3 px-6 rounded-xl font-light transition-all duration-300 text-center block mt-auto"
                   style={{ backgroundColor: '#202636' }}
                   onMouseEnter={(e) => {
                     const target = e.target as HTMLElement;
