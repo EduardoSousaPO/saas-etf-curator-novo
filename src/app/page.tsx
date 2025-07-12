@@ -403,7 +403,7 @@ export default function HomePage() {
         </div>
 
         {/* CTA Final Tesla-style */}
-        <section className="py-20 px-6 bg-gray-900">
+        <section className="py-20 px-6" style={{ backgroundColor: '#202636' }}>
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-4xl font-light text-white mb-8">
               Pare de Perder Dinheiro com Achismos
@@ -431,13 +431,163 @@ export default function HomePage() {
               </Link>
               <Link 
                 href="/auth/register"
-                className="border border-gray-600 text-white px-12 py-4 rounded-xl font-light hover:bg-gray-800 transition-all duration-300 text-lg"
+                className="text-white px-12 py-4 rounded-xl font-light transition-all duration-300 text-lg"
+                style={{ backgroundColor: '#0090d8' }}
+                onMouseEnter={(e) => {
+                  const target = e.target as HTMLElement;
+                  target.style.backgroundColor = '#007bb8';
+                }}
+                onMouseLeave={(e) => {
+                  const target = e.target as HTMLElement;
+                  target.style.backgroundColor = '#0090d8';
+                }}
               >
-                Ver Análise Gratuita
+                Assinar Agora
               </Link>
             </div>
           </div>
         </section>
+
+        {/* Footer */}
+        <footer className="bg-white border-t border-gray-200">
+          <div className="max-w-6xl mx-auto px-6 py-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              
+              {/* Contato */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Contato</h3>
+                <div className="space-y-4">
+                  <p className="text-gray-600">
+                    <strong>Email:</strong><br />
+                    contato@vista.com.br
+                  </p>
+                  <p className="text-gray-600">
+                    <strong>Suporte:</strong><br />
+                    suporte@vista.com.br
+                  </p>
+                  <p className="text-gray-600">
+                    <strong>Consultoria:</strong><br />
+                    consultoria@vista.com.br
+                  </p>
+                </div>
+              </div>
+
+              {/* Planos */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Planos</h3>
+                <div className="space-y-3">
+                  <div>
+                    <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
+                      Starter
+                    </Link>
+                    <p className="text-sm text-gray-500">Gratuito</p>
+                  </div>
+                  <div>
+                    <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
+                      Pro
+                    </Link>
+                    <p className="text-sm text-gray-500">R$ 39,90/mês</p>
+                  </div>
+                  <div>
+                    <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
+                      Wealth
+                    </Link>
+                    <p className="text-sm text-gray-500">1% a.a. sobre patrimônio</p>
+                  </div>
+                  <div>
+                    <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
+                      Offshore
+                    </Link>
+                    <p className="text-sm text-gray-500">0,8% a.a. sobre patrimônio</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Links Úteis */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Suporte</h3>
+                <div className="space-y-3">
+                  <div>
+                    <Link href="/faq" className="text-gray-600 hover:text-gray-900">
+                      FAQ
+                    </Link>
+                  </div>
+                  <div>
+                    <Link href="/contato" className="text-gray-600 hover:text-gray-900">
+                      Central de Ajuda
+                    </Link>
+                  </div>
+                  <div>
+                    <Link href="/consultoria" className="text-gray-600 hover:text-gray-900">
+                      Consultoria CVM
+                    </Link>
+                  </div>
+                  <div>
+                    <Link href="/termos" className="text-gray-600 hover:text-gray-900">
+                      Termos de Uso
+                    </Link>
+                  </div>
+                  <div>
+                    <Link href="/privacidade" className="text-gray-600 hover:text-gray-900">
+                      Política de Privacidade
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Redes Sociais e CVM */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Conecte-se</h3>
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    <a 
+                      href="https://instagram.com/vista.etfs" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                    >
+                      <span>📷</span> Instagram
+                    </a>
+                    <a 
+                      href="https://linkedin.com/company/vista-etfs" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                    >
+                      <span>💼</span> LinkedIn
+                    </a>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-gray-200">
+                    <p className="text-sm text-gray-500 mb-2">
+                      <strong>Regulamentação CVM</strong>
+                    </p>
+                    <p className="text-xs text-gray-400 leading-relaxed">
+                      Vista é uma plataforma de análise de ETFs. Serviços de consultoria são prestados por consultores registrados na CVM conforme Resolução 179/2023.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Rodapé inferior */}
+            <div className="border-t border-gray-200 mt-12 pt-8">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-light text-gray-900">Vista</span>
+                  <span className="text-sm text-gray-500">© 2024 Vista. Todos os direitos reservados.</span>
+                </div>
+                <div className="flex items-center gap-6 text-sm text-gray-500">
+                  <span>Análise científica de ETFs</span>
+                  <span>•</span>
+                  <span>Dados em tempo real</span>
+                  <span>•</span>
+                  <span>Consultoria CVM</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </footer>
       </main>
     </div>
   );
