@@ -47,7 +47,7 @@ const ETFTable: React.FC<ETFTableProps> = ({
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0090d8] mx-auto mb-4"></div>
         <p className="text-gray-600">Carregando ETFs...</p>
       </div>
     );
@@ -100,7 +100,7 @@ const ETFTable: React.FC<ETFTableProps> = ({
               {columns.map((column) => (
                 <TableHead
                   key={column.key}
-                  className={`font-semibold text-gray-700 ${
+                  className={`font-semibold text-[#202636] ${
                     column.numeric ? "text-right" : "text-left"
                   }`}
                 >
@@ -113,7 +113,7 @@ const ETFTable: React.FC<ETFTableProps> = ({
             {etfs.map((etf, index) => (
               <TableRow
                 key={`${etf.symbol}-${index}`}
-                className="hover:bg-gray-50 cursor-pointer transition-colors"
+                className="hover:bg-blue-50 cursor-pointer transition-colors duration-200"
                 onClick={() => handleRowClick(etf.symbol)}
               >
                 {columns.map((column) => (

@@ -167,7 +167,7 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl">Encontrar ETFs</CardTitle>
+              <CardTitle className="text-xl text-[#202636]">Encontrar ETFs</CardTitle>
               <CardDescription>
                 Descubra os melhores ETFs usando filtros simples e ordenação inteligente
               </CardDescription>
@@ -190,7 +190,7 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
               <Button
                 onClick={onSearch}
                 disabled={isLoading}
-                className="min-w-[120px]"
+                className="min-w-[120px] bg-[#0090d8] hover:bg-[#0090d8]/90"
               >
                 {isLoading ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
@@ -222,8 +222,8 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
 
           {/* Ordenação - Destaque principal */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
+            <Label className="text-sm font-medium flex items-center gap-2 text-[#202636]">
+              <TrendingUp className="h-4 w-4 text-[#0090d8]" />
               Ordenar por
             </Label>
             <Select value={selectedSort} onValueChange={applySort}>
@@ -247,8 +247,8 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
 
           {/* Presets Populares */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Zap className="h-4 w-4" />
+            <Label className="text-sm font-medium flex items-center gap-2 text-[#202636]">
+              <Zap className="h-4 w-4 text-[#0090d8]" />
               Buscas Populares
             </Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -257,7 +257,7 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
                   key={key}
                   variant="outline"
                   onClick={() => applyPreset(key)}
-                  className="h-auto p-4 text-left justify-start hover:bg-primary hover:text-primary-foreground"
+                  className="h-auto p-4 text-left justify-start hover:bg-[#0090d8] hover:text-white transition-colors duration-300"
                 >
                   <div className="flex items-center gap-3">
                     <preset.icon className="h-5 w-5 flex-shrink-0" />
@@ -273,7 +273,7 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
 
           {/* Filtros Simples */}
           <div className="space-y-4">
-            <Label className="text-sm font-medium">Filtros Rápidos</Label>
+            <Label className="text-sm font-medium text-[#202636]">Filtros Rápidos</Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                              {/* Classe de Ativo */}
                <div className="space-y-2">

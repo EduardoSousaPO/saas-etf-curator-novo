@@ -225,14 +225,15 @@ export default function RegisterPage() {
             <div className="space-y-4">
               <button
                 onClick={() => router.push('/auth/login')}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="w-full text-white py-3 px-4 rounded-lg hover:opacity-90 transition-opacity duration-300 font-medium"
+                style={{ backgroundColor: '#0090d8' }}
               >
                 Ir para Login
               </button>
               
               <Link
                 href="/"
-                className="block w-full text-gray-600 py-3 px-4 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors font-medium"
+                className="block w-full text-gray-600 py-3 px-4 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors font-medium text-center"
               >
                 Voltar ao Início
               </Link>
@@ -283,8 +284,8 @@ export default function RegisterPage() {
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(step / 2) * 100}%` }}
+              className="h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(step / 2) * 100}%`, backgroundColor: '#0090d8' }}
             />
           </div>
         </div>
@@ -308,9 +309,12 @@ export default function RegisterPage() {
                       type="text"
                       value={formData.full_name}
                       onChange={(e) => handleInputChange('full_name', e.target.value)}
-                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:border-opacity-100 transition-colors ${
                         errors.full_name ? 'border-red-300' : 'border-gray-300'
                       }`}
+                      style={{ '--tw-ring-color': '#0090d8', '--tw-ring-opacity': '0.5' } as any}
+                      onFocus={(e) => e.target.style.borderColor = '#0090d8'}
+                      onBlur={(e) => e.target.style.borderColor = errors.full_name ? '#fca5a5' : '#d1d5db'}
                       placeholder="Seu nome completo"
                       disabled={isSubmitting}
                     />
@@ -638,7 +642,8 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                  className="flex-1 text-white py-3 px-4 rounded-lg hover:opacity-90 transition-opacity duration-300 font-medium"
+                  style={{ backgroundColor: '#0090d8' }}
                   disabled={isSubmitting}
                 >
                   Voltar
@@ -648,7 +653,8 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={isSubmitting || loading}
-                className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 text-white py-3 px-4 rounded-lg hover:opacity-90 transition-opacity duration-300 font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: '#0090d8' }}
               >
                 {isSubmitting || loading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>

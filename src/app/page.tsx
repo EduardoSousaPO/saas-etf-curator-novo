@@ -26,7 +26,7 @@ export default function HomePage() {
                 Dados Científicos • Mais de 4.400 ETFs Analisados
               </div>
               
-              <h1 className="text-6xl md:text-7xl font-light text-gray-900 mb-8 leading-tight">
+              <h1 className="text-6xl md:text-7xl font-light text-[#202636] mb-8 leading-tight">
                 Liberte Seu Patrimônio dos Limites do Mercado Brasileiro
               </h1>
               
@@ -37,15 +37,15 @@ export default function HomePage() {
               {/* Value Props Tesla-style */}
               <div className="flex flex-wrap justify-center gap-8 mb-16">
                 <div className="flex items-center gap-3 text-gray-700">
-                  <CheckCircle className="w-5 h-5 text-gray-900" />
+                  <CheckCircle className="w-5 h-5 text-[#0090d8]" />
                   <span className="font-light">96.5% dos ETFs com métricas completas</span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-700">
-                  <CheckCircle className="w-5 h-5 text-gray-900" />
+                  <CheckCircle className="w-5 h-5 text-[#0090d8]" />
                   <span className="font-light">Análise científica anti-viés</span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-700">
-                  <CheckCircle className="w-5 h-5 text-gray-900" />
+                  <CheckCircle className="w-5 h-5 text-[#0090d8]" />
                   <span className="font-light">Rankings automáticos baseados em performance</span>
                 </div>
               </div>
@@ -58,16 +58,7 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
                 <Link 
                   href="/onboarding"
-                  className="text-white px-12 py-4 rounded-xl font-light text-lg transition-all duration-300 flex items-center justify-center gap-3"
-                  style={{ backgroundColor: '#202636' }}
-                  onMouseEnter={(e) => {
-                    const target = e.target as HTMLElement;
-                    target.style.backgroundColor = '#1a1f2e';
-                  }}
-                  onMouseLeave={(e) => {
-                    const target = e.target as HTMLElement;
-                    target.style.backgroundColor = '#202636';
-                  }}
+                  className="text-white px-12 py-4 rounded-xl font-light text-lg transition-all duration-300 flex items-center justify-center gap-3 bg-[#0090d8] hover:bg-[#0090d8]/90"
                 >
                   Descobrir Meus ETFs Ideais
                   <ArrowRight className="w-5 h-5" />
@@ -100,7 +91,7 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-20 items-center">
               <div>
-                <h2 className="text-4xl font-light text-gray-900 mb-8">
+                <h2 className="text-4xl font-light text-[#202636] mb-8">
                   O Problema: Você Está Perdendo Dinheiro
                 </h2>
                 <div className="space-y-6 text-lg text-gray-600">
@@ -119,20 +110,20 @@ export default function HomePage() {
                 </div>
               </div>
               <div>
-                <h2 className="text-4xl font-light text-gray-900 mb-8">
+                <h2 className="text-4xl font-light text-[#202636] mb-8">
                   A Solução: Ciência de Dados
                 </h2>
                 <div className="space-y-6 text-lg text-gray-600">
                   <div className="flex items-start gap-4">
-                    <CheckCircle className="w-6 h-6 text-gray-900 mt-1 flex-shrink-0" />
+                    <CheckCircle className="w-6 h-6 text-[#0090d8] mt-1 flex-shrink-0" />
                     <p className="font-light"><strong className="font-medium">Análise quantitativa</strong> de 4.409 ETFs com 15+ métricas por fundo</p>
                   </div>
                   <div className="flex items-start gap-4">
-                    <CheckCircle className="w-6 h-6 text-gray-900 mt-1 flex-shrink-0" />
+                    <CheckCircle className="w-6 h-6 text-[#0090d8] mt-1 flex-shrink-0" />
                     <p className="font-light"><strong className="font-medium">Rankings automáticos</strong> baseados em performance real, não marketing</p>
                   </div>
                   <div className="flex items-start gap-4">
-                    <CheckCircle className="w-6 h-6 text-gray-900 mt-1 flex-shrink-0" />
+                    <CheckCircle className="w-6 h-6 text-[#0090d8] mt-1 flex-shrink-0" />
                     <p className="font-light"><strong className="font-medium">Decisões racionais</strong> que multiplicam seu patrimônio ao longo do tempo</p>
                   </div>
                 </div>
@@ -148,23 +139,23 @@ export default function HomePage() {
         <section className="py-20 px-6 bg-gray-50">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-light text-gray-900 mb-12">
+              <h2 className="text-3xl font-light text-[#202636] mb-12">
                 Confiado por Investidores Inteligentes
               </h2>
               <div className="grid md:grid-cols-3 gap-12">
                 <div className="text-center">
                   <div className="text-5xl mb-6">🏆</div>
-                  <h3 className="text-xl font-medium text-gray-900 mb-4">Análise Científica</h3>
+                  <h3 className="text-xl font-medium text-[#202636] mb-4">Análise Científica</h3>
                   <p className="text-gray-600 font-light leading-relaxed">Metodologia baseada em dados acadêmicos e validação estatística</p>
                 </div>
                 <div className="text-center">
                   <div className="text-5xl mb-6">🔒</div>
-                  <h3 className="text-xl font-medium text-gray-900 mb-4">Dados Seguros</h3>
+                  <h3 className="text-xl font-medium text-[#202636] mb-4">Dados Seguros</h3>
                   <p className="text-gray-600 font-light leading-relaxed">Informações criptografadas e protegidas por padrões bancários</p>
                 </div>
                 <div className="text-center">
                   <div className="text-5xl mb-6">📊</div>
-                  <h3 className="text-xl font-medium text-gray-900 mb-4">Transparência Total</h3>
+                  <h3 className="text-xl font-medium text-[#202636] mb-4">Transparência Total</h3>
                   <p className="text-gray-600 font-light leading-relaxed">Todas as métricas e metodologias são abertas e auditáveis</p>
                 </div>
               </div>
@@ -176,7 +167,7 @@ export default function HomePage() {
         <section className="py-20 px-6 bg-white">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-20">
-              <h2 className="text-4xl font-light text-gray-900 mb-6">
+              <h2 className="text-4xl font-light text-[#202636] mb-6">
                 Ferramentas que Multiplicam Resultados
               </h2>
               <p className="text-xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed text-center">
@@ -187,17 +178,17 @@ export default function HomePage() {
             <div className="grid md:grid-cols-3 gap-12">
               {/* Rankings */}
               <div className="text-center p-12 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
-                <div className="w-20 h-20 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-8">
+                <div className="w-20 h-20 bg-[#0090d8] rounded-2xl flex items-center justify-center mx-auto mb-8">
                   <Award className="w-10 h-10 text-white" />
                 </div>
-                <h3 className="text-2xl font-light text-gray-900 mb-6">Rankings Anti-Viés</h3>
+                <h3 className="text-2xl font-light text-[#202636] mb-6">Rankings Anti-Viés</h3>
                 <p className="text-gray-600 mb-8 font-light leading-relaxed">
                   <strong className="font-medium">Pare de seguir "gurus".</strong> Rankings automáticos baseados em Sharpe Ratio, 
                   retorno ajustado ao risco e análise quantitativa pura.
                 </p>
                 <Link 
                   href="/rankings"
-                  className="inline-flex items-center gap-3 bg-gray-900 text-white px-8 py-4 rounded-xl font-light hover:bg-gray-800 transition-all duration-300"
+                  className="inline-flex items-center gap-3 bg-[#0090d8] text-white px-8 py-4 rounded-xl font-light hover:bg-[#0090d8]/90 transition-all duration-300"
                 >
                   Ver Top ETFs <ArrowRight className="w-4 h-4" />
                 </Link>

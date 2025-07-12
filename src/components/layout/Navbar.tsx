@@ -14,7 +14,7 @@ const publicNavItems: Array<{href: string, label: string, highlight?: boolean, a
   { href: "/pricing", label: "Preços", authRequired: true },
 ];
 
-// Navegação para usuários autenticados (privado)
+// Navegação para usuários autenticados (privado) - REMOVIDO item "Perfil"
 const privateNavItems: Array<{href: string, label: string, highlight?: boolean, authRequired?: boolean}> = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/comparador", label: "Comparador" },
@@ -22,7 +22,6 @@ const privateNavItems: Array<{href: string, label: string, highlight?: boolean, 
   { href: "/consultoria", label: "Consultoria CVM" },
   { href: "/rankings", label: "Rankings" },
   { href: "/screener", label: "Screener" },
-  { href: "/profile", label: "Perfil" },
 ];
 
 export default function Navbar() {
@@ -86,62 +85,20 @@ export default function Navbar() {
 
     if (user) {
       return (
-        <div className="relative">
-          <button
-            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-            className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        <div className="flex items-center space-x-4">
+          {/* Nome do usuário como botão que leva para /profile */}
+          <Link
+            href="/profile"
+            className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#0090d8] transition-colors cursor-pointer"
           >
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">
-                {profile?.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {profile?.name || user.email?.split('@')[0]}
-            </span>
+            {profile?.name || user.email?.split('@')[0]}
+          </Link>
+          <button
+            onClick={handleSignOut}
+            className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+          >
+            Sair
           </button>
-
-          {/* User Dropdown */}
-          {isUserMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1">
-              <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {profile?.name || 'Usuário'}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {user.email}
-                </p>
-              </div>
-              
-              <Link
-                href="/profile"
-                onClick={() => setIsUserMenuOpen(false)}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Perfil
-              </Link>
-              
-              <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
-              
-              <button
-                onClick={handleClearSession}
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                title="Resolver problemas de login"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Limpar Cache
-              </button>
-              
-              <button
-                onClick={handleSignOut}
-                className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sair
-              </button>
-            </div>
-          )}
         </div>
       );
     }
@@ -286,7 +243,12 @@ export default function Navbar() {
               <div className="pt-4 border-t border-gray-200/20 dark:border-gray-800/20">
                 {user ? (
                   <div className="space-y-3">
-                    <div className="flex items-center space-x-3">
+                    {/* Nome do usuário como botão clicável para /profile */}
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center space-x-3 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
+                    >
                       <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-medium">
                           {profile?.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
@@ -300,7 +262,7 @@ export default function Navbar() {
                           {user.email}
                         </p>
                       </div>
-                    </div>
+                    </Link>
                     
                     <button
                       onClick={handleSignOut}

@@ -165,7 +165,8 @@ export default function ProfilePage() {
         <form onSubmit={handleSubmit}>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações Pessoais</h3>
+              {/* ALTERADO: Padronizado fonte do título para ficar igual ao texto de instrução */}
+              <h3 className="text-gray-600 mt-2">Informações Pessoais</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -178,7 +179,7 @@ export default function ProfilePage() {
                       type="text"
                       value={formData.full_name}
                       onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0090d8]"
                       placeholder="Digite seu nome completo"
                       required
                     />
@@ -195,7 +196,7 @@ export default function ProfilePage() {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0090d8]"
                       placeholder="Digite seu email"
                       required
                     />
@@ -212,7 +213,7 @@ export default function ProfilePage() {
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0090d8]"
                       placeholder="+55 11 99999-9999"
                     />
                   </div>
@@ -228,7 +229,7 @@ export default function ProfilePage() {
                       type="date"
                       value={formData.birth_date}
                       onChange={(e) => setFormData(prev => ({ ...prev, birth_date: e.target.value }))}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0090d8]"
                     />
                   </div>
                 </div>
@@ -242,7 +243,7 @@ export default function ProfilePage() {
                     <select
                       value={formData.country}
                       onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0090d8]"
                     >
                       {countries.map(country => (
                         <option key={country.value} value={country.value}>
@@ -265,7 +266,7 @@ export default function ProfilePage() {
                     <select
                       value={formData.investment_experience}
                       onChange={(e) => setFormData(prev => ({ ...prev, investment_experience: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0090d8]"
                     >
                       {investmentExperiences.map(exp => (
                         <option key={exp.value} value={exp.value}>
@@ -279,13 +280,44 @@ export default function ProfilePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Tolerância ao Risco: {formData.risk_tolerance}
                     </label>
+                    {/* ALTERADO: Adicionado estilos customizados para usar cor #0090d8 no slider */}
+                    <style jsx>{`
+                      .custom-slider::-webkit-slider-thumb {
+                        appearance: none;
+                        height: 20px;
+                        width: 20px;
+                        border-radius: 50%;
+                        background: #0090d8;
+                        cursor: pointer;
+                        box-shadow: 0 0 2px 0 #555;
+                      }
+                      .custom-slider::-moz-range-thumb {
+                        height: 20px;
+                        width: 20px;
+                        border-radius: 50%;
+                        background: #0090d8;
+                        cursor: pointer;
+                        border: none;
+                        box-shadow: 0 0 2px 0 #555;
+                      }
+                      .custom-slider::-webkit-slider-track {
+                        background: #ddd;
+                        height: 8px;
+                        border-radius: 4px;
+                      }
+                      .custom-slider::-moz-range-track {
+                        background: #ddd;
+                        height: 8px;
+                        border-radius: 4px;
+                      }
+                    `}</style>
                     <input
                       type="range"
                       min="1"
                       max="10"
                       value={formData.risk_tolerance}
                       onChange={(e) => setFormData(prev => ({ ...prev, risk_tolerance: parseInt(e.target.value) }))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer custom-slider"
                     />
                     <div className="flex justify-between text-xs text-gray-500 mt-1">
                       <span>1 - Conservador</span>
@@ -304,7 +336,7 @@ export default function ProfilePage() {
                           type="number"
                           value={formData.monthly_investment}
                           onChange={(e) => setFormData(prev => ({ ...prev, monthly_investment: e.target.value }))}
-                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0090d8]"
                           placeholder="Ex: 1000"
                         />
                       </div>
@@ -320,7 +352,7 @@ export default function ProfilePage() {
                           type="number"
                           value={formData.total_patrimony}
                           onChange={(e) => setFormData(prev => ({ ...prev, total_patrimony: e.target.value }))}
-                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0090d8]"
                           placeholder="Ex: 50000"
                         />
                       </div>
@@ -332,10 +364,11 @@ export default function ProfilePage() {
           </div>
 
           <div className="mt-8 flex justify-end">
+            {/* ALTERADO: Cor do botão de azul para #0090d8 */}
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[#0090d8] hover:bg-[#0090d8]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0090d8] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>

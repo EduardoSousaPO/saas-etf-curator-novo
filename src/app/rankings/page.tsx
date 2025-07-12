@@ -182,11 +182,11 @@ export default function RankingsPage() {
               <div className="text-red-500 mb-8">
                 <TrendingDown className="h-12 w-12 mx-auto" />
               </div>
-              <h2 className="text-2xl font-light text-black mb-4">Unable to load rankings</h2>
+              <h2 className="text-2xl font-light text-[#202636] mb-4">Unable to load rankings</h2>
               <p className="text-lg text-gray-600 mb-8">{error}</p>
               <Button 
                 onClick={() => window.location.reload()}
-                className="bg-black text-white px-8 py-3 rounded-none hover:bg-gray-800"
+                className="bg-[#0090d8] text-white px-8 py-3 rounded-xl hover:bg-[#0090d8]/90"
               >
                 Try Again
               </Button>
@@ -205,7 +205,7 @@ export default function RankingsPage() {
         {/* Hero Section - Tesla style */}
         <div className="bg-white">
           <div className="max-w-7xl mx-auto px-6 py-24 text-center">
-            <h1 className="text-6xl font-light text-black mb-6 tracking-tight">
+            <h1 className="text-6xl font-light text-[#202636] mb-6 tracking-tight">
               ETF Rankings
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-16 leading-relaxed">
@@ -217,15 +217,15 @@ export default function RankingsPage() {
             {rankings?.metadata && (
               <div className="flex items-center justify-center gap-16 text-gray-500">
                 <div className="text-center">
-                  <div className="text-3xl font-light text-black">{rankings.metadata.categories_count}</div>
+                  <div className="text-3xl font-light text-[#202636]">{rankings.metadata.categories_count}</div>
                   <div className="text-sm uppercase tracking-wide">Categories</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-light text-black">{rankings.metadata.total_etfs_analyzed}</div>
+                  <div className="text-3xl font-light text-[#202636]">{rankings.metadata.total_etfs_analyzed}</div>
                   <div className="text-sm uppercase tracking-wide">ETFs Analyzed</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-light text-black">Live</div>
+                  <div className="text-3xl font-light text-[#202636]">Live</div>
                   <div className="text-sm uppercase tracking-wide">Data</div>
                 </div>
               </div>
@@ -250,10 +250,10 @@ export default function RankingsPage() {
                     {/* Card Header */}
                     <div className="p-8 border-b border-gray-100">
                       <div className="flex items-center justify-between mb-4">
-                        <category.icon className="h-6 w-6 text-black" />
-                        <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
+                        <category.icon className="h-6 w-6 text-[#0090d8]" />
+                        <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-[#0090d8] transition-colors" />
                       </div>
-                      <h3 className="text-2xl font-light text-black mb-2">
+                      <h3 className="text-2xl font-light text-[#202636] mb-2">
                         {category.title}
                       </h3>
                       <p className="text-gray-600 text-sm uppercase tracking-wide">
@@ -273,16 +273,16 @@ export default function RankingsPage() {
                           {data.slice(0, 3).map((etf, index) => (
                             <div key={etf.symbol} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
                               <div className="flex items-center gap-4">
-                                <div className="w-8 h-8 bg-black text-white text-sm flex items-center justify-center font-light">
+                                <div className="w-8 h-8 bg-[#0090d8] text-white text-sm flex items-center justify-center font-light">
                                   {index + 1}
                                 </div>
                                 <div>
-                                  <div className="font-medium text-black">{etf.symbol}</div>
+                                  <div className="font-medium text-[#202636]">{etf.symbol}</div>
                                   <div className="text-sm text-gray-500 truncate max-w-[200px]">{etf.name}</div>
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className="font-medium text-black">
+                                <div className="font-medium text-[#202636]">
                                   {category.valueFormatter(etf[category.valueKey as keyof ETF] as number)}
                                 </div>
                               </div>
@@ -311,7 +311,7 @@ export default function RankingsPage() {
               <div className="mb-16">
                 <div className="flex items-center justify-between mb-8">
                   <div>
-                    <h2 className="text-4xl font-light text-black mb-4">
+                    <h2 className="text-4xl font-light text-[#202636] mb-4">
                       {RANKING_CATEGORIES[selectedCategory as keyof typeof RANKING_CATEGORIES].title}
                     </h2>
                     <p className="text-xl text-gray-600">
@@ -321,7 +321,7 @@ export default function RankingsPage() {
                   <Button 
                     variant="outline" 
                     onClick={() => setSelectedCategory(null)}
-                    className="border-black text-black hover:bg-black hover:text-white px-8 py-3 rounded-none"
+                    className="border-[#0090d8] text-[#0090d8] hover:bg-[#0090d8] hover:text-white px-8 py-3 rounded-xl"
                   >
                     Close
                   </Button>
@@ -333,18 +333,18 @@ export default function RankingsPage() {
                     <div key={etf.symbol} className="flex items-center justify-between py-6 border-b border-gray-100 last:border-0">
                       <div className="flex items-center gap-6">
                         <div className={`w-12 h-12 flex items-center justify-center text-lg font-light ${
-                          index < 3 ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'
+                          index < 3 ? 'bg-[#0090d8] text-white' : 'bg-gray-100 text-gray-600'
                         }`}>
                           {index + 1}
                         </div>
                         <div>
-                          <div className="text-xl font-medium text-black mb-1">{etf.symbol}</div>
+                          <div className="text-xl font-medium text-[#202636] mb-1">{etf.symbol}</div>
                           <div className="text-gray-600 max-w-md">{etf.name}</div>
                           <div className="text-sm text-gray-400 mt-1">{etf.assetclass}</div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-light text-black">
+                        <div className="text-2xl font-light text-[#202636]">
                           {RANKING_CATEGORIES[selectedCategory as keyof typeof RANKING_CATEGORIES].valueFormatter(etf[RANKING_CATEGORIES[selectedCategory as keyof typeof RANKING_CATEGORIES].valueKey as keyof ETF] as number)}
                         </div>
                         <div className="text-sm text-gray-500 mt-1">
@@ -366,7 +366,7 @@ export default function RankingsPage() {
               <div className="flex items-start gap-4">
                 <Info className="h-6 w-6 text-gray-400 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="text-lg font-medium text-black mb-4">
+                  <h3 className="text-lg font-medium text-[#202636] mb-4">
                     Important Notice
                   </h3>
                   <p className="text-gray-600 leading-relaxed">

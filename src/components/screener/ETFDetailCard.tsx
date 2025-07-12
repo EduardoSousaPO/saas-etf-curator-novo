@@ -73,8 +73,8 @@ const MetricItem: React.FC<{
 // Componente para seção de performance
 const PerformanceSection: React.FC<{ title: string; data: Array<{ period: string; return: number | null; volatility: number | null; sharpe: number | null }> }> = ({ title, data }) => (
   <div className="space-y-3">
-    <h4 className="font-semibold text-gray-900 flex items-center">
-      <Activity className="w-4 h-4 mr-2" />
+    <h4 className="font-semibold text-[#202636] flex items-center">
+      <Activity className="w-4 h-4 mr-2 text-[#0090d8]" />
       {title}
     </h4>
     <div className="overflow-x-auto">
@@ -133,10 +133,10 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="p-3 bg-blue-100 rounded-lg">
-                <PieChart className="w-8 h-8 text-blue-600" />
+                <PieChart className="w-8 h-8 text-[#0090d8]" />
               </div>
           <div>
-                <h2 className="text-3xl font-bold text-gray-900">{etf.symbol}</h2>
+                <h2 className="text-3xl font-bold text-[#202636]">{etf.symbol}</h2>
                 <p className="text-lg text-gray-600 mt-1">{etf.name || "Nome não disponível"}</p>
                 {etf.description && (
                   <p className="text-sm text-gray-500 mt-2 max-w-2xl">{etf.description}</p>
@@ -167,8 +167,8 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Informações Básicas */}
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-gray-900 flex items-center border-b pb-2">
-                <Building2 className="w-5 h-5 mr-2" />
+              <h3 className="text-xl font-semibold text-[#202636] flex items-center border-b pb-2">
+                <Building2 className="w-5 h-5 mr-2 text-[#0090d8]" />
                 Informações Básicas
               </h3>
               <div className="space-y-3">
@@ -204,7 +204,7 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                       href={etf.website} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 flex items-center"
+                      className="text-[#0090d8] hover:text-[#0090d8]/80 flex items-center"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </a>
@@ -215,8 +215,8 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
 
             {/* Dados de Mercado */}
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-gray-900 flex items-center border-b pb-2">
-                <BarChart3 className="w-5 h-5 mr-2" />
+              <h3 className="text-xl font-semibold text-[#202636] flex items-center border-b pb-2">
+                <BarChart3 className="w-5 h-5 mr-2 text-[#0090d8]" />
                 Dados de Mercado
               </h3>
               <div className="space-y-3">
@@ -265,8 +265,8 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
           {/* Seção 3: Dividendos */}
           {(etf.dividends_12m || etf.dividend_yield) && (
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl">
-              <h3 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
-                <DollarSign className="w-5 h-5 mr-2" />
+              <h3 className="text-xl font-semibold text-[#202636] flex items-center mb-4">
+                <DollarSign className="w-5 h-5 mr-2 text-[#0090d8]" />
                 Distribuições e Dividendos
             </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -280,7 +280,7 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                   />
                   </div>
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-gray-900">Histórico de Dividendos</h4>
+                  <h4 className="font-semibold text-[#202636]">Histórico de Dividendos</h4>
                   {dividendData.map((item, index) => (
                     item.amount && (
                       <div key={index} className="flex justify-between text-sm">
@@ -298,8 +298,8 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Classificações */}
             <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl">
-              <h3 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
-                <Shield className="w-5 h-5 mr-2" />
+              <h3 className="text-xl font-semibold text-[#202636] flex items-center mb-4">
+                <Shield className="w-5 h-5 mr-2 text-[#0090d8]" />
                 Classificações
               </h3>
               <div className="space-y-3">
@@ -314,8 +314,8 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
 
             {/* Informações Técnicas */}
             <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-6 rounded-xl">
-              <h3 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
-                <Info className="w-5 h-5 mr-2" />
+              <h3 className="text-xl font-semibold text-[#202636] flex items-center mb-4">
+                <Info className="w-5 h-5 mr-2 text-[#0090d8]" />
                 Informações Técnicas
               </h3>
               <div className="space-y-3 text-sm">
@@ -344,8 +344,8 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
           {/* Seção 5: Setores (se disponível) */}
           {etf.sectorslist && (
             <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-6 rounded-xl">
-              <h3 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
-                <PieChart className="w-5 h-5 mr-2" />
+              <h3 className="text-xl font-semibold text-[#202636] flex items-center mb-4">
+                <PieChart className="w-5 h-5 mr-2 text-[#0090d8]" />
                 Composição Setorial
             </h3>
               <div className="bg-white p-4 rounded-lg">
@@ -367,7 +367,7 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                   href={etf.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                  className="px-4 py-2 bg-[#0090d8] text-white rounded-lg hover:bg-[#0090d8]/90 transition-colors flex items-center"
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Website

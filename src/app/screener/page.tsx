@@ -408,9 +408,9 @@ export default function ScreenerPage() {
           
           {/* Header Tesla-style */}
           <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-6xl font-light text-gray-900 mb-6 leading-tight">
+            <h1 className="text-5xl md:text-6xl font-light text-[#202636] mb-6 leading-tight">
               ETF
-              <span className="block text-blue-600">Screener</span>
+              <span className="block text-[#0090d8]">Screener</span>
             </h1>
             <p className="text-xl font-light text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Descubra os ETFs perfeitos para sua carteira usando filtros avançados 
@@ -421,30 +421,30 @@ export default function ScreenerPage() {
             <div className="flex flex-wrap justify-center gap-12 mt-12">
               <div className="flex items-center gap-3 text-gray-700">
                 <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
-                  <Database className="w-6 h-6 text-blue-600" />
+                  <Database className="w-6 h-6 text-[#0090d8]" />
                 </div>
                 <div>
-                  <div className="text-2xl font-light text-gray-900">1.370+</div>
+                  <div className="text-2xl font-light text-[#202636]">1.370+</div>
                   <div className="text-sm text-gray-600">ETFs Analisados</div>
                 </div>
               </div>
               
               <div className="flex items-center gap-3 text-gray-700">
-                <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-green-600" />
+                <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
+                  <BarChart3 className="w-6 h-6 text-[#0090d8]" />
                 </div>
                 <div>
-                  <div className="text-2xl font-light text-gray-900">50+</div>
+                  <div className="text-2xl font-light text-[#202636]">50+</div>
                   <div className="text-sm text-gray-600">Filtros Avançados</div>
                 </div>
               </div>
               
               <div className="flex items-center gap-3 text-gray-700">
-                <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-purple-600" />
+                <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-[#0090d8]" />
                 </div>
                 <div>
-                  <div className="text-2xl font-light text-gray-900">96.5%</div>
+                  <div className="text-2xl font-light text-[#202636]">96.5%</div>
                   <div className="text-sm text-gray-600">Dados Completos</div>
                 </div>
               </div>

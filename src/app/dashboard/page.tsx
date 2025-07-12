@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { getPlanConfig } from '@/types/subscriptions';
 import MarketMetrics from '@/components/dashboard/MarketMetrics';
+import Link from 'next/link';
 
 interface UserProfile {
   name: string;
@@ -283,7 +284,7 @@ export default function DashboardPage() {
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <div className="flex items-center justify-between mb-6">
                   <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-blue-600" />
+                    <TrendingUp className="w-6 h-6" style={{ color: '#0090d8' }} />
                   </div>
                   <Badge className="bg-green-100 text-green-800 font-light">
                     +2.4%
@@ -299,8 +300,8 @@ export default function DashboardPage() {
               
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-green-600" />
+                  <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
+                    <DollarSign className="w-6 h-6" style={{ color: '#0090d8' }} />
                   </div>
                   <Badge className="bg-blue-100 text-blue-800 font-light">
                     +0.8%
@@ -316,8 +317,8 @@ export default function DashboardPage() {
               
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
-                    <BarChart3 className="w-6 h-6 text-purple-600" />
+                  <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
+                    <BarChart3 className="w-6 h-6" style={{ color: '#0090d8' }} />
                   </div>
                   <Badge className="bg-green-100 text-green-800 font-light">
                     +1.2%
@@ -333,8 +334,8 @@ export default function DashboardPage() {
               
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center">
-                    <Activity className="w-6 h-6 text-orange-600" />
+                  <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center">
+                    <Activity className="w-6 h-6 text-red-600" />
                   </div>
                   <Badge className="bg-red-100 text-red-800 font-light">
                     -0.3%
@@ -374,9 +375,9 @@ export default function DashboardPage() {
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 transition-all duration-300 hover:shadow-md group cursor-pointer">
                 <div className="flex items-center justify-between mb-6">
                   <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center group-hover:bg-blue-200 transition-colors duration-300">
-                    <Target className="w-8 h-8 text-blue-600" />
+                    <Target className="w-8 h-8 text-[#0090d8]" />
                   </div>
-                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors duration-300" />
+                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-[#0090d8] transition-colors duration-300" />
                 </div>
                 <h3 className="text-xl font-light text-gray-900 mb-4">
                   Portfolio Master
@@ -388,10 +389,10 @@ export default function DashboardPage() {
               
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 transition-all duration-300 hover:shadow-md group cursor-pointer">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center group-hover:bg-green-200 transition-colors duration-300">
-                    <PieChart className="w-8 h-8 text-green-600" />
+                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center group-hover:bg-blue-200 transition-colors duration-300">
+                    <PieChart className="w-8 h-8 text-[#0090d8]" />
                   </div>
-                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-green-600 transition-colors duration-300" />
+                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-[#0090d8] transition-colors duration-300" />
                 </div>
                 <h3 className="text-xl font-light text-gray-900 mb-4">
                   Simulador Avançado
@@ -403,10 +404,10 @@ export default function DashboardPage() {
               
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 transition-all duration-300 hover:shadow-md group cursor-pointer">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center group-hover:bg-purple-200 transition-colors duration-300">
-                    <Eye className="w-8 h-8 text-purple-600" />
+                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center group-hover:bg-blue-200 transition-colors duration-300">
+                    <Eye className="w-8 h-8 text-[#0090d8]" />
                   </div>
-                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-purple-600 transition-colors duration-300" />
+                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-[#0090d8] transition-colors duration-300" />
                 </div>
                 <h3 className="text-xl font-light text-gray-900 mb-4">
                   Screener ETFs
@@ -418,10 +419,10 @@ export default function DashboardPage() {
               
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 transition-all duration-300 hover:shadow-md group cursor-pointer">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center group-hover:bg-orange-200 transition-colors duration-300">
-                    <BarChart3 className="w-8 h-8 text-orange-600" />
+                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center group-hover:bg-blue-200 transition-colors duration-300">
+                    <BarChart3 className="w-8 h-8 text-[#0090d8]" />
                   </div>
-                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-orange-600 transition-colors duration-300" />
+                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-[#0090d8] transition-colors duration-300" />
                 </div>
                 <h3 className="text-xl font-light text-gray-900 mb-4">
                   Comparador
@@ -433,10 +434,10 @@ export default function DashboardPage() {
               
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 transition-all duration-300 hover:shadow-md group cursor-pointer">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center group-hover:bg-red-200 transition-colors duration-300">
-                    <TrendingUp className="w-8 h-8 text-red-600" />
+                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center group-hover:bg-blue-200 transition-colors duration-300">
+                    <TrendingUp className="w-8 h-8 text-[#0090d8]" />
                   </div>
-                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-red-600 transition-colors duration-300" />
+                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-[#0090d8] transition-colors duration-300" />
                 </div>
                 <h3 className="text-xl font-light text-gray-900 mb-4">
                   Rankings
@@ -448,10 +449,10 @@ export default function DashboardPage() {
               
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 transition-all duration-300 hover:shadow-md group cursor-pointer">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center group-hover:bg-yellow-200 transition-colors duration-300">
-                    <Award className="w-8 h-8 text-yellow-600" />
+                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center group-hover:bg-blue-200 transition-colors duration-300">
+                    <Award className="w-8 h-8 text-[#0090d8]" />
                   </div>
-                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-yellow-600 transition-colors duration-300" />
+                  <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-[#0090d8] transition-colors duration-300" />
                 </div>
                 <h3 className="text-xl font-light text-gray-900 mb-4">
                   Consultoria CVM
@@ -474,7 +475,7 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
                     <div className="flex items-center space-x-4">
                       <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Target className="w-5 h-5 text-blue-600" />
+                        <Target className="w-5 h-5 text-[#0090d8]" />
                       </div>
                       <div>
                         <p className="font-light text-gray-900">
@@ -494,8 +495,8 @@ export default function DashboardPage() {
                   
                   <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
                     <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <PieChart className="w-5 h-5 text-green-600" />
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <PieChart className="w-5 h-5 text-[#0090d8]" />
                       </div>
                       <div>
                         <p className="font-light text-gray-900">
@@ -515,8 +516,8 @@ export default function DashboardPage() {
                   
                   <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
                     <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                        <Eye className="w-5 h-5 text-purple-600" />
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Eye className="w-5 h-5 text-[#0090d8]" />
                       </div>
                       <div>
                         <p className="font-light text-gray-900">
@@ -557,7 +558,7 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-xs font-light text-blue-600">1</span>
+                        <span className="text-xs font-light text-[#0090d8]">1</span>
                       </div>
                       <div>
                         <p className="font-light text-gray-900">QQQ</p>
@@ -571,8 +572,8 @@ export default function DashboardPage() {
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <span className="text-xs font-light text-green-600">2</span>
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-light text-[#0090d8]">2</span>
                       </div>
                       <div>
                         <p className="font-light text-gray-900">SPY</p>
@@ -586,8 +587,8 @@ export default function DashboardPage() {
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                        <span className="text-xs font-light text-purple-600">3</span>
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-light text-[#0090d8]">3</span>
                       </div>
                       <div>
                         <p className="font-light text-gray-900">VTI</p>
@@ -645,8 +646,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* CTA Section */}
-          <div className="bg-gray-900 rounded-2xl p-12 text-center">
+          {/* CTA Section - ALTERADO conforme solicitação */}
+          <div style={{ backgroundColor: '#202636' }} className="w-full py-16 px-6 text-center">
             <h2 className="text-3xl font-light text-white mb-6">
               Pronto para Otimizar sua Carteira?
             </h2>
@@ -658,14 +659,158 @@ export default function DashboardPage() {
               <button className="bg-white text-gray-900 px-8 py-3 rounded-xl font-light transition-all duration-300 hover:bg-gray-100">
                 Começar Portfolio Master
               </button>
-              <button className="border border-gray-600 text-white px-8 py-3 rounded-xl font-light transition-all duration-300 hover:bg-gray-800">
-                Explorar Ferramentas
+              <button 
+                className="px-8 py-3 rounded-xl font-light transition-all duration-300 hover:opacity-90"
+                style={{ backgroundColor: '#0090d8', color: 'white' }}
+              >
+                Agendar Consultoria CVM
               </button>
             </div>
           </div>
 
         </div>
       </div>
+
+      {/* Footer - ADICIONADO idêntico ao da landing page */}
+      <footer className="bg-white border-t border-gray-200">
+        <div className="max-w-6xl mx-auto px-6 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            
+            {/* Contato */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Contato</h3>
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  <strong>Email:</strong><br />
+                  contato@vista.com.br
+                </p>
+                <p className="text-gray-600">
+                  <strong>Suporte:</strong><br />
+                  suporte@vista.com.br
+                </p>
+                <p className="text-gray-600">
+                  <strong>Consultoria:</strong><br />
+                  consultoria@vista.com.br
+                </p>
+              </div>
+            </div>
+
+            {/* Planos */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Planos</h3>
+              <div className="space-y-3">
+                <div>
+                  <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
+                    Starter
+                  </Link>
+                  <p className="text-sm text-gray-500">Gratuito</p>
+                </div>
+                <div>
+                  <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
+                    Pro
+                  </Link>
+                  <p className="text-sm text-gray-500">R$ 39,90/mês</p>
+                </div>
+                <div>
+                  <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
+                    Wealth
+                  </Link>
+                  <p className="text-sm text-gray-500">1% a.a. sobre patrimônio</p>
+                </div>
+                <div>
+                  <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
+                    Offshore
+                  </Link>
+                  <p className="text-sm text-gray-500">0,8% a.a. sobre patrimônio</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Links Úteis */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Suporte</h3>
+              <div className="space-y-3">
+                <div>
+                  <Link href="/faq" className="text-gray-600 hover:text-gray-900">
+                    FAQ
+                  </Link>
+                </div>
+                <div>
+                  <Link href="/contato" className="text-gray-600 hover:text-gray-900">
+                    Central de Ajuda
+                  </Link>
+                </div>
+                <div>
+                  <Link href="/consultoria" className="text-gray-600 hover:text-gray-900">
+                    Consultoria CVM
+                  </Link>
+                </div>
+                <div>
+                  <Link href="/termos" className="text-gray-600 hover:text-gray-900">
+                    Termos de Uso
+                  </Link>
+                </div>
+                <div>
+                  <Link href="/privacidade" className="text-gray-600 hover:text-gray-900">
+                    Política de Privacidade
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Redes Sociais e CVM */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Conecte-se</h3>
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <a 
+                    href="https://instagram.com/vista.etfs" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                  >
+                    <span>📷</span> Instagram
+                  </a>
+                  <a 
+                    href="https://linkedin.com/company/vista-etfs" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                  >
+                    <span>💼</span> LinkedIn
+                  </a>
+                </div>
+                
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-500 mb-2">
+                    <strong>Regulamentação CVM</strong>
+                  </p>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Vista é uma plataforma de análise de ETFs. Serviços de consultoria são prestados por consultores registrados na CVM conforme Resolução 179/2023.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Rodapé inferior */}
+          <div className="border-t border-gray-200 mt-12 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-light text-gray-900">Vista</span>
+                <span className="text-sm text-gray-500">© 2024 Vista. Todos os direitos reservados.</span>
+              </div>
+              <div className="flex items-center gap-6 text-sm text-gray-500">
+                <span>Análise científica de ETFs</span>
+                <span>•</span>
+                <span>Dados em tempo real</span>
+                <span>•</span>
+                <span>Consultoria CVM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </RequireAuth>
   );
 } 

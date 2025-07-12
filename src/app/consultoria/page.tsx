@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -150,7 +151,8 @@ export default function ConsultoriaPage() {
               <div className="mt-6">
                 <Button 
                   onClick={() => window.location.href = '/portfolio-master'}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="text-white hover:opacity-90 transition-opacity duration-300"
+                  style={{ backgroundColor: '#0090d8' }}
                 >
                   Voltar ao Portfolio Master
                 </Button>
@@ -163,46 +165,78 @@ export default function ConsultoriaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+    <div className="min-h-screen bg-white py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        {/* Header com Navegação */}
+        <div className="flex items-center justify-between mb-12 pb-6 border-b border-gray-200">
+          <div className="flex items-center">
+            <Link href="/" className="text-2xl font-bold text-gray-900 mr-8">
+              Vista
+            </Link>
+            <nav className="hidden md:flex space-x-8">
+              <Link href="/" className="text-gray-600 hover:text-gray-900 font-medium">
+                Início
+              </Link>
+              <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
+                Planos
+              </Link>
+            </nav>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Link 
+              href="/auth/login" 
+              className="text-gray-600 hover:text-gray-900 font-medium"
+            >
+              Entrar
+            </Link>
+            <Link 
+              href="/auth/register" 
+              className="px-6 py-2 rounded-lg font-medium text-white transition-colors duration-300"
+              style={{ backgroundColor: '#0090d8' }}
+            >
+              Cadastrar
+            </Link>
+          </div>
+        </div>
+        
+        {/* Header Principal */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-light mb-6" style={{ color: '#202636' }}>
             Consultoria CVM Especializada
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-black max-w-3xl mx-auto font-light leading-relaxed">
             Agende uma consulta 1x1 com nosso especialista certificado CVM para implementar sua carteira de ETFs
           </p>
         </div>
 
         {/* Benefits Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-blue-200 bg-blue-50">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <Card className="border-gray-200 bg-white shadow-sm">
             <CardContent className="pt-6 text-center">
-              <Shield className="h-8 w-8 text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-blue-900 mb-2">Certificação CVM</h3>
-              <p className="text-sm text-blue-700">
+              <Shield className="h-8 w-8 mx-auto mb-3" style={{ color: '#0090d8' }} />
+              <h3 className="font-semibold mb-2" style={{ color: '#202636' }}>Certificação CVM</h3>
+              <p className="text-sm text-black">
                 Consultores certificados pela Comissão de Valores Mobiliários
               </p>
             </CardContent>
           </Card>
           
-          <Card className="border-green-200 bg-green-50">
+          <Card className="border-gray-200 bg-white shadow-sm">
             <CardContent className="pt-6 text-center">
-              <DollarSign className="h-8 w-8 text-green-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-green-900 mb-2">Implementação Completa</h3>
-              <p className="text-sm text-green-700">
+              <DollarSign className="h-8 w-8 mx-auto mb-3" style={{ color: '#0090d8' }} />
+              <h3 className="font-semibold mb-2" style={{ color: '#202636' }}>Implementação Completa</h3>
+              <p className="text-sm text-black">
                 Abertura de conta, compra dos ETFs e acompanhamento
               </p>
             </CardContent>
           </Card>
           
-          <Card className="border-purple-200 bg-purple-50">
+          <Card className="border-gray-200 bg-white shadow-sm">
             <CardContent className="pt-6 text-center">
-              <User className="h-8 w-8 text-purple-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-purple-900 mb-2">Atendimento 1x1</h3>
-              <p className="text-sm text-purple-700">
+              <User className="h-8 w-8 mx-auto mb-3" style={{ color: '#0090d8' }} />
+              <h3 className="font-semibold mb-2" style={{ color: '#202636' }}>Atendimento 1x1</h3>
+              <p className="text-sm text-black">
                 Consultoria personalizada para seu perfil e objetivos
               </p>
             </CardContent>
@@ -253,6 +287,7 @@ export default function ConsultoriaPage() {
                             }
                           }}
                           className="text-xs"
+                          style={selectedDate === day.date && selectedTime === slot.time ? { backgroundColor: '#0090d8', borderColor: '#0090d8' } : {}}
                         >
                           {slot.time}
                         </Button>
@@ -387,7 +422,8 @@ export default function ConsultoriaPage() {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full text-white hover:opacity-90 transition-opacity duration-300"
+                  style={{ backgroundColor: '#0090d8' }}
                   disabled={!selectedDate || !selectedTime || !formData.nome || !formData.email || !formData.telefone || !formData.valorInvestimento || isSubmitting}
                 >
                   {isSubmitting ? (

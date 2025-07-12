@@ -46,8 +46,14 @@ import {
   Trash2,
   Calendar,
   PieChart as PieChartIcon,
-  TrendingDown
+  TrendingDown,
+  ArrowLeft,
+  User,
+  FileText,
+  Download
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 // Interfaces
 interface OnboardingData {
@@ -123,6 +129,7 @@ const riskProfiles = [
 ]
 
 export default function UnifiedPortfolioMaster() {
+  const router = useRouter()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -146,6 +153,124 @@ export default function UnifiedPortfolioMaster() {
   const [showETFModal, setShowETFModal] = useState(false)
   const [recalculating, setRecalculating] = useState(false)
   const [showTooltip, setShowTooltip] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+
+  // Estados para controle de validação conforme melhores práticas UX
+  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({})
+  const [hasInteracted, setHasInteracted] = useState<{[key: string]: boolean}>({})
+
+  // Função para salvar carteira
+  const handleSavePortfolio = async () => {
+    if (!results) return
+    
+    setIsSaving(true)
+    try {
+      const portfolioData = {
+        name: `Carteira ${new Date().toLocaleDateString('pt-BR')}`,
+        objective: onboardingData.objective,
+        riskProfile: onboardingData.riskProfile,
+        investmentAmount: onboardingData.initialAmount,
+        monthlyContribution: onboardingData.monthlyAmount,
+        timeHorizon: onboardingData.timeHorizon,
+        currency: onboardingData.currency,
+        etfs: results.portfolio.map(etf => ({
+          symbol: etf.symbol,
+          name: etf.name,
+          allocation: etf.allocation_percent,
+          amount: etf.allocation_amount
+        })),
+        metrics: {
+          expectedReturn: results.expected_return,
+          expectedVolatility: results.expected_volatility,
+          sharpeRatio: results.sharpe_ratio
+        },
+        projections: results.projections,
+        createdAt: new Date().toISOString()
+      }
+      
+      // Salvar no localStorage como fallback
+      const savedPortfolios = JSON.parse(localStorage.getItem('savedPortfolios') || '[]')
+      savedPortfolios.unshift(portfolioData)
+      localStorage.setItem('savedPortfolios', JSON.stringify(savedPortfolios.slice(0, 10))) // Manter apenas 10 mais recentes
+      
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 3000)
+    } catch (error) {
+      console.error('Erro ao salvar carteira:', error)
+      alert('Erro ao salvar carteira. Tente novamente.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Função para gerar relatório
+  const handleGenerateReport = () => {
+    if (!results) return
+    
+    const reportData = {
+      portfolio: results.portfolio,
+      metrics: {
+        expectedReturn: results.expected_return,
+        expectedVolatility: results.expected_volatility,
+        sharpeRatio: results.sharpe_ratio
+      },
+      projections: results.projections,
+      backtesting: results.backtesting,
+      objective: onboardingData.objective,
+      riskProfile: onboardingData.riskProfile,
+      investmentAmount: onboardingData.initialAmount,
+      generatedAt: new Date().toISOString()
+    }
+    
+    // Criar e baixar arquivo JSON
+    const dataStr = JSON.stringify(reportData, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `portfolio-report-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  // Header de Navegação
+  const NavigationHeader = () => (
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+      <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/dashboard" className="text-2xl font-bold text-[#202636]">
+            Vista
+          </Link>
+          
+          {/* Navegação Central */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link href="/dashboard" className="text-gray-600 hover:text-[#0090d8] transition-colors">
+              Dashboard
+            </Link>
+            <Link href="/consultoria" className="text-gray-600 hover:text-[#0090d8] transition-colors">
+              Consultoria CVM
+            </Link>
+            <Link href="/rankings" className="text-gray-600 hover:text-[#0090d8] transition-colors">
+              Rankings
+            </Link>
+            <Link href="/screener" className="text-gray-600 hover:text-[#0090d8] transition-colors">
+              Screener
+            </Link>
+          </nav>
+          
+          {/* Ícone de Perfil */}
+          <Link href="/profile" className="flex items-center gap-2 text-gray-600 hover:text-[#0090d8] transition-colors">
+            <User className="h-5 w-5" />
+            <span className="hidden sm:inline">Perfil</span>
+          </Link>
+        </div>
+      </div>
+    </header>
+  )
 
   // Gerar Portfolio
   const generatePortfolio = async () => {
@@ -536,9 +661,27 @@ export default function UnifiedPortfolioMaster() {
               <Plus className="mr-2 h-4 w-4" />
               Nova Simulação
             </Button>
-            <Button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-xl">
-              <Save className="mr-2 h-4 w-4" />
-              Salvar Carteira
+            <Button 
+              onClick={handleSavePortfolio}
+              disabled={isSaving}
+              className="bg-[#0090d8] hover:bg-[#0090d8]/90 text-white px-8 py-3 rounded-xl"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : saveSuccess ? (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Salvo!
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar Carteira
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -1095,9 +1238,12 @@ export default function UnifiedPortfolioMaster() {
               <Calendar className="mr-2 h-5 w-5 inline" />
               Agendar Consultoria CVM
             </button>
-            <button className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 px-12 py-4 rounded-xl text-lg font-medium transition-colors duration-300">
-              <Save className="mr-2 h-5 w-5 inline" />
-              Implementar Sozinho
+            <button 
+              onClick={handleGenerateReport}
+              className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 px-12 py-4 rounded-xl text-lg font-medium transition-colors duration-300"
+            >
+              <FileText className="mr-2 h-5 w-5 inline" />
+              Gerar Relatório
             </button>
           </div>
         </div>
@@ -1428,21 +1574,32 @@ export default function UnifiedPortfolioMaster() {
               onChange={(e) => {
                 const value = Number(e.target.value)
                 setOnboardingData(prev => ({ ...prev, initialAmount: value }))
-                // Validação em tempo real
-                if (value < 10000) {
-                  setError('Valor mínimo de investimento: $10.000')
-                } else {
-                  setError(null)
+                
+                // Validação reward early, punish late
+                if (hasInteracted.initialAmount && fieldErrors.initialAmount) {
+                  // Se já tem erro, validar imediatamente (reward early)
+                  if (value >= 10000) {
+                    setFieldErrors(prev => ({ ...prev, initialAmount: '' }))
+                  }
+                } else if (hasInteracted.initialAmount && value < 10000) {
+                  // Se não tem erro mas valor é inválido, não mostrar erro ainda (punish late)
+                }
+              }}
+              onBlur={() => {
+                setHasInteracted(prev => ({ ...prev, initialAmount: true }))
+                // Validar apenas no blur se não há erro anterior (punish late)
+                if (onboardingData.initialAmount < 10000) {
+                  setFieldErrors(prev => ({ ...prev, initialAmount: 'Valor mínimo: $10.000' }))
                 }
               }}
               placeholder="10000"
               min="10000"
               max="50000000"
               step="1000"
-              className={`${onboardingData.initialAmount < 10000 ? 'border-red-500' : 'border-gray-300'}`}
+              className={`${fieldErrors.initialAmount ? 'border-red-500' : 'border-gray-300'}`}
             />
-            {onboardingData.initialAmount < 10000 && (
-              <p className="text-sm text-red-600">Valor mínimo: $10.000</p>
+            {fieldErrors.initialAmount && (
+              <p className="text-sm text-red-600">{fieldErrors.initialAmount}</p>
             )}
           </div>
           
@@ -1479,21 +1636,32 @@ export default function UnifiedPortfolioMaster() {
               onChange={(e) => {
                 const value = Number(e.target.value)
                 setOnboardingData(prev => ({ ...prev, timeHorizon: value }))
-                // Validação em tempo real
+                
+                // Validação reward early, punish late
+                if (hasInteracted.timeHorizon && fieldErrors.timeHorizon) {
+                  // Se já tem erro, validar imediatamente (reward early)
+                  if (value >= 12 && value <= 240) {
+                    setFieldErrors(prev => ({ ...prev, timeHorizon: '' }))
+                  }
+                }
+                // Não mostrar erro durante digitação se não há erro anterior (punish late)
+              }}
+              onBlur={() => {
+                setHasInteracted(prev => ({ ...prev, timeHorizon: true }))
+                // Validar apenas no blur se não há erro anterior (punish late)
+                const value = onboardingData.timeHorizon
                 if (value < 12 || value > 240) {
-                  setError('Horizonte deve estar entre 12 e 240 meses (1 a 20 anos)')
-                } else {
-                  setError(null)
+                  setFieldErrors(prev => ({ ...prev, timeHorizon: 'Horizonte deve estar entre 12 e 240 meses (1 a 20 anos)' }))
                 }
               }}
               placeholder="60"
               min="12"
               max="240"
               step="6"
-              className={`${onboardingData.timeHorizon < 12 || onboardingData.timeHorizon > 240 ? 'border-red-500' : 'border-gray-300'}`}
+              className={`${fieldErrors.timeHorizon ? 'border-red-500' : 'border-gray-300'}`}
             />
-            {(onboardingData.timeHorizon < 12 || onboardingData.timeHorizon > 240) && (
-              <p className="text-sm text-red-600">Período deve estar entre 1 e 20 anos</p>
+            {fieldErrors.timeHorizon && (
+              <p className="text-sm text-red-600">{fieldErrors.timeHorizon}</p>
             )}
           </div>
           
@@ -1525,7 +1693,13 @@ export default function UnifiedPortfolioMaster() {
           </Button>
           <Button 
             onClick={() => setStep(3)}
-            disabled={onboardingData.initialAmount < 10000 || onboardingData.timeHorizon < 12 || onboardingData.timeHorizon > 240}
+            disabled={
+              onboardingData.initialAmount < 10000 || 
+              onboardingData.timeHorizon < 12 || 
+              onboardingData.timeHorizon > 240 ||
+              !!fieldErrors.initialAmount || 
+              !!fieldErrors.timeHorizon
+            }
             className="bg-gray-900 hover:bg-gray-800 text-white px-12 py-3 rounded-xl font-light tracking-wide"
           >
             Continuar
@@ -1627,6 +1801,11 @@ export default function UnifiedPortfolioMaster() {
     </div>
   )
 
+  // Função para navegar de volta
+  const handleGoBack = () => {
+    router.push('/dashboard')
+  }
+
   // Render principal
   if (error) {
     return (
@@ -1654,10 +1833,25 @@ export default function UnifiedPortfolioMaster() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
+      {/* Header de Navegação */}
+      <NavigationHeader />
+      
       {/* Container Principal Tesla-inspired */}
       <div className="max-w-6xl mx-auto px-6 py-12">
         
+        {/* Botão de Voltar no Topo */}
+        <div className="mb-8">
+          <Button
+            onClick={handleGoBack}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl text-white font-medium transition-colors duration-300"
+            style={{ backgroundColor: '#202636' }}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+        </div>
+
         {/* Header Principal */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-light text-gray-900 mb-6 tracking-tight">

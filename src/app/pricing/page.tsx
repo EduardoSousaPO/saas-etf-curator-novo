@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Check, Star, Crown, Globe, TrendingUp, User, Loader2, Shield, Zap, Target, Users } from 'lucide-react';
+import { Check, Star, Crown, Globe, TrendingUp, User, Loader2, Shield, Zap, Target, Users, ArrowLeft } from 'lucide-react';
 import { PLAN_CONFIGS, SubscriptionPlan, calculateAnnualFee } from '@/types/subscriptions';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -44,8 +44,10 @@ export default function PricingPage() {
       const response = await fetch(`/api/subscriptions/status?userId=${user.id}`);
       const data = await response.json();
       
-      if (data.success) {
-        setCurrentSubscription(data.data.subscription);
+      if (data.success && data.subscription) {
+        setCurrentSubscription(data.subscription);
+      } else {
+        console.log('Nenhuma assinatura encontrada ou dados inválidos:', data);
       }
     } catch (error) {
       console.error('Erro ao carregar assinatura:', error);
@@ -291,6 +293,18 @@ export default function PricingPage() {
     <RequireAuth>
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-6xl mx-auto px-6 py-20">
+          
+          {/* Botão de Voltar */}
+          <div className="mb-8">
+            <Button
+              onClick={() => router.push('/dashboard')}
+              variant="outline"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl border-gray-300 hover:bg-gray-100 transition-colors duration-300"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Voltar ao Dashboard
+            </Button>
+          </div>
           
           {/* Hero Section */}
           <div className="text-center mb-20">
