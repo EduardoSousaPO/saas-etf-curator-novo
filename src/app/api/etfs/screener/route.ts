@@ -7,9 +7,36 @@ import { FilterPreset, SortPreset, AdvancedFilters, SortConfig } from '@/types/e
 
 const prisma = new PrismaClient();
 
+// Cache em memória para queries frequentes
+const screenerCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 2 * 60 * 1000; // 2 minutos para screener (mais dinâmico)
+
+// Função para gerar chave de cache baseada nos parâmetros
+function generateCacheKey(params: URLSearchParams): string {
+  const sortedParams = Array.from(params.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}=${value}`)
+    .join('&');
+  return `screener_${Buffer.from(sortedParams).toString('base64').slice(0, 32)}`;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    
+    // Verificar cache primeiro
+    const cacheKey = generateCacheKey(searchParams);
+    const now = Date.now();
+    const cached = screenerCache.get(cacheKey);
+    
+    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+      console.log('⚡ Usando screener cache (2min TTL)');
+      return NextResponse.json({
+        ...cached.data,
+        _cached: true,
+        _cacheAge: Math.floor((now - cached.timestamp) / 1000)
+      });
+    }
     
     // Parâmetros básicos
     const searchTerm = searchParams.get('search_term') || '';
@@ -251,145 +278,153 @@ export async function GET(request: NextRequest) {
       topSector: topSector || ''
     };
 
-    // Query principal com TODAS as colunas da tabela e filtros avançados
-    const result = await prisma.$queryRaw<any[]>(
-      Prisma.sql`
-      SELECT 
-        symbol,
-        name,
-        description,
-        isin,
-        assetclass,
-        securitycusip,
-        domicile,
-        website,
-        etfcompany,
-        expenseratio,
-        totalasset,
-        avgvolume,
-        inceptiondate,
-        nav,
-        navcurrency,
-        holdingscount,
-        updatedat,
-        sectorslist,
-        returns_12m,
-        returns_24m,
-        returns_36m,
-        returns_5y,
-        ten_year_return,
-        volatility_12m,
-        volatility_24m,
-        volatility_36m,
-        ten_year_volatility,
-        sharpe_12m,
-        sharpe_24m,
-        sharpe_36m,
-        ten_year_sharpe,
-        max_drawdown,
-        dividends_12m,
-        dividends_24m,
-        dividends_36m,
-        dividends_all_time,
-        size_category,
-        liquidity_category,
-        etf_type,
-        liquidity_rating,
-        size_rating,
-        EXTRACT(YEAR FROM AGE(CURRENT_DATE, inceptiondate::date)) as etf_age_years
-      FROM etfs_ativos_reais
-      WHERE 1=1
-        -- Filtros básicos
-        AND (${safeParams.searchTerm} = '' OR symbol ILIKE CONCAT('%', ${safeParams.searchTerm}, '%') OR name ILIKE CONCAT('%', ${safeParams.searchTerm}, '%'))
-        AND (${safeParams.assetclass} = '' OR ${safeParams.assetclass} = 'all' OR assetclass ILIKE CONCAT('%', ${safeParams.assetclass}, '%'))
-        ${onlyComplete || appliedFilters.onlyComplete ? Prisma.sql`AND name IS NOT NULL AND assetclass IS NOT NULL AND inceptiondate IS NOT NULL` : Prisma.empty}
+    // OTIMIZAÇÃO: Executar query principal e contagem em paralelo
+    const [result, countResult] = await Promise.all([
+      // Query principal com TODAS as colunas da tabela e filtros avançados
+      prisma.$queryRaw<any[]>(
+        Prisma.sql`
+        SELECT 
+          symbol,
+          name,
+          description,
+          isin,
+          assetclass,
+          securitycusip,
+          domicile,
+          website,
+          etfcompany,
+          expenseratio,
+          totalasset,
+          avgvolume,
+          inceptiondate,
+          nav,
+          navcurrency,
+          holdingscount,
+          updatedat,
+          sectorslist,
+          returns_12m,
+          returns_24m,
+          returns_36m,
+          returns_5y,
+          ten_year_return,
+          volatility_12m,
+          volatility_24m,
+          volatility_36m,
+          ten_year_volatility,
+          sharpe_12m,
+          sharpe_24m,
+          sharpe_36m,
+          ten_year_sharpe,
+          max_drawdown,
+          dividends_12m,
+          dividends_24m,
+          dividends_36m,
+          dividends_all_time,
+          size_category,
+          liquidity_category,
+          etf_type,
+          liquidity_rating,
+          size_rating,
+          EXTRACT(YEAR FROM AGE(CURRENT_DATE, inceptiondate::date)) as etf_age_years
+        FROM etfs_ativos_reais
+        WHERE 1=1
+          -- Filtros básicos
+          AND (${safeParams.searchTerm} = '' OR symbol ILIKE CONCAT('%', ${safeParams.searchTerm}, '%') OR name ILIKE CONCAT('%', ${safeParams.searchTerm}, '%'))
+          AND (${safeParams.assetclass} = '' OR assetclass ILIKE CONCAT('%', ${safeParams.assetclass}, '%'))
+          ${onlyComplete || appliedFilters.onlyComplete ? Prisma.sql`AND name IS NOT NULL AND assetclass IS NOT NULL AND inceptiondate IS NOT NULL` : Prisma.empty}
+          
+          -- Filtros financeiros
+          ${(totalAssetsMin || appliedFilters.totalAssetsMin) ? Prisma.sql`AND totalasset >= ${totalAssetsMin || appliedFilters.totalAssetsMin}` : Prisma.empty}
+          ${(totalAssetsMax || appliedFilters.totalAssetsMax) ? Prisma.sql`AND totalasset <= ${totalAssetsMax || appliedFilters.totalAssetsMax}` : Prisma.empty}
+          ${(expenseRatioMin || appliedFilters.expenseRatioMin) ? Prisma.sql`AND expenseratio >= ${(expenseRatioMin || appliedFilters.expenseRatioMin)! / 100}` : Prisma.empty}
+          ${(expenseRatioMax || appliedFilters.expenseRatioMax) ? Prisma.sql`AND expenseratio <= ${(expenseRatioMax || appliedFilters.expenseRatioMax)! / 100}` : Prisma.empty}
+          ${navMin ? Prisma.sql`AND nav >= ${navMin}` : Prisma.empty}
+          ${navMax ? Prisma.sql`AND nav <= ${navMax}` : Prisma.empty}
+          ${(volumeMin || appliedFilters.volumeMin) ? Prisma.sql`AND avgvolume >= ${volumeMin || appliedFilters.volumeMin}` : Prisma.empty}
+          ${volumeMax ? Prisma.sql`AND avgvolume <= ${volumeMax}` : Prisma.empty}
+          ${holdingsCountMin ? Prisma.sql`AND holdingscount >= ${holdingsCountMin}` : Prisma.empty}
+          ${holdingsCountMax ? Prisma.sql`AND holdingscount <= ${holdingsCountMax}` : Prisma.empty}
+          
+          -- Filtros de performance - períodos curtos
+          ${(returns12mMin || appliedFilters.returns12mMin) ? Prisma.sql`AND returns_12m >= ${(returns12mMin || appliedFilters.returns12mMin)! / 100}` : Prisma.empty}
+          ${returns12mMax ? Prisma.sql`AND returns_12m <= ${returns12mMax / 100}` : Prisma.empty}
+          ${returns24mMin ? Prisma.sql`AND returns_24m >= ${returns24mMin / 100}` : Prisma.empty}
+          ${returns24mMax ? Prisma.sql`AND returns_24m <= ${returns24mMax / 100}` : Prisma.empty}
+          ${returns36mMin ? Prisma.sql`AND returns_36m >= ${returns36mMin / 100}` : Prisma.empty}
+          ${returns36mMax ? Prisma.sql`AND returns_36m <= ${returns36mMax / 100}` : Prisma.empty}
+          
+          -- Filtros de performance - períodos longos
+          ${returns5yMin ? Prisma.sql`AND returns_5y >= ${returns5yMin / 100}` : Prisma.empty}
+          ${returns5yMax ? Prisma.sql`AND returns_5y <= ${returns5yMax / 100}` : Prisma.empty}
+          ${returns10yMin ? Prisma.sql`AND ten_year_return >= ${returns10yMin / 100}` : Prisma.empty}
+          ${returns10yMax ? Prisma.sql`AND ten_year_return <= ${returns10yMax / 100}` : Prisma.empty}
+          
+          -- Filtros de volatilidade
+          ${(volatility12mMin || appliedFilters.volatility12mMin) ? Prisma.sql`AND volatility_12m >= ${(volatility12mMin || appliedFilters.volatility12mMin)! / 100}` : Prisma.empty}
+          ${(volatility12mMax || appliedFilters.volatility12mMax) ? Prisma.sql`AND volatility_12m <= ${(volatility12mMax || appliedFilters.volatility12mMax)! / 100}` : Prisma.empty}
+          ${volatility24mMin ? Prisma.sql`AND volatility_24m >= ${volatility24mMin / 100}` : Prisma.empty}
+          ${volatility24mMax ? Prisma.sql`AND volatility_24m <= ${volatility24mMax / 100}` : Prisma.empty}
+          ${volatility36mMin ? Prisma.sql`AND volatility_36m >= ${volatility36mMin / 100}` : Prisma.empty}
+          ${volatility36mMax ? Prisma.sql`AND volatility_36m <= ${volatility36mMax / 100}` : Prisma.empty}
+          ${volatility5yMin ? Prisma.sql`AND ten_year_volatility >= ${volatility5yMin / 100}` : Prisma.empty}
+          ${volatility5yMax ? Prisma.sql`AND ten_year_volatility <= ${volatility5yMax / 100}` : Prisma.empty}
+          
+          -- Filtros Sharpe
+          ${(sharpe12mMin || appliedFilters.sharpe12mMin) ? Prisma.sql`AND sharpe_12m >= ${sharpe12mMin || appliedFilters.sharpe12mMin}` : Prisma.empty}
+          ${sharpe12mMax ? Prisma.sql`AND sharpe_12m <= ${sharpe12mMax}` : Prisma.empty}
+          ${sharpe24mMin ? Prisma.sql`AND sharpe_24m >= ${sharpe24mMin}` : Prisma.empty}
+          ${sharpe24mMax ? Prisma.sql`AND sharpe_24m <= ${sharpe24mMax}` : Prisma.empty}
+          ${sharpe36mMin ? Prisma.sql`AND sharpe_36m >= ${sharpe36mMin}` : Prisma.empty}
+          ${sharpe36mMax ? Prisma.sql`AND sharpe_36m <= ${sharpe36mMax}` : Prisma.empty}
+          ${sharpe5yMin ? Prisma.sql`AND ten_year_sharpe >= ${sharpe5yMin}` : Prisma.empty}
+          ${sharpe5yMax ? Prisma.sql`AND ten_year_sharpe <= ${sharpe5yMax}` : Prisma.empty}
+          
+          -- Filtros de risco
+          ${maxDrawdownMin ? Prisma.sql`AND max_drawdown >= ${maxDrawdownMin / 100}` : Prisma.empty}
+          ${(maxDrawdownMax || appliedFilters.maxDrawdownMax) ? Prisma.sql`AND max_drawdown <= ${(maxDrawdownMax || appliedFilters.maxDrawdownMax)! / 100}` : Prisma.empty}
+          
+          -- Filtros de dividendos
+          ${(dividendYieldMin || appliedFilters.dividendYieldMin) ? Prisma.sql`AND (dividends_12m / NULLIF(nav, 0) * 100) >= ${dividendYieldMin || appliedFilters.dividendYieldMin}` : Prisma.empty}
+          ${dividendYieldMax ? Prisma.sql`AND (dividends_12m / NULLIF(nav, 0) * 100) <= ${dividendYieldMax}` : Prisma.empty}
+          ${(dividends12mMin || appliedFilters.dividends12mMin) ? Prisma.sql`AND dividends_12m >= ${(dividends12mMin || appliedFilters.dividends12mMin)! / 100}` : Prisma.empty}
+          ${dividends12mMax ? Prisma.sql`AND dividends_12m <= ${dividends12mMax / 100}` : Prisma.empty}
+          ${dividends24mMin ? Prisma.sql`AND dividends_24m >= ${dividends24mMin / 100}` : Prisma.empty}
+          ${dividends24mMax ? Prisma.sql`AND dividends_24m <= ${dividends24mMax / 100}` : Prisma.empty}
+          ${dividends36mMin ? Prisma.sql`AND dividends_36m >= ${dividends36mMin / 100}` : Prisma.empty}
+          ${dividends36mMax ? Prisma.sql`AND dividends_36m <= ${dividends36mMax / 100}` : Prisma.empty}
+          ${dividendsAllTimeMin ? Prisma.sql`AND dividends_all_time >= ${dividendsAllTimeMin / 100}` : Prisma.empty}
+          ${dividendsAllTimeMax ? Prisma.sql`AND dividends_all_time <= ${dividendsAllTimeMax / 100}` : Prisma.empty}
+          
+          -- Filtros de categorização
+          AND (${safeParams.sizeCategory} = '' OR ${appliedFilters.sizeCategory || ''} = '' OR size_category ILIKE CONCAT('%', COALESCE(NULLIF(${safeParams.sizeCategory}, ''), ${appliedFilters.sizeCategory || ''}), '%'))
+          AND (${safeParams.liquidityCategory} = '' OR ${appliedFilters.liquidityCategory || ''} = '' OR liquidity_category ILIKE CONCAT('%', COALESCE(NULLIF(${safeParams.liquidityCategory}, ''), ${appliedFilters.liquidityCategory || ''}), '%'))
+          AND (${safeParams.liquidityRating} = '' OR ${appliedFilters.liquidityRating || ''} = '' OR liquidity_rating ILIKE CONCAT('%', COALESCE(NULLIF(${safeParams.liquidityRating}, ''), ${appliedFilters.liquidityRating || ''}), '%'))
+          AND (${safeParams.sizeRating} = '' OR size_rating ILIKE CONCAT('%', ${safeParams.sizeRating}, '%'))
+          AND (${safeParams.etfType} = '' OR etf_type ILIKE CONCAT('%', ${safeParams.etfType}, '%'))
+          AND (${safeParams.domicile} = '' OR ${appliedFilters.domicile || ''} = '' OR domicile ILIKE CONCAT('%', COALESCE(NULLIF(${safeParams.domicile}, ''), ${appliedFilters.domicile || ''}), '%'))
+          AND (${safeParams.navcurrency} = '' OR ${appliedFilters.navcurrency || ''} = '' OR navcurrency ILIKE CONCAT('%', COALESCE(NULLIF(${safeParams.navcurrency}, ''), ${appliedFilters.navcurrency || ''}), '%'))
+          AND (${safeParams.etfCompany} = '' OR etfcompany ILIKE CONCAT('%', ${safeParams.etfCompany}, '%'))
+          
+          -- Filtros temporais
+          ${safeParams.inceptionDateAfter ? Prisma.sql`AND inceptiondate >= ${safeParams.inceptionDateAfter}` : Prisma.empty}
+          ${safeParams.inceptionDateBefore ? Prisma.sql`AND inceptiondate <= ${safeParams.inceptionDateBefore}` : Prisma.empty}
+          ${etfAgeMinYears ? Prisma.sql`AND EXTRACT(YEAR FROM AGE(CURRENT_DATE, inceptiondate::date)) >= ${etfAgeMinYears}` : Prisma.empty}
+          ${etfAgeMaxYears ? Prisma.sql`AND EXTRACT(YEAR FROM AGE(CURRENT_DATE, inceptiondate::date)) <= ${etfAgeMaxYears}` : Prisma.empty}
+          
+          -- Filtros de setor
+          ${safeParams.topSector ? Prisma.sql`AND sectorslist::text ILIKE CONCAT('%', ${safeParams.topSector}, '%')` : Prisma.empty}
+          ${excludeSectors.length > 0 ? Prisma.sql`AND NOT (${Prisma.join(excludeSectors.map(sector => Prisma.sql`sectorslist::text ILIKE CONCAT('%', ${sector}, '%')`), ' OR ')})` : Prisma.empty}
         
-        -- Filtros financeiros
-        ${(totalAssetsMin || appliedFilters.totalAssetsMin) ? Prisma.sql`AND totalasset >= ${totalAssetsMin || appliedFilters.totalAssetsMin}` : Prisma.empty}
-        ${(totalAssetsMax || appliedFilters.totalAssetsMax) ? Prisma.sql`AND totalasset <= ${totalAssetsMax || appliedFilters.totalAssetsMax}` : Prisma.empty}
-        ${(expenseRatioMin || appliedFilters.expenseRatioMin) ? Prisma.sql`AND expenseratio >= ${(expenseRatioMin || appliedFilters.expenseRatioMin)! / 100}` : Prisma.empty}
-        ${(expenseRatioMax || appliedFilters.expenseRatioMax) ? Prisma.sql`AND expenseratio <= ${(expenseRatioMax || appliedFilters.expenseRatioMax)! / 100}` : Prisma.empty}
-        ${navMin ? Prisma.sql`AND nav >= ${navMin}` : Prisma.empty}
-        ${navMax ? Prisma.sql`AND nav <= ${navMax}` : Prisma.empty}
-        ${(volumeMin || appliedFilters.volumeMin) ? Prisma.sql`AND avgvolume >= ${volumeMin || appliedFilters.volumeMin}` : Prisma.empty}
-        ${volumeMax ? Prisma.sql`AND avgvolume <= ${volumeMax}` : Prisma.empty}
-        ${holdingsCountMin ? Prisma.sql`AND holdingscount >= ${holdingsCountMin}` : Prisma.empty}
-        ${holdingsCountMax ? Prisma.sql`AND holdingscount <= ${holdingsCountMax}` : Prisma.empty}
-        
-        -- Filtros de performance - períodos curtos
-        ${(returns12mMin || appliedFilters.returns12mMin) ? Prisma.sql`AND returns_12m >= ${(returns12mMin || appliedFilters.returns12mMin)! / 100}` : Prisma.empty}
-        ${returns12mMax ? Prisma.sql`AND returns_12m <= ${returns12mMax / 100}` : Prisma.empty}
-        ${returns24mMin ? Prisma.sql`AND returns_24m >= ${returns24mMin / 100}` : Prisma.empty}
-        ${returns24mMax ? Prisma.sql`AND returns_24m <= ${returns24mMax / 100}` : Prisma.empty}
-        ${returns36mMin ? Prisma.sql`AND returns_36m >= ${returns36mMin / 100}` : Prisma.empty}
-        ${returns36mMax ? Prisma.sql`AND returns_36m <= ${returns36mMax / 100}` : Prisma.empty}
-        
-        -- Filtros de performance - períodos longos
-        ${returns5yMin ? Prisma.sql`AND returns_5y >= ${returns5yMin / 100}` : Prisma.empty}
-        ${returns5yMax ? Prisma.sql`AND returns_5y <= ${returns5yMax / 100}` : Prisma.empty}
-        ${returns10yMin ? Prisma.sql`AND ten_year_return >= ${returns10yMin / 100}` : Prisma.empty}
-        ${returns10yMax ? Prisma.sql`AND ten_year_return <= ${returns10yMax / 100}` : Prisma.empty}
-        
-        -- Filtros de volatilidade
-        ${(volatility12mMin || appliedFilters.volatility12mMin) ? Prisma.sql`AND volatility_12m >= ${(volatility12mMin || appliedFilters.volatility12mMin)! / 100}` : Prisma.empty}
-        ${(volatility12mMax || appliedFilters.volatility12mMax) ? Prisma.sql`AND volatility_12m <= ${(volatility12mMax || appliedFilters.volatility12mMax)! / 100}` : Prisma.empty}
-        ${volatility24mMin ? Prisma.sql`AND volatility_24m >= ${volatility24mMin / 100}` : Prisma.empty}
-        ${volatility24mMax ? Prisma.sql`AND volatility_24m <= ${volatility24mMax / 100}` : Prisma.empty}
-        ${volatility36mMin ? Prisma.sql`AND volatility_36m >= ${volatility36mMin / 100}` : Prisma.empty}
-        ${volatility36mMax ? Prisma.sql`AND volatility_36m <= ${volatility36mMax / 100}` : Prisma.empty}
-        ${volatility5yMin ? Prisma.sql`AND ten_year_volatility >= ${volatility5yMin / 100}` : Prisma.empty}
-        ${volatility5yMax ? Prisma.sql`AND ten_year_volatility <= ${volatility5yMax / 100}` : Prisma.empty}
-        
-        -- Filtros Sharpe
-        ${(sharpe12mMin || appliedFilters.sharpe12mMin) ? Prisma.sql`AND sharpe_12m >= ${sharpe12mMin || appliedFilters.sharpe12mMin}` : Prisma.empty}
-        ${sharpe12mMax ? Prisma.sql`AND sharpe_12m <= ${sharpe12mMax}` : Prisma.empty}
-        ${sharpe24mMin ? Prisma.sql`AND sharpe_24m >= ${sharpe24mMin}` : Prisma.empty}
-        ${sharpe24mMax ? Prisma.sql`AND sharpe_24m <= ${sharpe24mMax}` : Prisma.empty}
-        ${sharpe36mMin ? Prisma.sql`AND sharpe_36m >= ${sharpe36mMin}` : Prisma.empty}
-        ${sharpe36mMax ? Prisma.sql`AND sharpe_36m <= ${sharpe36mMax}` : Prisma.empty}
-        ${sharpe5yMin ? Prisma.sql`AND ten_year_sharpe >= ${sharpe5yMin}` : Prisma.empty}
-        ${sharpe5yMax ? Prisma.sql`AND ten_year_sharpe <= ${sharpe5yMax}` : Prisma.empty}
-        
-        -- Filtros de risco
-        ${maxDrawdownMin ? Prisma.sql`AND max_drawdown >= ${maxDrawdownMin / 100}` : Prisma.empty}
-        ${(maxDrawdownMax || appliedFilters.maxDrawdownMax) ? Prisma.sql`AND max_drawdown <= ${(maxDrawdownMax || appliedFilters.maxDrawdownMax)! / 100}` : Prisma.empty}
-        
-        -- Filtros de dividendos
-        ${(dividendYieldMin || appliedFilters.dividendYieldMin) ? Prisma.sql`AND (dividends_12m / NULLIF(nav, 0) * 100) >= ${dividendYieldMin || appliedFilters.dividendYieldMin}` : Prisma.empty}
-        ${dividendYieldMax ? Prisma.sql`AND (dividends_12m / NULLIF(nav, 0) * 100) <= ${dividendYieldMax}` : Prisma.empty}
-        ${(dividends12mMin || appliedFilters.dividends12mMin) ? Prisma.sql`AND dividends_12m >= ${(dividends12mMin || appliedFilters.dividends12mMin)! / 100}` : Prisma.empty}
-        ${dividends12mMax ? Prisma.sql`AND dividends_12m <= ${dividends12mMax / 100}` : Prisma.empty}
-        ${dividends24mMin ? Prisma.sql`AND dividends_24m >= ${dividends24mMin / 100}` : Prisma.empty}
-        ${dividends24mMax ? Prisma.sql`AND dividends_24m <= ${dividends24mMax / 100}` : Prisma.empty}
-        ${dividends36mMin ? Prisma.sql`AND dividends_36m >= ${dividends36mMin / 100}` : Prisma.empty}
-        ${dividends36mMax ? Prisma.sql`AND dividends_36m <= ${dividends36mMax / 100}` : Prisma.empty}
-        ${dividendsAllTimeMin ? Prisma.sql`AND dividends_all_time >= ${dividendsAllTimeMin / 100}` : Prisma.empty}
-        ${dividendsAllTimeMax ? Prisma.sql`AND dividends_all_time <= ${dividendsAllTimeMax / 100}` : Prisma.empty}
-        
-        -- Filtros de categorização
-        AND (${safeParams.sizeCategory} = '' OR ${appliedFilters.sizeCategory || ''} = '' OR size_category ILIKE CONCAT('%', COALESCE(NULLIF(${safeParams.sizeCategory}, ''), ${appliedFilters.sizeCategory || ''}), '%'))
-        AND (${safeParams.liquidityCategory} = '' OR ${appliedFilters.liquidityCategory || ''} = '' OR liquidity_category ILIKE CONCAT('%', COALESCE(NULLIF(${safeParams.liquidityCategory}, ''), ${appliedFilters.liquidityCategory || ''}), '%'))
-        AND (${safeParams.liquidityRating} = '' OR ${appliedFilters.liquidityRating || ''} = '' OR liquidity_rating ILIKE CONCAT('%', COALESCE(NULLIF(${safeParams.liquidityRating}, ''), ${appliedFilters.liquidityRating || ''}), '%'))
-        AND (${safeParams.sizeRating} = '' OR size_rating ILIKE CONCAT('%', ${safeParams.sizeRating}, '%'))
-        AND (${safeParams.etfType} = '' OR etf_type ILIKE CONCAT('%', ${safeParams.etfType}, '%'))
-        AND (${safeParams.domicile} = '' OR ${appliedFilters.domicile || ''} = '' OR domicile ILIKE CONCAT('%', COALESCE(NULLIF(${safeParams.domicile}, ''), ${appliedFilters.domicile || ''}), '%'))
-        AND (${safeParams.navcurrency} = '' OR ${appliedFilters.navcurrency || ''} = '' OR navcurrency ILIKE CONCAT('%', COALESCE(NULLIF(${safeParams.navcurrency}, ''), ${appliedFilters.navcurrency || ''}), '%'))
-        AND (${safeParams.etfCompany} = '' OR etfcompany ILIKE CONCAT('%', ${safeParams.etfCompany}, '%'))
-        
-        -- Filtros temporais
-        ${safeParams.inceptionDateAfter ? Prisma.sql`AND inceptiondate >= ${safeParams.inceptionDateAfter}` : Prisma.empty}
-        ${safeParams.inceptionDateBefore ? Prisma.sql`AND inceptiondate <= ${safeParams.inceptionDateBefore}` : Prisma.empty}
-        ${(etfAgeMinYears || appliedFilters.etfAgeMinYears) ? Prisma.sql`AND EXTRACT(YEAR FROM AGE(CURRENT_DATE, inceptiondate::date)) >= ${etfAgeMinYears || appliedFilters.etfAgeMinYears}` : Prisma.empty}
-        ${etfAgeMaxYears ? Prisma.sql`AND EXTRACT(YEAR FROM AGE(CURRENT_DATE, inceptiondate::date)) <= ${etfAgeMaxYears}` : Prisma.empty}
-        
-        -- Filtros de setor
-        ${safeParams.topSector ? Prisma.sql`AND sectorslist::text ILIKE CONCAT('%', ${safeParams.topSector}, '%')` : Prisma.empty}
-        ${excludeSectors.length > 0 ? Prisma.sql`AND NOT (${Prisma.join(excludeSectors.map(sector => Prisma.sql`sectorslist::text ILIKE CONCAT('%', ${sector}, '%')`), ' OR ')})` : Prisma.empty}
+        ${getAdvancedOrderByClause(sortBy, sortOrder, sortBySecondary, sortOrderSecondary, appliedSort)}
+        LIMIT ${limit} OFFSET ${offset}
+        `
+      ),
       
-      ${getAdvancedOrderByClause(sortBy, sortOrder, sortBySecondary, sortOrderSecondary, appliedSort)}
-      LIMIT ${limit} OFFSET ${offset}
-      `
-    );
+      // Contar total de resultados (query simplificada para performance)
+      prisma.$queryRaw<[{ count: bigint }]>(
+        Prisma.sql`SELECT COUNT(*) as count FROM etfs_ativos_reais WHERE 1=1`
+      )
+    ]);
 
     console.log(`✅ Encontrados ${result.length} ETFs com filtros avançados`);
 
@@ -469,10 +504,6 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Contar total de resultados (query separada para performance)
-    const countResult = await prisma.$queryRaw<[{ count: bigint }]>(
-      Prisma.sql`SELECT COUNT(*) as count FROM etfs_ativos_reais WHERE 1=1`
-    );
     const totalCount = Number(countResult[0].count);
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -543,9 +574,22 @@ export async function GET(request: NextRequest) {
       },
       _source: 'screener-advanced-api',
       _message: `Retornando ${processedData.length} ETFs de ${totalCount} total (${activeFilters.length} filtros ativos)`,
-      _timestamp: new Date().toISOString(),
-      _performance: `Query executada em ${Date.now() - Date.now()}ms`
+      _timestamp: new Date().toISOString()
     };
+
+    // Salvar no cache
+    screenerCache.set(cacheKey, {
+      data: response,
+      timestamp: now
+    });
+
+    // Limpar cache antigo (manter apenas 50 entradas)
+    if (screenerCache.size > 50) {
+      const oldestKey = screenerCache.keys().next().value;
+      if (oldestKey) {
+        screenerCache.delete(oldestKey);
+      }
+    }
 
     return NextResponse.json(response);
 

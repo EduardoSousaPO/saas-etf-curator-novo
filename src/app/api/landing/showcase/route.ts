@@ -1,9 +1,31 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Cache em memória simples
+let showcaseCache: {
+  data: any;
+  timestamp: number;
+} | null = null;
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
 export async function GET() {
   try {
     console.log('🔍 Carregando ETFs de destaque para showcase...');
+
+    // Verificar cache
+    const now = Date.now();
+    if (showcaseCache && (now - showcaseCache.timestamp) < CACHE_DURATION) {
+      console.log('⚡ Usando dados do cache (5min TTL)');
+      return NextResponse.json({
+        success: true,
+        data: {
+          ...showcaseCache.data,
+          cached: true,
+          cacheAge: Math.floor((now - showcaseCache.timestamp) / 1000)
+        }
+      });
+    }
 
     // Verificar se há dados na view active_etfs
     const activeETFsCount = await prisma.$queryRaw<[{count: string}]>`SELECT COUNT(*) as count FROM etfs_ativos_reais`;
@@ -20,23 +42,35 @@ export async function GET() {
       }, { status: 500 });
     }
 
-    // Buscar ETFs com métricas válidas usando a nova view etfs_ativos_reais
-    const etfsWithMetrics = await prisma.$queryRaw<any[]>`
+    // OTIMIZAÇÃO: Uma única consulta para buscar todos os ETFs necessários
+    const allETFs = await prisma.$queryRaw<any[]>`
+      WITH ranked_etfs AS (
+        SELECT 
+          symbol, name, assetclass, etfcompany, nav,
+          returns_12m, volatility_12m, sharpe_12m, dividends_12m,
+          ROW_NUMBER() OVER (ORDER BY returns_12m DESC) as return_rank,
+          ROW_NUMBER() OVER (ORDER BY sharpe_12m DESC) as sharpe_rank,
+          ROW_NUMBER() OVER (ORDER BY volatility_12m ASC) as vol_rank,
+          ROW_NUMBER() OVER (ORDER BY dividends_12m DESC) as div_rank
+        FROM etfs_ativos_reais
+        WHERE sharpe_12m IS NOT NULL 
+          AND returns_12m IS NOT NULL
+          AND returns_12m BETWEEN -0.95 AND 5.0
+          AND volatility_12m BETWEEN 0 AND 2.0
+          AND sharpe_12m BETWEEN -10 AND 10
+      )
       SELECT 
         symbol, name, assetclass, etfcompany, nav,
-        returns_12m, volatility_12m, sharpe_12m, dividends_12m
-      FROM etfs_ativos_reais
-      WHERE sharpe_12m IS NOT NULL 
-        AND returns_12m IS NOT NULL
-        AND returns_12m BETWEEN -0.95 AND 5.0
-        AND volatility_12m BETWEEN 0 AND 2.0
-        AND sharpe_12m BETWEEN -10 AND 10
-      LIMIT 100
+        returns_12m, volatility_12m, sharpe_12m, dividends_12m,
+        return_rank, sharpe_rank, vol_rank, div_rank
+      FROM ranked_etfs
+      WHERE return_rank <= 5 OR sharpe_rank <= 5 OR vol_rank <= 5 OR div_rank <= 5
+      ORDER BY sharpe_rank ASC
     `;
 
-    console.log(`📊 ETFs com métricas válidas encontrados: ${etfsWithMetrics.length}`);
+    console.log(`📊 ETFs com métricas válidas encontrados: ${allETFs.length}`);
 
-    if (etfsWithMetrics.length === 0) {
+    if (allETFs.length === 0) {
       console.error('❌ ERRO: Nenhum ETF com métricas válidas encontrado');
       return NextResponse.json({
         success: false,
@@ -46,60 +80,11 @@ export async function GET() {
       }, { status: 404 });
     }
 
-    // 1. TOP PERFORMERS (Maior retorno 12m)
-    const topPerformers = await prisma.$queryRaw<any[]>`
-      SELECT 
-        symbol, name, assetclass, etfcompany,
-        returns_12m, volatility_12m, sharpe_12m
-      FROM etfs_ativos_reais
-      WHERE returns_12m IS NOT NULL 
-        AND returns_12m BETWEEN -0.95 AND 5.0
-        AND sharpe_12m IS NOT NULL
-        AND sharpe_12m BETWEEN -10 AND 10
-      ORDER BY returns_12m DESC
-      LIMIT 5
-    `;
-
-    // 2. BEST SHARPE RATIO (Melhor relação risco/retorno)
-    const bestSharpe = await prisma.$queryRaw<any[]>`
-      SELECT 
-        symbol, name, assetclass, etfcompany,
-        returns_12m, volatility_12m, sharpe_12m
-      FROM etfs_ativos_reais
-      WHERE sharpe_12m IS NOT NULL 
-        AND sharpe_12m BETWEEN -10 AND 10
-        AND returns_12m IS NOT NULL
-        AND returns_12m BETWEEN -0.95 AND 5.0
-      ORDER BY sharpe_12m DESC
-      LIMIT 5
-    `;
-
-    // 3. LOW VOLATILITY (Menor volatilidade)
-    const lowVolatility = await prisma.$queryRaw<any[]>`
-      SELECT 
-        symbol, name, assetclass, etfcompany,
-        returns_12m, volatility_12m, sharpe_12m
-      FROM etfs_ativos_reais
-      WHERE volatility_12m IS NOT NULL 
-        AND volatility_12m BETWEEN 0.01 AND 2.0
-        AND returns_12m IS NOT NULL
-        AND returns_12m BETWEEN -0.95 AND 5.0
-      ORDER BY volatility_12m ASC
-      LIMIT 5
-    `;
-
-    // 4. HIGH DIVIDEND (Maiores dividendos)
-    const highDividend = await prisma.$queryRaw<any[]>`
-      SELECT 
-        symbol, name, assetclass, etfcompany,
-        returns_12m, volatility_12m, dividends_12m
-      FROM etfs_ativos_reais
-      WHERE dividends_12m IS NOT NULL 
-        AND dividends_12m > 0
-        AND dividends_12m < 1.0
-      ORDER BY dividends_12m DESC
-      LIMIT 5
-    `;
+    // Separar ETFs por categoria usando os rankings
+    const topPerformers = allETFs.filter(etf => etf.return_rank <= 5);
+    const bestSharpe = allETFs.filter(etf => etf.sharpe_rank <= 5);
+    const lowVolatility = allETFs.filter(etf => etf.vol_rank <= 5);
+    const highDividend = allETFs.filter(etf => etf.div_rank <= 5);
 
     // Processar ETFs encontrados
     const processETFs = (etfs: any[]) => {
@@ -133,6 +118,15 @@ export async function GET() {
         topReturn: processETFs(topPerformers),
         lowVolatility: processETFs(lowVolatility),
         highDividend: processETFs(highDividend)
+      },
+      lastUpdated: new Date().toISOString(),
+      source: 'real_database',
+      criteria: {
+        featured: 'Melhores ETFs por Sharpe Ratio (dados reais)',
+        topSharpe: 'Maior Sharpe Ratio (0 a 10)',
+        topReturn: 'Maior Retorno 12m (0% a 200%)',
+        lowVolatility: 'Menor Volatilidade (0% a 30%)',
+        highDividend: 'Maiores Dividendos (dados reais)'
       }
     };
 
@@ -147,22 +141,17 @@ export async function GET() {
       }, { status: 500 });
     }
 
+    // Salvar no cache
+    showcaseCache = {
+      data: processedData,
+      timestamp: now
+    };
+
     console.log(`✅ Showcase carregado com ${processedData.featured.length} ETFs em destaque`);
 
     return NextResponse.json({
       success: true,
-      data: {
-        ...processedData,
-        lastUpdated: new Date().toISOString(),
-        source: 'real_database',
-        criteria: {
-          featured: 'Melhores ETFs por Sharpe Ratio (dados reais)',
-          topSharpe: 'Maior Sharpe Ratio (0 a 10)',
-          topReturn: 'Maior Retorno 12m (0% a 200%)',
-          lowVolatility: 'Menor Volatilidade (0% a 30%)',
-          highDividend: 'Maiores Dividendos (dados reais)'
-        }
-      }
+      data: processedData
     });
 
   } catch (error) {

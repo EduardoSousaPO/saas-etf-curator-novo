@@ -1,9 +1,33 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Cache em memória simples
+let statsCache: {
+  data: any;
+  timestamp: number;
+} | null = null;
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
 export async function GET() {
   try {
     console.log('🔍 Carregando estatísticas da landing page...');
+
+    // Verificar cache
+    const now = Date.now();
+    if (statsCache && (now - statsCache.timestamp) < CACHE_DURATION) {
+      console.log('⚡ Usando estatísticas do cache (5min TTL)');
+      return NextResponse.json({
+        success: true,
+        stats: {
+          ...statsCache.data,
+          cached: true,
+          cacheAge: Math.floor((now - statsCache.timestamp) / 1000)
+        },
+        source: 'cache',
+        timestamp: new Date().toISOString()
+      });
+    }
 
     // Executar consultas em paralelo usando a view active_etfs
     const [
@@ -104,6 +128,12 @@ export async function GET() {
         avgAssets: (Number(company.avg_assets) / 1e9).toFixed(1),
         totalAssets: (Number(company.total_assets) / 1e9).toFixed(1)
       }))
+    };
+
+    // Salvar no cache
+    statsCache = {
+      data: stats,
+      timestamp: now
     };
 
     console.log('✅ Estatísticas carregadas com sucesso');
