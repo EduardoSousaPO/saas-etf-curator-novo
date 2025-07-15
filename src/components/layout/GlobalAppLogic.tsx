@@ -2,10 +2,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useChunkLoadErrorHandler } from "@/hooks/useChunkLoadErrorHandler";
 // import OnboardingWizard from "@/components/onboarding/OnboardingWizard"; // Comentado
 
 export default function GlobalAppLogic() {
   const [mounted, setMounted] = useState(false);
+  
+  // Use the chunk load error handler
+  useChunkLoadErrorHandler();
 
   useEffect(() => {
     // Marcar como montado para evitar problemas de hidratação

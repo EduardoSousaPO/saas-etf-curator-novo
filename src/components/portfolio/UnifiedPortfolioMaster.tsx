@@ -54,6 +54,7 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useAuth } from '@/hooks/useAuth'
 
 // Interfaces
 interface OnboardingData {
@@ -130,6 +131,7 @@ const riskProfiles = [
 
 export default function UnifiedPortfolioMaster() {
   const router = useRouter()
+  const { user } = useAuth()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -164,16 +166,17 @@ export default function UnifiedPortfolioMaster() {
   const handleSavePortfolio = async () => {
     if (!results) return
     
+    if (!user) {
+      alert('Você precisa estar logado para salvar uma carteira')
+      return
+    }
+    
     setIsSaving(true)
     try {
+      // Dados do portfólio para salvar
       const portfolioData = {
-        name: `Carteira ${new Date().toLocaleDateString('pt-BR')}`,
-        objective: onboardingData.objective,
-        riskProfile: onboardingData.riskProfile,
-        investmentAmount: onboardingData.initialAmount,
-        monthlyContribution: onboardingData.monthlyAmount,
-        timeHorizon: onboardingData.timeHorizon,
-        currency: onboardingData.currency,
+        user_id: user.id,
+        portfolio_name: `Carteira ${new Date().toLocaleDateString('pt-BR')}`,
         etfs: results.portfolio.map(etf => ({
           symbol: etf.symbol,
           name: etf.name,
@@ -185,20 +188,102 @@ export default function UnifiedPortfolioMaster() {
           expectedVolatility: results.expected_volatility,
           sharpeRatio: results.sharpe_ratio
         },
-        projections: results.projections,
-        createdAt: new Date().toISOString()
+        objective: onboardingData.objective,
+        riskProfile: onboardingData.riskProfile,
+        investmentAmount: onboardingData.initialAmount,
+        monthlyContribution: onboardingData.monthlyAmount,
+        timeHorizon: typeof onboardingData.timeHorizon === 'string' ? 
+          parseInt(onboardingData.timeHorizon) || 5 : 
+          onboardingData.timeHorizon,
+        currency: onboardingData.currency || 'USD'
       }
-      
-      // Salvar no localStorage como fallback
-      const savedPortfolios = JSON.parse(localStorage.getItem('savedPortfolios') || '[]')
-      savedPortfolios.unshift(portfolioData)
-      localStorage.setItem('savedPortfolios', JSON.stringify(savedPortfolios.slice(0, 10))) // Manter apenas 10 mais recentes
-      
-      setSaveSuccess(true)
-      setTimeout(() => setSaveSuccess(false), 3000)
+
+      // Tentar salvar no Supabase primeiro
+      const response = await fetch('/api/portfolio/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(portfolioData),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        console.log('✅ Portfólio salvo no Supabase:', result.portfolio)
+        
+        // Chamar API para popular alocações
+        const allocationsData = {
+          portfolio_id: result.portfolio.id,
+          user_id: result.portfolio.user_id,
+          etf_allocations: results.portfolio.map(etf => ({
+            symbol: etf.symbol,
+            allocation: etf.allocation_percent,
+            target_amount: etf.allocation_amount
+          }))
+        }
+
+        const allocationsResponse = await fetch('/api/portfolio/populate-allocations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(allocationsData),
+        })
+
+        const allocationsResult = await allocationsResponse.json()
+        
+        if (allocationsResult.success) {
+          console.log('✅ Alocações populadas com sucesso')
+        } else {
+          console.warn('⚠️ Erro ao popular alocações:', allocationsResult.error)
+        }
+        
+        setSaveSuccess(true)
+        setTimeout(() => setSaveSuccess(false), 3000)
+      } else {
+        throw new Error(result.error || 'Erro ao salvar no banco de dados')
+      }
+
     } catch (error) {
-      console.error('Erro ao salvar carteira:', error)
-      alert('Erro ao salvar carteira. Tente novamente.')
+      console.error('❌ Erro ao salvar carteira:', error)
+      
+      // Fallback para localStorage em caso de erro
+      try {
+        const fallbackData = {
+          name: `Carteira ${new Date().toLocaleDateString('pt-BR')}`,
+          objective: onboardingData.objective,
+          riskProfile: onboardingData.riskProfile,
+          investmentAmount: onboardingData.initialAmount,
+          monthlyContribution: onboardingData.monthlyAmount,
+          timeHorizon: onboardingData.timeHorizon,
+          currency: onboardingData.currency,
+          etfs: results.portfolio.map(etf => ({
+            symbol: etf.symbol,
+            name: etf.name,
+            allocation: etf.allocation_percent,
+            amount: etf.allocation_amount
+          })),
+          metrics: {
+            expectedReturn: results.expected_return,
+            expectedVolatility: results.expected_volatility,
+            sharpeRatio: results.sharpe_ratio
+          },
+          projections: results.projections,
+          createdAt: new Date().toISOString()
+        }
+        
+        const savedPortfolios = JSON.parse(localStorage.getItem('savedPortfolios') || '[]')
+        savedPortfolios.unshift(fallbackData)
+        localStorage.setItem('savedPortfolios', JSON.stringify(savedPortfolios.slice(0, 10)))
+        
+        console.log('⚠️ Portfólio salvo no localStorage como fallback')
+        setSaveSuccess(true)
+        setTimeout(() => setSaveSuccess(false), 3000)
+      } catch (fallbackError) {
+        console.error('❌ Erro no fallback:', fallbackError)
+        alert('Erro ao salvar carteira. Tente novamente.')
+      }
     } finally {
       setIsSaving(false)
     }
