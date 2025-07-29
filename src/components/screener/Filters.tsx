@@ -62,12 +62,17 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
 
   // Aplicar ordenação
   const applySort = (sortValue: string) => {
+    console.log('🔄 [DEBUG] applySort chamado:', sortValue);
     setSelectedSort(sortValue);
     const [sortBy, sortOrder] = sortValue.split(':');
+    console.log('🔄 [DEBUG] Parsed:', { sortBy, sortOrder: sortOrder.toLowerCase() });
     
     // Comunicar ordenação para o componente pai
     if (onSortChange) {
+      console.log('🔄 [DEBUG] Chamando onSortChange');
       onSortChange(sortBy, sortOrder.toLowerCase());
+    } else {
+      console.error('❌ [DEBUG] onSortChange não definido!');
     }
   };
 

@@ -300,6 +300,7 @@ export default function ScreenerPage() {
       }
       
       const finalUrl = `/api/etfs/screener?${params.toString()}`;
+      console.log('🌐 [DEBUG] URL da API:', finalUrl);
 
       const response = await fetch(finalUrl);
       const data = await response.json();
@@ -377,11 +378,13 @@ export default function ScreenerPage() {
   };
 
   const handleSortChange = (sortBy: string, sortOrder: string) => {
+    console.log('🔍 [DEBUG] handleSortChange chamado:', { sortBy, sortOrder });
     setSortBy(sortBy);
     setSortOrder(sortOrder as "asc" | "desc");
     setCurrentPage(1); // Reset para primeira página
     
     // Chamar fetchETFs imediatamente com os novos parâmetros
+    console.log('🔍 [DEBUG] Chamando fetchETFs com:', { sortBy, sortOrder });
     fetchETFs(sortBy, sortOrder);
   };
 
