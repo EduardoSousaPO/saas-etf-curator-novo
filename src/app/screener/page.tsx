@@ -23,7 +23,7 @@ export default function ScreenerPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalETFs, setTotalETFs] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
   
   // Estados para filtros avançados
   const [filters, setFilters] = useState<AdvancedFilters>({
@@ -74,6 +74,13 @@ export default function ScreenerPage() {
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('🔍 [DEBUG] fetchETFs iniciado com estado atual:', { 
+        sortBy, 
+        sortOrder, 
+        currentPage, 
+        itemsPerPage 
+      });
 
       // Construir parâmetros da API com todos os filtros avançados
       const params = new URLSearchParams({
@@ -380,7 +387,13 @@ export default function ScreenerPage() {
     setSortBy(sortBy);
     setSortOrder(sortOrder as "asc" | "desc");
     setCurrentPage(1); // Reset para primeira página
-    console.log('📥 [DEBUG] Estado atualizado, useEffect vai disparar fetchETFs');
+    console.log('📥 [DEBUG] Estado atualizado, chamando fetchETFs diretamente');
+    
+    // Chamar fetchETFs com os novos parâmetros diretamente
+    setTimeout(() => {
+      console.log('📥 [DEBUG] Chamando fetchETFs após timeout para garantir estado atualizado');
+      fetchETFs();
+    }, 10);
   };
 
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
