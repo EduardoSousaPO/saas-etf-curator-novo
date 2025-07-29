@@ -191,7 +191,7 @@ export default function ContatoPage() {
             </h1>
             <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-8">
               Acesso exclusivo aos planos WEALTH e OFFSHORE através de processo seletivo personalizado. 
-              Consultoria CVM especializada para patrimônios qualificados.
+              Wealth management especializada para patrimônios qualificados.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
@@ -599,7 +599,7 @@ export default function ContatoPage() {
                     <Crown className="w-8 h-8 text-purple-600" />
                     <div>
                       <CardTitle className="text-xl">Plano WEALTH</CardTitle>
-                      <CardDescription>Consultoria CVM Premium</CardDescription>
+                      <CardDescription>Wealth Management Premium</CardDescription>
                     </div>
                   </div>
                 </CardHeader>

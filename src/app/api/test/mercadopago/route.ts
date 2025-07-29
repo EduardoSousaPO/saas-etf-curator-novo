@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     
     // Obter o plano
     // const plan = MercadoPagoService.getPlanById(planId);
-    const plan = { id: planId, name: 'Plano Teste', price: 39.90 };
+    const plan = { id: planId, name: 'Plano Teste', price: 97.00 };
     if (!plan) {
       return NextResponse.json(
         { error: 'Plano não encontrado' },

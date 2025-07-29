@@ -392,7 +392,7 @@ export default function PricingPage() {
                       </td>
                     </tr>
                     <tr className="border-b border-gray-100">
-                      <td className="p-8 font-light text-gray-900">Consultoria CVM</td>
+                      <td className="p-8 font-light text-gray-900">Wealth Management</td>
                       <td className="text-center p-8">
                         <span className="text-gray-400">—</span>
                       </td>
@@ -458,7 +458,7 @@ export default function PricingPage() {
                 <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Award className="w-8 h-8 text-orange-600" />
                 </div>
-                <h3 className="text-xl font-light text-gray-900 mb-4">Consultoria CVM</h3>
+                <h3 className="text-xl font-light text-gray-900 mb-4">Wealth Management</h3>
                 <p className="text-gray-600 font-light leading-relaxed">
                   Assessoria profissional certificada pela Comissão de Valores Mobiliários
                 </p>
@@ -576,7 +576,7 @@ export default function PricingPage() {
               </div>
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <h3 className="text-xl font-light text-gray-900 mb-4">
-                  Como funciona a consultoria CVM?
+                  Como funciona o wealth management?
                 </h3>
                 <p className="text-gray-600 font-light leading-relaxed">
                   Nossos consultores certificados pela CVM oferecem assessoria personalizada 

@@ -4,6 +4,7 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import { formatNumber, formatNumeric } from '@/lib/formatters';
 import { applyFilterPreset, applySortPreset, getQualityFilterConfig } from '@/lib/screener-presets';
 import { FilterPreset, SortPreset, AdvancedFilters, SortConfig } from '@/types/etf';
+import { validateAndFilterETFs, validateFilterParameters } from '@/lib/screener-data-validation';
 
 const prisma = new PrismaClient();
 
@@ -151,6 +152,36 @@ export async function GET(request: NextRequest) {
     const excludeSectors = searchParams.get('exclude_sectors')?.split(',').filter(Boolean) || [];
 
     console.log(`🔍 Screener API Avançado - Página ${page}, Limit ${limit}, Busca: "${searchTerm}"`);
+    
+    // Validar parâmetros de filtro antes de prosseguir
+    const allFilters = {
+      searchTerm, assetclass, expenseRatioMin, expenseRatioMax, totalAssetsMin, totalAssetsMax,
+      navMin, navMax, volumeMin, volumeMax, holdingsCountMin, holdingsCountMax,
+      returns12mMin, returns12mMax, returns24mMin, returns24mMax, returns36mMin, returns36mMax,
+      returns5yMin, returns5yMax, returns10yMin, returns10yMax,
+      volatility12mMin, volatility12mMax, volatility24mMin, volatility24mMax,
+      volatility36mMin, volatility36mMax, volatility5yMin, volatility5yMax,
+      sharpe12mMin, sharpe12mMax, sharpe24mMin, sharpe24mMax, sharpe36mMin, sharpe36mMax,
+      sharpe5yMin, sharpe5yMax, maxDrawdownMin, maxDrawdownMax,
+      dividendYieldMin, dividendYieldMax, dividends12mMin, dividends12mMax,
+      dividends24mMin, dividends24mMax, dividends36mMin, dividends36mMax,
+      sizeCategory, liquidityCategory, liquidityRating, etfType, domicile, etfCompany,
+      inceptionDateAfter, inceptionDateBefore, etfAgeMinYears, etfAgeMaxYears,
+      highQualityOnly, lowCostOnly, highLiquidityOnly, establishedOnly,
+      topSector, filterPreset, sortPreset
+    };
+
+    const paramValidation = validateFilterParameters(allFilters);
+    if (!paramValidation.isValid) {
+      return NextResponse.json(
+        { 
+          error: 'Parâmetros de filtro inválidos', 
+          details: paramValidation.errors,
+          _source: 'screener-validation-api'
+        },
+        { status: 400 }
+      );
+    }
     
     // Aplicar presets se especificados
     let appliedFilters: Partial<AdvancedFilters> = {};
@@ -429,7 +460,7 @@ export async function GET(request: NextRequest) {
     console.log(`✅ Encontrados ${result.length} ETFs com filtros avançados`);
 
     // Processar dados com TODAS as colunas
-    const processedData = result.map((row: any) => {
+    const rawProcessedData = result.map((row: any) => {
       // Calcular dividend yield se possível
       const nav = formatNumeric(row.nav);
       const dividends12m = formatNumeric(row.dividends_12m, 4);
@@ -504,11 +535,15 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    // Aplicar validação de dados e filtrar ETFs anômalos
+    const processedData = validateAndFilterETFs(rawProcessedData, true);
+    console.log(`🔍 ${rawProcessedData.length} ETFs processados, ${processedData.length} válidos após validação`);
+
     const totalCount = Number(countResult[0].count);
     const totalPages = Math.ceil(totalCount / limit);
 
     // Analytics: rastrear filtros utilizados (não bloquear resposta)
-    const allFilters = {
+    const analyticsFilters = {
       searchTerm, assetclass, expenseRatioMin, expenseRatioMax, totalAssetsMin, totalAssetsMax,
       navMin, navMax, volumeMin, volumeMax, holdingsCountMin, holdingsCountMax,
       returns12mMin, returns12mMax, returns24mMin, returns24mMax, returns36mMin, returns36mMax,
@@ -525,8 +560,8 @@ export async function GET(request: NextRequest) {
       topSector, filterPreset, sortPreset
     };
     
-    const activeFilters = Object.keys(allFilters).filter(key => {
-      const value = allFilters[key as keyof typeof allFilters];
+    const activeFilters = Object.keys(analyticsFilters).filter(key => {
+      const value = analyticsFilters[key as keyof typeof analyticsFilters];
       return value !== undefined && value !== null && value !== '' && value !== false && value !== 0;
     });
 
@@ -573,8 +608,14 @@ export async function GET(request: NextRequest) {
         filtersUsed: activeFilters
       },
       _source: 'screener-advanced-api',
-      _message: `Retornando ${processedData.length} ETFs de ${totalCount} total (${activeFilters.length} filtros ativos)`,
-      _timestamp: new Date().toISOString()
+      _message: `Retornando ${processedData.length} ETFs de ${totalCount} total (${activeFilters.length} filtros ativos, ${rawProcessedData.length - processedData.length} excluídos por validação)`,
+      _timestamp: new Date().toISOString(),
+      _dataQuality: {
+        totalProcessed: rawProcessedData.length,
+        validETFs: processedData.length,
+        excludedETFs: rawProcessedData.length - processedData.length,
+        exclusionRate: ((rawProcessedData.length - processedData.length) / rawProcessedData.length * 100).toFixed(2) + '%'
+      }
     };
 
     // Salvar no cache

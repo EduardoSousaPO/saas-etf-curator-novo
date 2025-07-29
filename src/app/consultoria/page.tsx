@@ -203,7 +203,7 @@ export default function ConsultoriaPage() {
         {/* Header Principal */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-light mb-6" style={{ color: '#202636' }}>
-            Consultoria CVM Especializada
+            Wealth Management Especializada
           </h1>
           <p className="text-xl text-black max-w-3xl mx-auto font-light leading-relaxed">
             Agende uma consulta 1x1 com nosso especialista certificado CVM para implementar sua carteira de ETFs

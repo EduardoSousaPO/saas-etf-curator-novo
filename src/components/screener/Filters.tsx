@@ -1,7 +1,7 @@
 // src/components/screener/Filters.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -101,6 +101,13 @@ const SORT_OPTIONS = [
 export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLoading = false, totalResults }: FiltersProps) {
   const [selectedSort, setSelectedSort] = useState<string>('returns_12m:DESC');
   const [activeFiltersCount, setActiveFiltersCount] = useState(0);
+  
+  // Sincronizar com o valor inicial ao montar o componente
+  useEffect(() => {
+    if (onSortChange) {
+      onSortChange('returns_12m', 'desc');
+    }
+  }, []);
 
   // Aplicar preset popular
   const applyPreset = (presetKey: string) => {

@@ -1,0 +1,174 @@
+{
+  "timestamp": "2025-07-22T20:21:01.549181",
+  "execution_time": 18.02358317375183,
+  "summary": {
+    "total_tests": 16,
+    "passed_tests": 14,
+    "failed_tests": 2,
+    "success_rate": 87.5,
+    "average_response_time": 1.1262437403202057
+  },
+  "phase_statistics": {
+    "FASE 1": {
+      "total": 8,
+      "passed": 6,
+      "failed": 2
+    },
+    "FASE 2": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0
+    },
+    "INTEGRAÇÃO": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0
+    }
+  },
+  "detailed_results": [
+    {
+      "phase": "FASE 1",
+      "test_name": "Screener - Filtro Básico",
+      "success": true,
+      "response_time": 0.9781055450439453,
+      "api_endpoint": "/api/etfs/screener?search_term=technology&limit=5",
+      "error_message": "",
+      "details": "Status: 200, Keys: ['etfs', 'totalCount', 'page', 'totalPages', 'itemsPerPage', 'hasMore', 'sort', 'appliedPresets', 'analytics', '_source', '_message', '_timestamp', '_dataQuality']"
+    },
+    {
+      "phase": "FASE 1",
+      "test_name": "Screener - Filtros Avançados",
+      "success": true,
+      "response_time": 1.081451177597046,
+      "api_endpoint": "/api/etfs/screener?assetclass=Equity&expenseratio_max=0.5&limit=10",
+      "error_message": "",
+      "details": "Status: 200, Keys: ['etfs', 'totalCount', 'page', 'totalPages', 'itemsPerPage', 'hasMore', 'sort', 'appliedPresets', 'analytics', '_source', '_message', '_timestamp', '_dataQuality']"
+    },
+    {
+      "phase": "FASE 1",
+      "test_name": "Portfolio Master - Criação",
+      "success": false,
+      "response_time": 0.21210336685180664,
+      "api_endpoint": "/api/portfolio/unified-master",
+      "error_message": "Expected 200, got 500: [\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"number\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"investmentAmount\"\n    ],\n    \"message\": \"Required\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"number\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"monthlyContribution\"\n    ],\n    \"message\": \"Required\"\n  },\n  {\n    \"expected\": \"'conservative' | 'moderate' | 'aggressive'\",\n    \"received\": \"undefined\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"riskProfile\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "details": "Status: 500"
+    },
+    {
+      "phase": "FASE 1",
+      "test_name": "Comparador - Múltiplos ETFs",
+      "success": true,
+      "response_time": 0.6701104640960693,
+      "api_endpoint": "/api/etfs/comparator?symbols=VTI,SPY",
+      "error_message": "",
+      "details": "Status: 200, Keys: ['success', 'etfs', 'comparison_stats', 'summary']"
+    },
+    {
+      "phase": "FASE 1",
+      "test_name": "Rankings - Geral",
+      "success": false,
+      "response_time": 0.5059859752655029,
+      "api_endpoint": "/api/rankings",
+      "error_message": "Expected 200, got 404: <!DOCTYPE html><html lang=\"pt-BR\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=",
+      "details": "Status: 404"
+    },
+    {
+      "phase": "FASE 1",
+      "test_name": "Dashboard - Métricas Sistema",
+      "success": true,
+      "response_time": 0.17632699012756348,
+      "api_endpoint": "/api/analytics/system-metrics",
+      "error_message": "",
+      "details": "Status: 200, Keys: ['realtime', 'daily', 'weekly', 'projects', 'error', 'timestamp']"
+    },
+    {
+      "phase": "FASE 1",
+      "test_name": "Health Check - Agentes",
+      "success": true,
+      "response_time": 1.8388872146606445,
+      "api_endpoint": "/api/chat/agents",
+      "error_message": "",
+      "details": "Status: 200, Keys: ['status', 'system', 'agents', 'integrations', 'tools', 'version', 'endpoint', 'timestamp', 'python_exit_code', 'debug_info']"
+    },
+    {
+      "phase": "FASE 1",
+      "test_name": "Chat - Mensagem Básica",
+      "success": true,
+      "response_time": 0.05996441841125488,
+      "api_endpoint": "/api/chat/agents",
+      "error_message": "",
+      "details": "Status: 200, Non-JSON response"
+    },
+    {
+      "phase": "FASE 2",
+      "test_name": "MCP Enhanced - Status Conexões",
+      "success": true,
+      "response_time": 0.23622655868530273,
+      "api_endpoint": "/api/mcp/enhanced",
+      "error_message": "",
+      "details": "Status: 200, Keys: ['success', 'summary', 'connections', 'timestamp']"
+    },
+    {
+      "phase": "FASE 2",
+      "test_name": "MCP Enhanced - Teste Performance",
+      "success": true,
+      "response_time": 12.083746433258057,
+      "api_endpoint": "/api/mcp/enhanced?test=performance",
+      "error_message": "",
+      "details": "Status: 200, Keys: ['success', 'test_type', 'summary', 'results', 'timestamp']"
+    },
+    {
+      "phase": "FASE 2",
+      "test_name": "MCP Enhanced - Teste Conectividade",
+      "success": true,
+      "response_time": 0.01043248176574707,
+      "api_endpoint": "/api/mcp/enhanced?test=connectivity",
+      "error_message": "",
+      "details": "Status: 200, Keys: ['success', 'test_type', 'summary', 'results', 'timestamp']"
+    },
+    {
+      "phase": "FASE 2",
+      "test_name": "MCP Enhanced - Health Check",
+      "success": true,
+      "response_time": 0.009880304336547852,
+      "api_endpoint": "/api/mcp/enhanced?test=health",
+      "error_message": "",
+      "details": "Status: 200, Keys: ['success', 'test_type', 'summary', 'results', 'timestamp']"
+    },
+    {
+      "phase": "FASE 2",
+      "test_name": "MCP Enhanced - Execução Request",
+      "success": true,
+      "response_time": 0.01028752326965332,
+      "api_endpoint": "/api/mcp/enhanced",
+      "error_message": "",
+      "details": "Status: 200, Keys: ['success', 'data', 'timestamp', 'execution_time']"
+    },
+    {
+      "phase": "INTEGRAÇÃO",
+      "test_name": "Chat para Screener via NLP",
+      "success": true,
+      "response_time": 0.05069160461425781,
+      "api_endpoint": "/api/chat/agents",
+      "error_message": "",
+      "details": "Status: 200, Non-JSON response"
+    },
+    {
+      "phase": "INTEGRAÇÃO",
+      "test_name": "Chat para Portfolio Master",
+      "success": true,
+      "response_time": 0.047204017639160156,
+      "api_endpoint": "/api/chat/agents",
+      "error_message": "",
+      "details": "Status: 200, Non-JSON response"
+    },
+    {
+      "phase": "INTEGRAÇÃO",
+      "test_name": "Fluxo Completo - Análise ETF",
+      "success": true,
+      "response_time": 0.04849576950073242,
+      "api_endpoint": "/api/chat/agents",
+      "error_message": "",
+      "details": "Status: 200, Keys: ['success', 'result', 'action', 'timestamp']"
+    }
+  ]
+}

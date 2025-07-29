@@ -1,0 +1,240 @@
+{
+  "timestamp": "2025-07-22T20:34:17.149027",
+  "execution_time": 1.1290786266326904,
+  "summary": {
+    "total_tests": 18,
+    "passed_tests": 0,
+    "failed_tests": 18,
+    "success_rate": 0.0,
+    "average_response_time": 0.06239060560862223,
+    "average_educational_value": 1.0
+  },
+  "category_analysis": {
+    "Pesquisa de ETFs": {
+      "total": 3,
+      "passed": 0,
+      "success_rate": 0.0
+    },
+    "Análise de Mercado": {
+      "total": 3,
+      "passed": 0,
+      "success_rate": 0.0
+    },
+    "Gestão de Portfolio": {
+      "total": 2,
+      "passed": 0,
+      "success_rate": 0.0
+    },
+    "Educação": {
+      "total": 3,
+      "passed": 0,
+      "success_rate": 0.0
+    },
+    "Cenários Complexos": {
+      "total": 3,
+      "passed": 0,
+      "success_rate": 0.0
+    }
+  },
+  "api_usage": {},
+  "detailed_results": [
+    {
+      "scenario": "Criação de Carteira Básica",
+      "user_message": "Quero criar uma carteira conservadora com R$ 50.000 para aposentadoria",
+      "expected_functionality": "Portfolio Master - Otimização Markowitz",
+      "manual_equivalent": "Ir para Portfolio Master → Preencher formulário → Otimizar → Revisar resultados",
+      "success": false,
+      "response_time": 0.07671546936035156,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Carteira Perfil Arrojado",
+      "user_message": "Crie uma carteira arrojada focada em crescimento com R$ 100.000",
+      "expected_functionality": "Portfolio Master - Seleção por perfil de risco",
+      "manual_equivalent": "Portfolio Master → Selecionar 'Arrojado' → Objetivo 'Crescimento' → R$ 100k",
+      "success": false,
+      "response_time": 0.07183122634887695,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Carteira com Restrições",
+      "user_message": "Quero uma carteira só com ETFs de baixa taxa (menor que 0.5%) para R$ 30.000",
+      "expected_functionality": "Portfolio Master + Screener - Filtros combinados",
+      "manual_equivalent": "Screener → Filtrar taxa < 0.5% → Portfolio Master → Usar ETFs filtrados",
+      "success": false,
+      "response_time": 0.05985760688781738,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Busca ETFs por Setor",
+      "user_message": "Me mostre os melhores ETFs de tecnologia com baixa taxa de administração",
+      "expected_functionality": "Screener - Filtros por setor e taxa",
+      "manual_equivalent": "Screener → Filtrar por 'Technology' → Ordenar por expense ratio → Ver resultados",
+      "success": false,
+      "response_time": 0.0612945556640625,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Análise ETF Específico",
+      "user_message": "Analise o ETF VTI para mim, quais são os prós e contras?",
+      "expected_functionality": "Detalhes ETF + Análise contextual",
+      "manual_equivalent": "Screener → Buscar VTI → Clicar para detalhes → Ler métricas manualmente",
+      "success": false,
+      "response_time": 0.049469709396362305,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Comparação de ETFs",
+      "user_message": "Compare VTI, SPY e QQQ para mim, qual é melhor para longo prazo?",
+      "expected_functionality": "Comparador - Análise lado a lado",
+      "manual_equivalent": "Comparador → Adicionar VTI, SPY, QQQ → Comparar métricas → Analisar manualmente",
+      "success": false,
+      "response_time": 0.07216525077819824,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Rankings de Performance",
+      "user_message": "Quais são os ETFs com melhor performance nos últimos 12 meses?",
+      "expected_functionality": "Rankings - Best performers",
+      "manual_equivalent": "Rankings → Selecionar 'Best Performance' → Ver lista dos top 15",
+      "success": false,
+      "response_time": 0.06197404861450195,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Análise de Tendências",
+      "user_message": "Como está o mercado de ETFs hoje? Há alguma oportunidade?",
+      "expected_functionality": "Dashboard + Rankings - Insights de mercado",
+      "manual_equivalent": "Dashboard → Ver métricas gerais → Rankings → Identificar oportunidades manualmente",
+      "success": false,
+      "response_time": 0.06242227554321289,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Setores em Alta",
+      "user_message": "Que setores estão em alta agora e quais ETFs você recomenda?",
+      "expected_functionality": "Rankings + Screener - Análise setorial",
+      "manual_equivalent": "Rankings → Analisar por setor → Screener → Filtrar setores identificados",
+      "success": false,
+      "response_time": 0.06008648872375488,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Análise Portfolio Existente",
+      "user_message": "Tenho 60% VTI, 30% BND e 10% QQQ. Como posso melhorar essa carteira?",
+      "expected_functionality": "Portfolio Master - Análise e otimização",
+      "manual_equivalent": "Portfolio Master → Inserir alocações atuais → Executar otimização → Comparar resultados",
+      "success": false,
+      "response_time": 0.0494532585144043,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Sugestão de Rebalanceamento",
+      "user_message": "Minha carteira desbalanceou, quando devo rebalancear e como?",
+      "expected_functionality": "Dashboard - Monitoramento + regras de rebalanceamento",
+      "manual_equivalent": "Dashboard → Monitorar desvios → Calcular quando rebalancear manualmente",
+      "success": false,
+      "response_time": 0.07130694389343262,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Estratégia para Novos Aportes",
+      "user_message": "Vou investir mais R$ 10.000, onde devo alocar para manter minha estratégia?",
+      "expected_functionality": "Portfolio Master - Otimização incremental",
+      "manual_equivalent": "Portfolio Master → Simular novo aporte → Otimizar alocação → Calcular diferenças",
+      "success": false,
+      "response_time": 0.06044721603393555,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Explicação de Conceitos",
+      "user_message": "O que é Sharpe ratio e por que é importante para meus investimentos?",
+      "expected_functionality": "Educação - Glossário contextual",
+      "manual_equivalent": "Procurar em glossário → Ler definição → Aplicar ao contexto manualmente",
+      "success": false,
+      "response_time": 0.062098026275634766,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Explicação de Estratégias",
+      "user_message": "Explique a diferença entre investir em growth vs value ETFs",
+      "expected_functionality": "Educação - Estratégias de investimento",
+      "manual_equivalent": "Pesquisar sobre growth vs value → Comparar ETFs → Entender diferenças",
+      "success": false,
+      "response_time": 0.06135368347167969,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Educação sobre Riscos",
+      "user_message": "Como diversificar adequadamente minha carteira para reduzir riscos?",
+      "expected_functionality": "Educação + Portfolio Master - Teoria de diversificação",
+      "manual_equivalent": "Estudar teoria de diversificação → Portfolio Master → Aplicar conceitos",
+      "success": false,
+      "response_time": 0.05811929702758789,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Jornada Completa Iniciante",
+      "user_message": "Sou iniciante, tenho R$ 20.000 e quero começar a investir em ETFs. Me ajude do zero.",
+      "expected_functionality": "Onboarding + Portfolio Master + Educação",
+      "manual_equivalent": "Onboarding → Portfolio Master → Screener → Comparador → Dashboard → Educação",
+      "success": false,
+      "response_time": 0.061759233474731445,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Cenário Multi-funcional",
+      "user_message": "Quero investir R$ 100k focado em dividendos, mas também quero crescimento. Compare as opções e monte uma carteira balanceada.",
+      "expected_functionality": "Screener + Comparador + Portfolio Master",
+      "manual_equivalent": "Screener (dividendos) → Screener (growth) → Comparador → Portfolio Master → Otimização",
+      "success": false,
+      "response_time": 0.06198573112487793,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    },
+    {
+      "scenario": "Consultoria Avançada",
+      "user_message": "Tenho R$ 500k, perfil arrojado, 35 anos. Quero uma estratégia completa para aposentadoria aos 55. Inclua análise fiscal e rebalanceamento.",
+      "expected_functionality": "Consultoria CVM + Portfolio Master + Planejamento",
+      "manual_equivalent": "Consultoria CVM → Análise completa → Portfolio Master → Planejamento fiscal → Dashboard",
+      "success": false,
+      "response_time": 0.060690879821777344,
+      "api_calls_detected": [],
+      "educational_value": 1,
+      "error_message": ""
+    }
+  ]
+}

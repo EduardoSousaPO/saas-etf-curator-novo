@@ -186,7 +186,7 @@ export const PLAN_CONFIGS: Record<SubscriptionPlan, PlanConfig> = {
   PRO: {
     name: 'Pro',
     description: 'Para investidores ativos',
-    price: 39.90,
+    price: 97.00,
     priceType: 'monthly',
     currency: 'BRL',
     features: [

@@ -337,7 +337,7 @@ export default function UnifiedPortfolioMaster() {
               Dashboard
             </Link>
             <Link href="/consultoria" className="text-gray-600 hover:text-[#0090d8] transition-colors">
-              Consultoria CVM
+              Wealth Management
             </Link>
             <Link href="/rankings" className="text-gray-600 hover:text-[#0090d8] transition-colors">
               Rankings
@@ -1321,7 +1321,7 @@ export default function UnifiedPortfolioMaster() {
               onClick={() => window.location.href = '/consultoria'}
             >
               <Calendar className="mr-2 h-5 w-5 inline" />
-              Agendar Consultoria CVM
+              Agendar Wealth Management
             </button>
             <button 
               onClick={handleGenerateReport}

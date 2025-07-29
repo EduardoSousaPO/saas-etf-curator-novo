@@ -10,19 +10,6 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  const [mounted, setMounted] = React.useState(false);
-
-  // Evitar hidratação até o componente estar montado no cliente
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    // Renderizar versão básica no servidor
-    return <div suppressHydrationWarning>{children}</div>;
-  }
-
-  // Renderizar versão completa no cliente
   return (
     <NextThemesProvider {...props}>
       {children}

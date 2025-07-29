@@ -86,6 +86,8 @@ export default function HomePage() {
           </div>
         </section>
 
+
+
         {/* Seção de Problema/Solução Tesla-style */}
         <section className="py-20 px-6 bg-white">
           <div className="max-w-6xl mx-auto">
@@ -477,7 +479,7 @@ export default function HomePage() {
                     <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
                       Pro
                     </Link>
-                    <p className="text-sm text-gray-500">R$ 39,90/mês</p>
+                    <p className="text-sm text-gray-500">R$ 97,00/mês</p>
                   </div>
                   <div>
                     <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
@@ -510,7 +512,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <Link href="/consultoria" className="text-gray-600 hover:text-gray-900">
-                      Consultoria CVM
+                      Wealth Management
                     </Link>
                   </div>
                   <div>
@@ -573,7 +575,7 @@ export default function HomePage() {
                   <span>•</span>
                   <span>Dados em tempo real</span>
                   <span>•</span>
-                  <span>Consultoria CVM</span>
+                  <span>Wealth Management</span>
                 </div>
               </div>
             </div>

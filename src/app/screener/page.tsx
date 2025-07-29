@@ -33,7 +33,7 @@ export default function ScreenerPage() {
   });
 
   // Estados para ordenação
-  const [sortBy, setSortBy] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("returns_12m");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Estados para card de detalhes
@@ -87,7 +87,7 @@ export default function ScreenerPage() {
         params.append('search_term', filters.searchTerm.trim());
       }
       if (filters.assetclass && filters.assetclass !== '') {
-        params.append('assetclass_filter', filters.assetclass);
+        params.append('assetclass', filters.assetclass);
       }
       if (filters.etfCompany?.trim()) {
         params.append('etf_company', filters.etfCompany.trim());

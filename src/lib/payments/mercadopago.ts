@@ -139,7 +139,7 @@ class MercadoPagoService {
         id: 'pro',
         name: 'ETF Curator Pro',
         description: 'Acesso completo às funcionalidades de análise de ETFs',
-        price: 39.90,
+        price: 97.00,
         currency: 'BRL',
         features: [
           'Screener avançado ilimitado',

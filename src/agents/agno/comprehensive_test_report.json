@@ -1,0 +1,70 @@
+{
+  "timestamp": "2025-07-25T15:47:37.866639",
+  "total_tests": 10,
+  "passed_tests": 10,
+  "success_rate": 100.0,
+  "average_score": 0.8925000000000001,
+  "evaluation": "EXCELENTE",
+  "test_results": [
+    {
+      "name": "TESTE 1: Informações ETF Específico",
+      "success": true,
+      "score": 0.875,
+      "response_length": 1987
+    },
+    {
+      "name": "TESTE 2: Comparação de ETFs",
+      "success": true,
+      "score": 0.75,
+      "response_length": 1963
+    },
+    {
+      "name": "TESTE 3: Screening por Critérios",
+      "success": true,
+      "score": 0.875,
+      "response_length": 877
+    },
+    {
+      "name": "TESTE 4: Análise Setorial",
+      "success": true,
+      "score": 1.0,
+      "response_length": 1875
+    },
+    {
+      "name": "TESTE 5: Educação Financeira",
+      "success": true,
+      "score": 1.0,
+      "response_length": 1808
+    },
+    {
+      "name": "TESTE 6: Criação de Carteira",
+      "success": true,
+      "score": 0.8,
+      "response_length": 2096
+    },
+    {
+      "name": "TESTE 7: Análise de Risco",
+      "success": true,
+      "score": 0.875,
+      "response_length": 1599
+    },
+    {
+      "name": "TESTE 8: ETFs de Dividendos",
+      "success": true,
+      "score": 0.875,
+      "response_length": 1438
+    },
+    {
+      "name": "TESTE 9: Mercados Emergentes",
+      "success": true,
+      "score": 0.875,
+      "response_length": 2611
+    },
+    {
+      "name": "TESTE 10: Estratégia de Investimento",
+      "success": true,
+      "score": 1.0,
+      "response_length": 1999
+    }
+  ]
+}

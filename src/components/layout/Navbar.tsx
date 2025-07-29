@@ -10,16 +10,17 @@ import { Menu, X, LogOut, Settings } from "lucide-react";
 // Navegação para usuários não autenticados (público)
 const publicNavItems: Array<{href: string, label: string, highlight?: boolean, authRequired?: boolean}> = [
   { href: "/", label: "Início" },
-  { href: "/consultoria", label: "Consultoria CVM", highlight: true },
+  { href: "/consultoria", label: "Wealth Management", highlight: true },
   { href: "/pricing", label: "Preços", authRequired: true },
 ];
 
 // Navegação para usuários autenticados (privado) - REMOVIDO item "Perfil"
 const privateNavItems: Array<{href: string, label: string, highlight?: boolean, authRequired?: boolean}> = [
+  // { href: "/chat-ia", label: "Chat IA", highlight: true }, // TEMPORARIAMENTE DESABILITADO
   { href: "/dashboard", label: "Dashboard" },
   { href: "/comparador", label: "Comparador" },
-  { href: "/portfolio-master", label: "Portfolio Master", highlight: true },
-  { href: "/consultoria", label: "Consultoria CVM" },
+  { href: "/portfolio-master", label: "Portfolio Master" },
+  { href: "/consultoria", label: "Wealth Management" },
   { href: "/rankings", label: "Rankings" },
   { href: "/screener", label: "Screener" },
 ];
@@ -138,7 +139,7 @@ export default function Navbar() {
           {/* Logo Vista colorido */}
           <Link href="/" className="flex items-center space-x-2">
             <img 
-              src="/vista-logo.png" 
+              src="/imagens/Vista logo colorido (3).png" 
               alt="Vista Logo" 
               className="h-12 w-auto"
             />

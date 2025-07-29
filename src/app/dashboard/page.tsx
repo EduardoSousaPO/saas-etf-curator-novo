@@ -97,7 +97,7 @@ export default function Dashboard() {
                   <span className="text-2xl font-light" style={{ color: '#202636' }}>Vista</span>
                 </div>
                 <p className="text-gray-600 font-light leading-relaxed">
-                  Plataforma científica para análise e otimização de portfólios de ETFs com metodologia avançada e consultoria CVM.
+                  Plataforma científica para análise e otimização de portfólios de ETFs com metodologia avançada e wealth management.
                 </p>
               </div>
 
@@ -144,7 +144,7 @@ export default function Dashboard() {
                   </li>
                   <li>
                     <Link href="/consultoria" className="text-gray-600 hover:text-gray-900 font-light">
-                      Consultoria CVM
+                      Wealth Management
                     </Link>
                   </li>
                   <li>
@@ -202,7 +202,7 @@ export default function Dashboard() {
                 </Link>
                 <span className="text-gray-300">•</span>
                 <Link href="#" className="text-sm text-gray-600 hover:text-gray-900 font-light">
-                  Consultoria CVM
+                  Wealth Management
                 </Link>
               </div>
             </div>

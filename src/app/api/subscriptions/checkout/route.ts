@@ -29,7 +29,7 @@ const PLANS: Record<string, PlanConfig> = {
   pro: {
     id: 'pro', 
     name: 'PRO',
-    price: 39.90,
+            price: 97.00,
     type: 'paid',
     features: ['Tudo do STARTER', 'IA Avançada', 'Alertas', 'Dashboard']
   },
