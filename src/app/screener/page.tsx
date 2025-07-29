@@ -387,13 +387,7 @@ export default function ScreenerPage() {
     setSortBy(sortBy);
     setSortOrder(sortOrder as "asc" | "desc");
     setCurrentPage(1); // Reset para primeira página
-    console.log('📥 [DEBUG] Estado atualizado, chamando fetchETFs diretamente');
-    
-    // Chamar fetchETFs com os novos parâmetros diretamente
-    setTimeout(() => {
-      console.log('📥 [DEBUG] Chamando fetchETFs após timeout para garantir estado atualizado');
-      fetchETFs();
-    }, 10);
+    console.log('📥 [DEBUG] Estado atualizado, useEffect vai disparar fetchETFs');
   };
 
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
@@ -410,11 +404,6 @@ export default function ScreenerPage() {
     console.log('🔄 [DEBUG] useEffect fetchETFs disparado por mudança em:', { currentPage, sortBy, sortOrder, itemsPerPage });
     fetchETFs();
   }, [currentPage, sortBy, sortOrder, itemsPerPage]);
-
-  // Buscar ETFs na montagem inicial
-  useEffect(() => {
-    fetchETFs();
-  }, []);
 
   const remainingQueries = getRemainingUsage('screener_queries');
 
