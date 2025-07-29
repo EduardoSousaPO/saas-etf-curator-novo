@@ -59,25 +59,28 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
       // Garantir que o estado inicial seja sincronizado corretamente
       onSortChange('returns_12m', 'desc');
     }
-  }, [onSortChange]);
+  }, []); // Executar apenas uma vez na montagem
 
 
 
   // Aplicar ordenação
   const applySort = (sortValue: string) => {
     console.log('🔄 [DEBUG] applySort chamado com:', sortValue);
+    console.log('🔄 [DEBUG] selectedSort anterior:', selectedSort);
     setSelectedSort(sortValue);
     const [sortBy, sortOrder] = sortValue.split(':');
     console.log('🔄 [DEBUG] Parsed:', { sortBy, sortOrder: sortOrder.toLowerCase() });
     
     // Comunicar ordenação para o componente pai
     if (onSortChange) {
+      console.log('🔄 [DEBUG] Chamando onSortChange com:', { sortBy, sortOrder: sortOrder.toLowerCase() });
       onSortChange(sortBy, sortOrder.toLowerCase());
-      console.log('🔄 [DEBUG] onSortChange chamado - useEffect vai disparar fetchETFs');
+      console.log('🔄 [DEBUG] onSortChange chamado - useEffect deve disparar fetchETFs');
+    } else {
+      console.error('❌ [DEBUG] onSortChange não está definido!');
     }
     
-    // NÃO chamar onSearch diretamente - deixar o useEffect fazer o trabalho
-    console.log('🔄 [DEBUG] Estado atualizado, aguardando useEffect disparar fetchETFs');
+    console.log('🔄 [DEBUG] applySort concluído, aguardando useEffect');
   };
 
   // Limpar filtros
