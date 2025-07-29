@@ -85,7 +85,7 @@ const ETFTable: React.FC<ETFTableProps> = ({
         {/* Loading indicator */}
         <div className="text-center py-6">
           <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#0090d8] border-t-transparent mx-auto mb-3"></div>
-          <p className="text-sm text-gray-600 font-medium">🔍 Analisando 1.370+ ETFs...</p>
+          <p className="text-sm text-gray-600 font-medium">Analisando 1.370+ ETFs...</p>
           <p className="text-xs text-gray-500 mt-1">Aplicando filtros e ordenação</p>
         </div>
       </div>
@@ -107,8 +107,8 @@ const ETFTable: React.FC<ETFTableProps> = ({
             Não encontramos ETFs que atendam aos seus critérios atuais.
           </p>
           <div className="text-sm text-gray-500 space-y-1">
-            <p>💡 <strong>Dicas:</strong></p>
-            <p>• Tente ajustar os filtros ou usar um preset</p>
+            <p><strong>Dicas:</strong></p>
+            <p>• Tente ajustar os filtros de busca</p>
             <p>• Verifique se os valores mínimos/máximos estão corretos</p>
             <p>• Use a busca por texto para ETFs específicos</p>
           </div>
