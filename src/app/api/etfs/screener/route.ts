@@ -14,35 +14,39 @@ const CACHE_DURATION = 2 * 60 * 1000; // 2 minutos para screener (mais dinâmico
 
 // Função para gerar chave de cache baseada nos parâmetros
 function generateCacheKey(params: URLSearchParams): string {
-  const sortedParams = Array.from(params.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}=${value}`)
+  // Extrair parâmetros principais que afetam o resultado
+  const keyParams = [
+    'page', 'limit', 'search_term', 'assetclass', 'only_complete',
+    'sort_by', 'sort_order', // CRÍTICO: incluir ordenação
+    'returns_12m_min', 'returns_12m_max', 'returns_5y_min', 'returns_5y_max',
+    'expense_ratio_min', 'expense_ratio_max', 'totalasset_min', 'totalasset_max',
+    'volatility_12m_min', 'volatility_12m_max', 'sharpe_12m_min', 'sharpe_12m_max'
+  ];
+  
+  const sortedParams = keyParams
+    .map(key => `${key}=${params.get(key) || ''}`)
+    .sort()
     .join('&');
-  return `screener_${Buffer.from(sortedParams).toString('base64').slice(0, 32)}`;
+    
+  return `screener_v2_${Buffer.from(sortedParams).toString('base64').slice(0, 40)}`;
 }
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Cache desabilitado temporariamente para ordenação funcionar
-    // const cacheKey = generateCacheKey(searchParams);
-    // console.log('🔑 [DEBUG] Cache key:', cacheKey, 'Params:', searchParams.toString());
-    // const now = Date.now();
-    // const cached = screenerCache.get(cacheKey);
+    // Cache inteligente com chave corrigida para ordenação
+    const cacheKey = generateCacheKey(searchParams);
+    const now = Date.now();
+    const cached = screenerCache.get(cacheKey);
     
-    // if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-    //   console.log('⚡ [DEBUG] Usando cache para:', searchParams.toString());
-    //   return NextResponse.json({
-    //     ...cached.data,
-    //     _cached: true,
-    //     _cacheAge: Math.floor((now - cached.timestamp) / 1000)
-    //   });
-    // } else {
-    //   console.log('🔄 [DEBUG] Cache miss, executando query para:', searchParams.toString());
-    // }
-    
-    console.log('🔄 [DEBUG] Executando query sem cache para:', searchParams.toString());
+    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+      return NextResponse.json({
+        ...cached.data,
+        _cached: true,
+        _cacheAge: Math.floor((now - cached.timestamp) / 1000)
+      });
+    }
     
     // Parâmetros básicos
     const searchTerm = searchParams.get('search_term') || '';
@@ -637,19 +641,19 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    // Cache desabilitado temporariamente
-    // screenerCache.set(cacheKey, {
-    //   data: response,
-    //   timestamp: now
-    // });
+    // Salvar no cache com chave corrigida
+    screenerCache.set(cacheKey, {
+      data: response,
+      timestamp: now
+    });
 
-    // // Limpar cache antigo (manter apenas 50 entradas)
-    // if (screenerCache.size > 50) {
-    //   const oldestKey = screenerCache.keys().next().value;
-    //   if (oldestKey) {
-    //     screenerCache.delete(oldestKey);
-    //   }
-    // }
+    // Limpar cache antigo (manter apenas 100 entradas para mais combinações)
+    if (screenerCache.size > 100) {
+      const oldestKey = screenerCache.keys().next().value;
+      if (oldestKey) {
+        screenerCache.delete(oldestKey);
+      }
+    }
 
     return NextResponse.json(response);
 
