@@ -27,15 +27,19 @@ export async function GET(request: NextRequest) {
     
     // Verificar cache primeiro - incluindo parâmetros de ordenação
     const cacheKey = generateCacheKey(searchParams);
+    console.log('🔑 [DEBUG] Cache key:', cacheKey, 'Params:', searchParams.toString());
     const now = Date.now();
     const cached = screenerCache.get(cacheKey);
     
     if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+      console.log('⚡ [DEBUG] Usando cache para:', searchParams.toString());
       return NextResponse.json({
         ...cached.data,
         _cached: true,
         _cacheAge: Math.floor((now - cached.timestamp) / 1000)
       });
+    } else {
+      console.log('🔄 [DEBUG] Cache miss, executando query para:', searchParams.toString());
     }
     
     // Parâmetros básicos
