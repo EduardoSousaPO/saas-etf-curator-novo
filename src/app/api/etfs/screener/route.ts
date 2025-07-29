@@ -36,9 +36,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     
     // Cache APENAS para filtros, NÃO para ordenação (para garantir que ordenação sempre funcione)
-    const sortBy = searchParams.get('sort_by');
-    const sortOrder = searchParams.get('sort_order');
-    const hasSort = sortBy && sortOrder;
+    const sortByParam = searchParams.get('sort_by');
+    const sortOrderParam = searchParams.get('sort_order');
+    const hasSort = sortByParam && sortOrderParam;
     
     // Se tem parâmetros de ordenação, pular cache completamente
     if (!hasSort) {
