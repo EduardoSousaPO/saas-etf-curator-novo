@@ -18,7 +18,7 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     // Obter email dos parâmetros da URL ou do usuário autenticado
-    const emailFromParams = searchParams.get('email');
+    const emailFromParams = searchParams?.get('email');
     const userEmail = user?.email;
     
     if (emailFromParams) {

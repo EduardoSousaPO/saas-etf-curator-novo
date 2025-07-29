@@ -23,8 +23,8 @@ export default function LoginPage() {
 
   // Verificar se há erro nos parâmetros da URL
   useEffect(() => {
-    const error = searchParams.get('error');
-    const message = searchParams.get('message');
+    const error = searchParams?.get('error');
+    const message = searchParams?.get('message');
     
     if (error === 'email_not_confirmed') {
       setErrors({ email: 'Email não confirmado. Verifique sua caixa de entrada.' });
@@ -37,7 +37,7 @@ export default function LoginPage() {
   // Redirecionar se já estiver logado
   useEffect(() => {
     if (user && !loading) {
-      const redirect = searchParams.get('redirect') || '/dashboard';
+      const redirect = searchParams?.get('redirect') || '/dashboard';
       router.push(redirect);
     }
   }, [user, loading, router, searchParams]);
@@ -90,7 +90,7 @@ export default function LoginPage() {
 
       if (signedInUser) {
         toast.success('Login realizado com sucesso!');
-        const redirect = searchParams.get('redirect') || '/dashboard';
+        const redirect = searchParams?.get('redirect') || '/dashboard';
         router.push(redirect);
       }
     } catch (error: any) {

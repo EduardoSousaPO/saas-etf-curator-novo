@@ -382,11 +382,11 @@ export default function ChatIAPage() {
                         : 'bg-gray-50 text-gray-900 border border-gray-200'
                     }`}>
                       {message.sender === 'assistant' ? (
-                        <ReactMarkdown 
-                          className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-gray-800"
-                        >
-                          {message.content || (isLoading && message.id === messages[messages.length - 1]?.id ? '⏳ Processando...' : '')}
-                        </ReactMarkdown>
+                        <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-gray-800">
+                          <ReactMarkdown>
+                            {message.content || (isLoading && message.id === messages[messages.length - 1]?.id ? '⏳ Processando...' : '')}
+                          </ReactMarkdown>
+                        </div>
                       ) : (
                         <p className="whitespace-pre-wrap">{message.content}</p>
                       )}

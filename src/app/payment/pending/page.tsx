@@ -12,7 +12,7 @@ export default function PaymentPendingPage() {
   const [paymentData, setPaymentData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const paymentId = searchParams.get('payment_id');
+  const paymentId = searchParams?.get('payment_id');
 
   useEffect(() => {
     if (paymentId) {
