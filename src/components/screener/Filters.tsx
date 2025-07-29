@@ -73,12 +73,11 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
     // Comunicar ordenação para o componente pai
     if (onSortChange) {
       onSortChange(sortBy, sortOrder.toLowerCase());
-      console.log('🔄 [DEBUG] onSortChange chamado');
+      console.log('🔄 [DEBUG] onSortChange chamado - useEffect vai disparar fetchETFs');
     }
     
-    // Trigger search com nova ordenação
-    console.log('🔄 [DEBUG] Chamando onSearch');
-    onSearch();
+    // NÃO chamar onSearch diretamente - deixar o useEffect fazer o trabalho
+    console.log('🔄 [DEBUG] Estado atualizado, aguardando useEffect disparar fetchETFs');
   };
 
   // Limpar filtros

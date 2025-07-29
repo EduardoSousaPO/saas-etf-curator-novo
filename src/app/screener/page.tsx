@@ -394,6 +394,7 @@ export default function ScreenerPage() {
 
   // Buscar ETFs quando página ou ordenação mudarem (não filtros, que são manuais agora)
   useEffect(() => {
+    console.log('🔄 [DEBUG] useEffect fetchETFs disparado por mudança em:', { currentPage, sortBy, sortOrder, itemsPerPage });
     fetchETFs();
   }, [currentPage, sortBy, sortOrder, itemsPerPage]);
 
