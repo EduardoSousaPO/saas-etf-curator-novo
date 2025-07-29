@@ -70,16 +70,21 @@ export default function ScreenerPage() {
     }
   };
 
-  const fetchETFs = async () => {
+  const fetchETFs = async (customSortBy?: string, customSortOrder?: string) => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('🔍 [DEBUG] fetchETFs iniciado com estado atual:', { 
-        sortBy, 
-        sortOrder, 
+      // Usar parâmetros customizados se fornecidos, senão usar estado
+      const effectiveSortBy = customSortBy || sortBy;
+      const effectiveSortOrder = customSortOrder || sortOrder;
+      
+      console.log('🔍 [DEBUG] fetchETFs iniciado com:', { 
+        effectiveSortBy, 
+        effectiveSortOrder, 
         currentPage, 
-        itemsPerPage 
+        itemsPerPage,
+        customParams: { customSortBy, customSortOrder }
       });
 
       // Construir parâmetros da API com todos os filtros avançados
@@ -295,13 +300,13 @@ export default function ScreenerPage() {
       }
 
       // Adicionar parâmetros de ordenação
-      if (sortBy) {
-        params.append('sort_by', sortBy);
-        console.log('📤 [DEBUG] Adicionado sort_by:', sortBy);
+      if (effectiveSortBy) {
+        params.append('sort_by', effectiveSortBy);
+        console.log('📤 [DEBUG] Adicionado sort_by:', effectiveSortBy);
       }
-      if (sortOrder) {
-        params.append('sort_order', sortOrder);
-        console.log('📤 [DEBUG] Adicionado sort_order:', sortOrder);
+      if (effectiveSortOrder) {
+        params.append('sort_order', effectiveSortOrder);
+        console.log('📤 [DEBUG] Adicionado sort_order:', effectiveSortOrder);
       }
       
       const finalUrl = `/api/etfs/screener?${params.toString()}`;
@@ -384,10 +389,20 @@ export default function ScreenerPage() {
 
   const handleSortChange = (sortBy: string, sortOrder: string) => {
     console.log('📥 [DEBUG] handleSortChange recebido:', { sortBy, sortOrder });
+    console.log('📥 [DEBUG] Estado atual antes da mudança:', { sortBy: sortBy, sortOrder: sortOrder });
     setSortBy(sortBy);
     setSortOrder(sortOrder as "asc" | "desc");
     setCurrentPage(1); // Reset para primeira página
-    console.log('📥 [DEBUG] Estado atualizado, useEffect vai disparar fetchETFs');
+    
+    // Chamar fetchETFs imediatamente com os novos parâmetros
+    console.log('📥 [DEBUG] Chamando fetchETFs diretamente com novos parâmetros');
+    fetchETFs(sortBy, sortOrder);
+  };
+
+  // Função de teste temporária para forçar ordenação
+  const testSort = (field: string, order: string) => {
+    console.log('🧪 [TEST] Forçando ordenação:', { field, order });
+    handleSortChange(field, order);
   };
 
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
@@ -471,6 +486,32 @@ export default function ScreenerPage() {
               isLoading={loading}
               totalResults={totalETFs}
                 />
+          </div>
+
+          {/* Botões de teste temporários - REMOVER DEPOIS */}
+          <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded">
+            <p className="text-sm font-medium mb-2">🧪 TESTE DE ORDENAÇÃO (Remover depois)</p>
+            <div className="flex gap-2 flex-wrap">
+              <button 
+                onClick={() => testSort('avgvolume', 'desc')}
+                className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+              >
+                Maior Volume
+              </button>
+              <button 
+                onClick={() => testSort('returns_5y', 'desc')}
+                className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+              >
+                Melhor 5Y
+              </button>
+              <button 
+                onClick={() => testSort('totalasset', 'desc')}
+                className="px-3 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
+              >
+                Maior Patrimônio
+              </button>
+            </div>
+            <p className="text-xs text-gray-600 mt-2">Estado atual: sortBy={sortBy}, sortOrder={sortOrder}</p>
           </div>
 
           {/* Alertas */}
