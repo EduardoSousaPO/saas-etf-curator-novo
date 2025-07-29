@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
+import { Search } from "lucide-react";
 import { formatPercentage, formatCurrency, formatNumber, METRIC_TYPES, formatMetric } from "@/lib/formatters";
 import { ETF } from "@/types/etf";
 
@@ -43,19 +44,77 @@ const ETFTable: React.FC<ETFTableProps> = ({
     }
   };
 
-  // Loading state
+  // 🔄 Loading state aprimorado - Inspirado em Morningstar
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0090d8] mx-auto mb-4"></div>
-        <p className="text-gray-600">Carregando ETFs...</p>
+      <div className="space-y-4">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
+          <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
+        </div>
+        
+        {/* Table skeleton */}
+        <div className="border rounded-lg overflow-hidden">
+          <div className="bg-gray-50 p-4 border-b">
+            <div className="grid grid-cols-6 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-4 bg-gray-200 rounded animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Rows skeleton */}
+          {Array.from({ length: 8 }).map((_, rowIndex) => (
+            <div key={rowIndex} className="p-4 border-b border-gray-100">
+              <div className="grid grid-cols-6 gap-4 items-center">
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                  <div className="h-3 bg-gray-100 rounded w-24 animate-pulse"></div>
+                </div>
+                <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Loading indicator */}
+        <div className="text-center py-6">
+          <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#0090d8] border-t-transparent mx-auto mb-3"></div>
+          <p className="text-sm text-gray-600 font-medium">🔍 Analisando 1.370+ ETFs...</p>
+          <p className="text-xs text-gray-500 mt-1">Aplicando filtros e ordenação</p>
+        </div>
       </div>
     );
   }
 
-  // Se não houver dados, mostrar mensagem
+  // 🔍 Estado vazio aprimorado
   if (!etfs || etfs.length === 0) {
-    return <p className="text-center text-gray-500">Nenhum ETF encontrado com esses critérios.</p>;
+    return (
+      <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="max-w-md mx-auto">
+          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="h-8 w-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Nenhum ETF encontrado
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Não encontramos ETFs que atendam aos seus critérios atuais.
+          </p>
+          <div className="text-sm text-gray-500 space-y-1">
+            <p>💡 <strong>Dicas:</strong></p>
+            <p>• Tente ajustar os filtros ou usar um preset</p>
+            <p>• Verifique se os valores mínimos/máximos estão corretos</p>
+            <p>• Use a busca por texto para ETFs específicos</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Define quais colunas mostrar (versão original)

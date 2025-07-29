@@ -309,9 +309,10 @@ export async function GET(request: NextRequest) {
       topSector: topSector || ''
     };
 
-    // OTIMIZAÇÃO: Executar query principal e contagem em paralelo
+    // 🚀 QUERY OTIMIZADA: Executar query principal e contagem em paralelo
+    
     const [result, countResult] = await Promise.all([
-      // Query principal com TODAS as colunas da tabela e filtros avançados
+      // Query principal OTIMIZADA com apenas campos essenciais
       prisma.$queryRaw<any[]>(
         Prisma.sql`
         SELECT 
@@ -320,9 +321,7 @@ export async function GET(request: NextRequest) {
           description,
           isin,
           assetclass,
-          securitycusip,
           domicile,
-          website,
           etfcompany,
           expenseratio,
           totalasset,
@@ -330,8 +329,6 @@ export async function GET(request: NextRequest) {
           inceptiondate,
           nav,
           navcurrency,
-          holdingscount,
-          updatedat,
           sectorslist,
           returns_12m,
           returns_24m,
@@ -356,7 +353,9 @@ export async function GET(request: NextRequest) {
           etf_type,
           liquidity_rating,
           size_rating,
-          EXTRACT(YEAR FROM AGE(CURRENT_DATE, inceptiondate::date)) as etf_age_years
+          EXTRACT(YEAR FROM AGE(CURRENT_DATE, inceptiondate::date)) as etf_age_years,
+          -- Campos calculados otimizados
+          (dividends_12m / NULLIF(nav, 0) * 100) as dividend_yield
         FROM etfs_ativos_reais
         WHERE 1=1
           -- Filtros básicos
@@ -451,9 +450,23 @@ export async function GET(request: NextRequest) {
         `
       ),
       
-      // Contar total de resultados (query simplificada para performance)
+      // 📊 Contar total de resultados com MESMOS filtros para precisão
       prisma.$queryRaw<[{ count: bigint }]>(
-        Prisma.sql`SELECT COUNT(*) as count FROM etfs_ativos_reais WHERE 1=1`
+        Prisma.sql`
+        SELECT COUNT(*) as count 
+        FROM etfs_ativos_reais
+        WHERE 1=1
+          -- Aplicar mesmos filtros básicos da query principal
+          AND (${safeParams.searchTerm} = '' OR symbol ILIKE CONCAT('%', ${safeParams.searchTerm}, '%') OR name ILIKE CONCAT('%', ${safeParams.searchTerm}, '%'))
+          AND (${safeParams.assetclass} = '' OR assetclass ILIKE CONCAT('%', ${safeParams.assetclass}, '%'))
+          ${onlyComplete || appliedFilters.onlyComplete ? Prisma.sql`AND name IS NOT NULL AND assetclass IS NOT NULL AND inceptiondate IS NOT NULL` : Prisma.empty}
+          
+          -- Filtros financeiros principais
+          ${(totalAssetsMin || appliedFilters.totalAssetsMin) ? Prisma.sql`AND totalasset >= ${(totalAssetsMin || appliedFilters.totalAssetsMin)! * 1000000}` : Prisma.empty}
+          ${totalAssetsMax ? Prisma.sql`AND totalasset <= ${totalAssetsMax * 1000000}` : Prisma.empty}
+          ${(expenseRatioMin || appliedFilters.expenseRatioMin) ? Prisma.sql`AND expenseratio >= ${(expenseRatioMin || appliedFilters.expenseRatioMin)! / 100}` : Prisma.empty}
+          ${(expenseRatioMax || appliedFilters.expenseRatioMax) ? Prisma.sql`AND expenseratio <= ${(expenseRatioMax || appliedFilters.expenseRatioMax)! / 100}` : Prisma.empty}
+        `
       )
     ]);
 

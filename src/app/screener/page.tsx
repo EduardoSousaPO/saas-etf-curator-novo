@@ -290,10 +290,14 @@ export default function ScreenerPage() {
       // Adicionar parâmetros de ordenação
       if (sortBy) {
         params.append('sort_by', sortBy);
+        console.log('📤 Adicionado sort_by:', sortBy);
       }
       if (sortOrder) {
         params.append('sort_order', sortOrder);
+        console.log('📤 Adicionado sort_order:', sortOrder);
       }
+      
+      console.log('🌐 URL final da API:', `/api/etfs/screener?${params.toString()}`);
 
       const response = await fetch(`/api/etfs/screener?${params.toString()}`);
       const data = await response.json();

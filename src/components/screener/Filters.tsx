@@ -30,55 +30,61 @@ interface FiltersProps {
   totalResults?: number;
 }
 
-// Presets populares simples
-const POPULAR_PRESETS = {
-  'melhores-12m': {
-    name: 'Melhores 12 Meses',
-    description: 'ETFs com melhor performance no último ano',
+// 🎯 PRESETS INTELIGENTES - Baseados em benchmarks JustETF e Morningstar
+const SMART_PRESETS = {
+  'top-performers': {
+    name: '🏆 Top Performers',
+    description: 'Melhores ETFs dos últimos 12 meses',
     icon: TrendingUp,
+    color: 'bg-green-50 border-green-200 text-green-800',
     sortBy: 'returns_12m',
     sortOrder: 'DESC' as const,
-    filters: {}
+    filters: { returns12mMin: 10, totalAssetsMin: 100 }
   },
-  'baixo-custo': {
-    name: 'Baixo Custo',
-    description: 'ETFs com menores taxas de administração',
+  'low-cost-leaders': {
+    name: '💰 Baixo Custo',
+    description: 'ETFs com as menores taxas do mercado',
     icon: DollarSign,
+    color: 'bg-blue-50 border-blue-200 text-blue-800',
     sortBy: 'expense_ratio',
     sortOrder: 'ASC' as const,
-    filters: { expenseRatioMax: 0.5 }
+    filters: { expenseRatioMax: 0.3, totalAssetsMin: 50 }
   },
-  'alto-dividendo': {
-    name: 'Alto Dividendo',
-    description: 'ETFs com maiores rendimentos',
+  'dividend-champions': {
+    name: '📈 Dividend Champions',
+    description: 'Maiores pagadores de dividendos',
     icon: DollarSign,
+    color: 'bg-purple-50 border-purple-200 text-purple-800',
     sortBy: 'dividend_yield',
     sortOrder: 'DESC' as const,
-    filters: { dividendYieldMin: 2 }
+    filters: { dividendYieldMin: 3, volatility12mMax: 25 }
   },
-  'baixa-volatilidade': {
-    name: 'Baixa Volatilidade',
-    description: 'ETFs mais estáveis',
-    icon: Shield,
-    sortBy: 'volatility_12m',
-    sortOrder: 'ASC' as const,
-    filters: { volatility12mMax: 20 }
-  },
-  'maior-sharpe': {
-    name: 'Melhor Sharpe',
+  'risk-balanced': {
+    name: '⚖️ Risco Equilibrado',
     description: 'Melhor relação risco-retorno',
-    icon: Star,
+    icon: Shield,
+    color: 'bg-amber-50 border-amber-200 text-amber-800',
     sortBy: 'sharpe_12m',
     sortOrder: 'DESC' as const,
-    filters: {}
+    filters: { sharpe12mMin: 0.5, volatility12mMax: 20 }
   },
-  'mais-liquidos': {
-    name: 'Mais Líquidos',
-    description: 'ETFs com maior volume',
+  'mega-liquid': {
+    name: '🌊 Alta Liquidez',
+    description: 'ETFs mais negociados e líquidos',
     icon: TrendingUp,
+    color: 'bg-cyan-50 border-cyan-200 text-cyan-800',
     sortBy: 'volume',
     sortOrder: 'DESC' as const,
-    filters: { volumeMin: 1000000 }
+    filters: { volumeMin: 5000000, totalAssetsMin: 500 }
+  },
+  'conservative-growth': {
+    name: '🛡️ Crescimento Conservador',
+    description: 'Crescimento estável com baixo risco',
+    icon: Shield,
+    color: 'bg-gray-50 border-gray-200 text-gray-800',
+    sortBy: 'returns_5y',
+    sortOrder: 'DESC' as const,
+    filters: { volatility12mMax: 15, maxDrawdownMax: -10, totalAssetsMin: 200 }
   }
 };
 
@@ -103,21 +109,26 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
   const [activeFiltersCount, setActiveFiltersCount] = useState(0);
   
   // Sincronizar com o valor inicial ao montar o componente
+  // Sincronizar estado inicial de ordenação com o componente pai
   useEffect(() => {
     if (onSortChange) {
+      // Garantir que o estado inicial seja sincronizado corretamente
       onSortChange('returns_12m', 'desc');
     }
-  }, []);
+  }, [onSortChange]);
 
-  // Aplicar preset popular
-  const applyPreset = (presetKey: string) => {
-    const preset = POPULAR_PRESETS[presetKey as keyof typeof POPULAR_PRESETS];
+  // 🎯 Aplicar preset inteligente
+  const applySmartPreset = (presetKey: string) => {
+    const preset = SMART_PRESETS[presetKey as keyof typeof SMART_PRESETS];
     if (preset) {
+      // Aplicar filtros do preset
       const newFilters = { ...filters, ...preset.filters };
       onFiltersChange(newFilters);
-      setSelectedSort(`${preset.sortBy}:${preset.sortOrder}`);
       
-      // Atualizar contador de filtros ativos
+      // Aplicar ordenação do preset
+      applySort(`${preset.sortBy}:${preset.sortOrder}`);
+      
+      // Contar filtros ativos
       const filterCount = Object.keys(preset.filters).length;
       setActiveFiltersCount(filterCount);
     }
@@ -213,6 +224,36 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {/* 🎯 PRESETS INTELIGENTES - Inspirado em JustETF */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-[#0090d8]" />
+              <Label className="text-sm font-medium text-[#202636]">
+                Filtros Rápidos
+              </Label>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {Object.entries(SMART_PRESETS).map(([key, preset]) => {
+                const IconComponent = preset.icon;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => applySmartPreset(key)}
+                    className={`p-3 rounded-lg border-2 transition-all hover:shadow-md text-left ${preset.color}`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <IconComponent className="h-4 w-4" />
+                      <span className="font-medium text-sm">{preset.name}</span>
+                    </div>
+                    <p className="text-xs opacity-80">{preset.description}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <Separator />
+
           {/* Busca por texto */}
           <div className="space-y-2">
             <Label htmlFor="search" className="text-sm font-medium">
@@ -259,22 +300,25 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
               Buscas Populares
             </Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {Object.entries(POPULAR_PRESETS).map(([key, preset]) => (
-                <Button
-                  key={key}
-                  variant="outline"
-                  onClick={() => applyPreset(key)}
-                  className="h-auto p-4 text-left justify-start hover:bg-[#0090d8] hover:text-white transition-colors duration-300"
-                >
-                  <div className="flex items-center gap-3">
-                    <preset.icon className="h-5 w-5 flex-shrink-0" />
-                    <div>
-                      <div className="font-medium text-sm">{preset.name}</div>
-                      <div className="text-xs opacity-75">{preset.description}</div>
+              {Object.entries(SMART_PRESETS).map(([key, preset]) => {
+                const IconComponent = preset.icon;
+                return (
+                  <Button
+                    key={key}
+                    variant="outline"
+                    onClick={() => applySmartPreset(key)}
+                    className="h-auto p-4 text-left justify-start hover:bg-[#0090d8] hover:text-white transition-colors duration-300"
+                  >
+                    <div className="flex items-center gap-3">
+                      <IconComponent className="h-5 w-5 flex-shrink-0" />
+                      <div>
+                        <div className="font-medium text-sm">{preset.name}</div>
+                        <div className="text-xs opacity-75">{preset.description}</div>
+                      </div>
                     </div>
-                  </div>
-                </Button>
-              ))}
+                  </Button>
+                );
+              })}
             </div>
           </div>
 
