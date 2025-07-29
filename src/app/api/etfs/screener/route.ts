@@ -25,19 +25,18 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Cache temporariamente desabilitado para debug de ordenação
-    // const cacheKey = generateCacheKey(searchParams);
-    // const now = Date.now();
-    // const cached = screenerCache.get(cacheKey);
+    // Verificar cache primeiro - incluindo parâmetros de ordenação
+    const cacheKey = generateCacheKey(searchParams);
+    const now = Date.now();
+    const cached = screenerCache.get(cacheKey);
     
-    // if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-    //   console.log('⚡ Usando screener cache (2min TTL)');
-    //   return NextResponse.json({
-    //     ...cached.data,
-    //     _cached: true,
-    //     _cacheAge: Math.floor((now - cached.timestamp) / 1000)
-    //   });
-    // }
+    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+      return NextResponse.json({
+        ...cached.data,
+        _cached: true,
+        _cacheAge: Math.floor((now - cached.timestamp) / 1000)
+      });
+    }
     
     // Parâmetros básicos
     const searchTerm = searchParams.get('search_term') || '';
@@ -310,7 +309,7 @@ export async function GET(request: NextRequest) {
     };
 
     // 🚀 QUERY OTIMIZADA: Executar query principal e contagem em paralelo
-    console.log('🔍 [DEBUG] Parâmetros de ordenação recebidos:', { sortBy, sortOrder });
+
     
     const [result, countResult] = await Promise.all([
       // Query principal OTIMIZADA com apenas campos essenciais
@@ -632,19 +631,19 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    // Cache temporariamente desabilitado para debug
-    // screenerCache.set(cacheKey, {
-    //   data: response,
-    //   timestamp: now
-    // });
+    // Salvar no cache com chave que inclui ordenação
+    screenerCache.set(cacheKey, {
+      data: response,
+      timestamp: now
+    });
 
-    // // Limpar cache antigo (manter apenas 50 entradas)
-    // if (screenerCache.size > 50) {
-    //   const oldestKey = screenerCache.keys().next().value;
-    //   if (oldestKey) {
-    //     screenerCache.delete(oldestKey);
-    //   }
-    // }
+    // Limpar cache antigo (manter apenas 50 entradas)
+    if (screenerCache.size > 50) {
+      const oldestKey = screenerCache.keys().next().value;
+      if (oldestKey) {
+        screenerCache.delete(oldestKey);
+      }
+    }
 
     return NextResponse.json(response);
 
