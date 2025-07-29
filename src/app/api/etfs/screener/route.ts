@@ -25,22 +25,24 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Verificar cache primeiro - incluindo parâmetros de ordenação
-    const cacheKey = generateCacheKey(searchParams);
-    console.log('🔑 [DEBUG] Cache key:', cacheKey, 'Params:', searchParams.toString());
-    const now = Date.now();
-    const cached = screenerCache.get(cacheKey);
+    // Cache desabilitado temporariamente para ordenação funcionar
+    // const cacheKey = generateCacheKey(searchParams);
+    // console.log('🔑 [DEBUG] Cache key:', cacheKey, 'Params:', searchParams.toString());
+    // const now = Date.now();
+    // const cached = screenerCache.get(cacheKey);
     
-    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-      console.log('⚡ [DEBUG] Usando cache para:', searchParams.toString());
-      return NextResponse.json({
-        ...cached.data,
-        _cached: true,
-        _cacheAge: Math.floor((now - cached.timestamp) / 1000)
-      });
-    } else {
-      console.log('🔄 [DEBUG] Cache miss, executando query para:', searchParams.toString());
-    }
+    // if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+    //   console.log('⚡ [DEBUG] Usando cache para:', searchParams.toString());
+    //   return NextResponse.json({
+    //     ...cached.data,
+    //     _cached: true,
+    //     _cacheAge: Math.floor((now - cached.timestamp) / 1000)
+    //   });
+    // } else {
+    //   console.log('🔄 [DEBUG] Cache miss, executando query para:', searchParams.toString());
+    // }
+    
+    console.log('🔄 [DEBUG] Executando query sem cache para:', searchParams.toString());
     
     // Parâmetros básicos
     const searchTerm = searchParams.get('search_term') || '';
@@ -635,19 +637,19 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    // Salvar no cache com chave que inclui ordenação
-    screenerCache.set(cacheKey, {
-      data: response,
-      timestamp: now
-    });
+    // Cache desabilitado temporariamente
+    // screenerCache.set(cacheKey, {
+    //   data: response,
+    //   timestamp: now
+    // });
 
-    // Limpar cache antigo (manter apenas 50 entradas)
-    if (screenerCache.size > 50) {
-      const oldestKey = screenerCache.keys().next().value;
-      if (oldestKey) {
-        screenerCache.delete(oldestKey);
-      }
-    }
+    // // Limpar cache antigo (manter apenas 50 entradas)
+    // if (screenerCache.size > 50) {
+    //   const oldestKey = screenerCache.keys().next().value;
+    //   if (oldestKey) {
+    //     screenerCache.delete(oldestKey);
+    //   }
+    // }
 
     return NextResponse.json(response);
 
