@@ -35,17 +35,24 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Cache inteligente com chave corrigida para ordenação
-    const cacheKey = generateCacheKey(searchParams);
-    const now = Date.now();
-    const cached = screenerCache.get(cacheKey);
+    // Cache APENAS para filtros, NÃO para ordenação (para garantir que ordenação sempre funcione)
+    const sortBy = searchParams.get('sort_by');
+    const sortOrder = searchParams.get('sort_order');
+    const hasSort = sortBy && sortOrder;
     
-    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-      return NextResponse.json({
-        ...cached.data,
-        _cached: true,
-        _cacheAge: Math.floor((now - cached.timestamp) / 1000)
-      });
+    // Se tem parâmetros de ordenação, pular cache completamente
+    if (!hasSort) {
+      const cacheKey = generateCacheKey(searchParams);
+      const now = Date.now();
+      const cached = screenerCache.get(cacheKey);
+      
+      if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+        return NextResponse.json({
+          ...cached.data,
+          _cached: true,
+          _cacheAge: Math.floor((now - cached.timestamp) / 1000)
+        });
+      }
     }
     
     // Parâmetros básicos
@@ -641,17 +648,22 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    // Salvar no cache com chave corrigida
-    screenerCache.set(cacheKey, {
-      data: response,
-      timestamp: now
-    });
+    // Salvar no cache APENAS se não houver ordenação
+    if (!hasSort) {
+      const cacheKey = generateCacheKey(searchParams);
+      const now = Date.now();
+      
+      screenerCache.set(cacheKey, {
+        data: response,
+        timestamp: now
+      });
 
-    // Limpar cache antigo (manter apenas 100 entradas para mais combinações)
-    if (screenerCache.size > 100) {
-      const oldestKey = screenerCache.keys().next().value;
-      if (oldestKey) {
-        screenerCache.delete(oldestKey);
+      // Limpar cache antigo (manter apenas 50 entradas)
+      if (screenerCache.size > 50) {
+        const oldestKey = screenerCache.keys().next().value;
+        if (oldestKey) {
+          screenerCache.delete(oldestKey);
+        }
       }
     }
 
