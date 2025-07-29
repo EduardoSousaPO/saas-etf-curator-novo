@@ -290,12 +290,17 @@ export default function ScreenerPage() {
       // Adicionar parâmetros de ordenação
       if (sortBy) {
         params.append('sort_by', sortBy);
+        console.log('📤 [DEBUG] Adicionado sort_by:', sortBy);
       }
       if (sortOrder) {
         params.append('sort_order', sortOrder);
+        console.log('📤 [DEBUG] Adicionado sort_order:', sortOrder);
       }
+      
+      const finalUrl = `/api/etfs/screener?${params.toString()}`;
+      console.log('🌐 [DEBUG] URL final da API:', finalUrl);
 
-      const response = await fetch(`/api/etfs/screener?${params.toString()}`);
+      const response = await fetch(finalUrl);
       const data = await response.json();
 
       if (!response.ok) {
@@ -371,9 +376,11 @@ export default function ScreenerPage() {
   };
 
   const handleSortChange = (sortBy: string, sortOrder: string) => {
+    console.log('📥 [DEBUG] handleSortChange recebido:', { sortBy, sortOrder });
     setSortBy(sortBy);
     setSortOrder(sortOrder as "asc" | "desc");
     setCurrentPage(1); // Reset para primeira página
+    console.log('📥 [DEBUG] Estado atualizado, useEffect vai disparar fetchETFs');
   };
 
   const handleItemsPerPageChange = (newItemsPerPage: number) => {

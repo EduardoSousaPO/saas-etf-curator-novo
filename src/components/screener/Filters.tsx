@@ -53,7 +53,9 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
   // Sincronizar com o valor inicial ao montar o componente
   // Sincronizar estado inicial de ordenação com o componente pai
   useEffect(() => {
+    console.log('🔄 [DEBUG] useEffect inicial executado');
     if (onSortChange) {
+      console.log('🔄 [DEBUG] Chamando onSortChange inicial com returns_12m:desc');
       // Garantir que o estado inicial seja sincronizado corretamente
       onSortChange('returns_12m', 'desc');
     }
@@ -63,15 +65,19 @@ export function Filters({ filters, onFiltersChange, onSearch, onSortChange, isLo
 
   // Aplicar ordenação
   const applySort = (sortValue: string) => {
+    console.log('🔄 [DEBUG] applySort chamado com:', sortValue);
     setSelectedSort(sortValue);
     const [sortBy, sortOrder] = sortValue.split(':');
+    console.log('🔄 [DEBUG] Parsed:', { sortBy, sortOrder: sortOrder.toLowerCase() });
     
     // Comunicar ordenação para o componente pai
     if (onSortChange) {
       onSortChange(sortBy, sortOrder.toLowerCase());
+      console.log('🔄 [DEBUG] onSortChange chamado');
     }
     
     // Trigger search com nova ordenação
+    console.log('🔄 [DEBUG] Chamando onSearch');
     onSearch();
   };
 

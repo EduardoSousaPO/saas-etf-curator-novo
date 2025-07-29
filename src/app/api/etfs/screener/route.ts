@@ -310,6 +310,7 @@ export async function GET(request: NextRequest) {
     };
 
     // 🚀 QUERY OTIMIZADA: Executar query principal e contagem em paralelo
+    console.log('🔍 [DEBUG] Parâmetros de ordenação recebidos:', { sortBy, sortOrder });
     
     const [result, countResult] = await Promise.all([
       // Query principal OTIMIZADA com apenas campos essenciais
