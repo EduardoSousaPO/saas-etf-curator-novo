@@ -82,6 +82,18 @@ export interface ETFDetails extends ETF {
   // Informações de setor (se disponível)
   topSectors?: SectorAllocation[];
   topHoldings?: Holding[];
+
+  // Campos enriquecidos do pipeline
+  beta_12m?: number | null;
+  morningstar_rating?: number | null;
+  top_10_holdings?: any[] | null; // JSONB array
+  sector_allocation?: Record<string, number> | null; // JSONB object
+  
+  // AI Insights enriquecidos
+  ai_investment_thesis?: string | null;
+  ai_risk_analysis?: string | null;
+  ai_market_context?: string | null;
+  ai_use_cases?: string | null;
 }
 
 export interface DividendHistory {

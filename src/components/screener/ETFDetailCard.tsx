@@ -14,11 +14,16 @@ import {
   Target, 
   Activity,
   Download,
-  Info,
   Award,
   ExternalLink,
   PieChart,
-  Zap
+  Zap,
+  Star,
+  TrendingUp as TrendingUpIcon,
+  Brain,
+  AlertTriangle,
+  TrendingUp as MarketIcon,
+  Users
 } from 'lucide-react';
 import { formatPercentage, formatCurrency, formatNumber, formatMetric, METRIC_TYPES, getValueColor, formatDate } from '@/lib/formatters';
 import { ETFDetails } from "@/types/etf";
@@ -68,6 +73,208 @@ const MetricItem: React.FC<{
           </span>
         )}
       </span>
+    </div>
+  );
+};
+
+// Componente para Morningstar Rating com estrelas
+const MorningstarRating: React.FC<{ rating: number | null }> = ({ rating }) => {
+  if (!rating || rating < 1 || rating > 5) return null;
+  
+  return (
+    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+      <div className="flex items-center space-x-2">
+        <Award className="w-4 h-4 text-gray-500" />
+        <span className="text-sm text-gray-600">Morningstar Rating</span>
+      </div>
+      <div className="flex items-center space-x-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`w-4 h-4 ${
+              star <= rating 
+                ? 'text-yellow-400 fill-yellow-400' 
+                : 'text-gray-300'
+            }`}
+          />
+        ))}
+        <span className="ml-2 text-sm font-semibold text-gray-900">
+          {rating}/5
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// Componente para Top Holdings
+const TopHoldingsSection: React.FC<{ holdings: any[] | null }> = ({ holdings }) => {
+  if (!holdings || !Array.isArray(holdings) || holdings.length === 0) return null;
+  
+  return (
+    <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-xl">
+      <h3 className="text-xl font-semibold text-[#202636] flex items-center mb-4">
+        <TrendingUpIcon className="w-5 h-5 mr-2 text-[#0090d8]" />
+        Top Holdings
+      </h3>
+      <div className="bg-white rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Ativo</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Ticker</th>
+                <th className="text-right py-3 px-4 font-semibold text-gray-700">Peso (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {holdings.slice(0, 10).map((holding, index) => (
+                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-3 px-4 font-medium text-gray-900">
+                    {holding.name || holding.security || 'N/A'}
+                  </td>
+                  <td className="py-3 px-4 font-mono text-gray-600">
+                    {holding.ticker || holding.symbol || 'N/A'}
+                  </td>
+                  <td className="py-3 px-4 text-right font-mono font-semibold text-gray-900">
+                    {holding.weight ? `${Number(holding.weight).toFixed(2)}%` : 'N/A'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Componente para Sector Allocation
+const SectorAllocationSection: React.FC<{ allocation: Record<string, number> | null }> = ({ allocation }) => {
+  if (!allocation || typeof allocation !== 'object') return null;
+  
+  const sectors = Object.entries(allocation)
+    .filter(([_, value]) => value && value > 0)
+    .sort(([_, a], [__, b]) => b - a);
+  
+  if (sectors.length === 0) return null;
+  
+  return (
+    <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl">
+      <h3 className="text-xl font-semibold text-[#202636] flex items-center mb-4">
+        <PieChart className="w-5 h-5 mr-2 text-[#0090d8]" />
+        Alocação por Setores
+      </h3>
+      <div className="bg-white rounded-lg p-4">
+        <div className="space-y-3">
+          {sectors.map(([sector, percentage], index) => (
+            <div key={sector} className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div 
+                  className="w-4 h-4 rounded-full"
+                  style={{ 
+                    backgroundColor: `hsl(${(index * 360) / sectors.length}, 70%, 60%)` 
+                  }}
+                />
+                <span className="text-sm font-medium text-gray-700">{sector}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-24 bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="h-2 rounded-full"
+                    style={{ 
+                      width: `${Math.min(percentage, 100)}%`,
+                      backgroundColor: `hsl(${(index * 360) / sectors.length}, 70%, 60%)` 
+                    }}
+                  />
+                </div>
+                <span className="text-sm font-semibold text-gray-900 w-12 text-right">
+                  {percentage.toFixed(1)}%
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Componente para AI Insights
+const AIInsightsSection: React.FC<{ 
+  investmentThesis?: string | null;
+  riskAnalysis?: string | null;
+  marketContext?: string | null;
+  useCases?: string | null;
+}> = ({ investmentThesis, riskAnalysis, marketContext, useCases }) => {
+  // Se não há nenhum insight, não renderiza
+  if (!investmentThesis && !riskAnalysis && !marketContext && !useCases) return null;
+
+  const insights = [
+    {
+      title: "Tese de Investimento",
+      content: investmentThesis,
+      icon: <Brain className="w-5 h-5" />,
+      color: "from-emerald-50 to-green-50",
+      iconColor: "text-emerald-600"
+    },
+    {
+      title: "Análise de Risco",
+      content: riskAnalysis,
+      icon: <AlertTriangle className="w-5 h-5" />,
+      color: "from-red-50 to-pink-50",
+      iconColor: "text-red-600"
+    },
+    {
+      title: "Contexto de Mercado",
+      content: marketContext,
+      icon: <MarketIcon className="w-5 h-5" />,
+      color: "from-blue-50 to-indigo-50",
+      iconColor: "text-blue-600"
+    },
+    {
+      title: "Casos de Uso",
+      content: useCases,
+      icon: <Users className="w-5 h-5" />,
+      color: "from-purple-50 to-violet-50",
+      iconColor: "text-purple-600"
+    }
+  ].filter(insight => insight.content && insight.content.trim() !== '');
+
+  if (insights.length === 0) return null;
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-[#202636] flex items-center justify-center mb-2">
+          <Brain className="w-6 h-6 mr-3 text-[#0090d8]" />
+          Análises de IA
+        </h2>
+        <p className="text-gray-600 text-sm">
+          Insights gerados por inteligência artificial baseados em dados de mercado
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {insights.map((insight, index) => (
+          <div key={index} className={`bg-gradient-to-r ${insight.color} p-6 rounded-xl`}>
+            <h3 className="text-lg font-semibold text-[#202636] flex items-center mb-4">
+              <span className={insight.iconColor}>{insight.icon}</span>
+              <span className="ml-2">{insight.title}</span>
+            </h3>
+            <div className="bg-white rounded-lg p-4">
+              <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {insight.content}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div className="text-center">
+        <p className="text-xs text-gray-500 italic">
+          ⚠️ As análises de IA são baseadas em dados históricos e não constituem recomendações de investimento
+        </p>
+      </div>
     </div>
   );
 };
@@ -209,6 +416,7 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                   label="Data de Criação"
                   value={etf.inception_date ? formatDate(etf.inception_date) : "N/A"}
                 />
+                <MorningstarRating rating={etf.morningstar_rating} />
                 {etf.website && (
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-2">
@@ -268,6 +476,14 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                     showTrend={true}
                   />
                 )}
+                {etf.beta_12m && (
+                  <MetricItem 
+                    icon={<Activity className="w-4 h-4" />}
+                    label="Beta (12m)"
+                    value={etf.beta_12m}
+                    fieldName="beta_12m"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -276,6 +492,20 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl">
             <PerformanceSection title="Performance Histórica" data={performanceData} />
           </div>
+
+          {/* Seção 2.5: Top Holdings */}
+          <TopHoldingsSection holdings={etf.top_10_holdings} />
+
+          {/* Seção 2.6: Sector Allocation */}
+          <SectorAllocationSection allocation={etf.sector_allocation} />
+
+          {/* Seção 2.7: AI Insights */}
+          <AIInsightsSection 
+            investmentThesis={etf.ai_investment_thesis}
+            riskAnalysis={etf.ai_risk_analysis}
+            marketContext={etf.ai_market_context}
+            useCases={etf.ai_use_cases}
+          />
 
           {/* Seção 3: Dividendos */}
           {(etf.dividends_12m || etf.dividend_yield) && (
@@ -327,55 +557,13 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                 </div>
               </div>
 
-            {/* Informações Técnicas */}
-            <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-6 rounded-xl">
-              <h3 className="text-xl font-semibold text-[#202636] flex items-center mb-4">
-                <Info className="w-5 h-5 mr-2 text-[#0090d8]" />
-                Informações Técnicas
-              </h3>
-              <div className="space-y-3 text-sm">
-                {etf.isin && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">ISIN:</span>
-                    <span className="font-mono">{etf.isin}</span>
-                  </div>
-                )}
-                {etf.securitycusip && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">CUSIP:</span>
-                    <span className="font-mono">{etf.securitycusip}</span>
-                  </div>
-                )}
-                {etf.updatedat && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Última Atualização:</span>
-                    <span className="font-mono">{formatDate(etf.updatedat)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
+
           </div>
 
-          {/* Seção 5: Setores (se disponível) */}
-          {etf.sectorslist && (
-            <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-6 rounded-xl">
-              <h3 className="text-xl font-semibold text-[#202636] flex items-center mb-4">
-                <PieChart className="w-5 h-5 mr-2 text-[#0090d8]" />
-                Composição Setorial
-            </h3>
-              <div className="bg-white p-4 rounded-lg">
-                <pre className="text-sm text-gray-700 whitespace-pre-wrap">
-                  {JSON.stringify(etf.sectorslist, null, 2)}
-                </pre>
-              </div>
-            </div>
-          )}
+
 
           {/* Footer com ações */}
-          <div className="border-t pt-6 flex justify-between items-center">
-            <div className="text-sm text-gray-500">
-              Dados atualizados em: {etf.updatedat ? formatDate(etf.updatedat) : 'N/A'}
-              </div>
+          <div className="border-t pt-6 flex justify-end items-center">
             <div className="flex space-x-3">
               {etf.website && (
                 <a

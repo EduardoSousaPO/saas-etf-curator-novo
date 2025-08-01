@@ -62,7 +62,15 @@ export async function GET(
         updatedat,
         sectorslist,
         liquidity_rating,
-        size_rating
+        size_rating,
+        beta_12m,
+        morningstar_rating,
+        top_10_holdings,
+        sector_allocation,
+        ai_investment_thesis,
+        ai_risk_analysis,
+        ai_market_context,
+        ai_use_cases
       `)
       .eq('symbol', symbol)
       .single();
@@ -107,7 +115,19 @@ export async function GET(
       volatility_24m: etfDetails.volatility_24m ? Number(etfDetails.volatility_24m) / 100 : null,
       volatility_36m: etfDetails.volatility_36m ? Number(etfDetails.volatility_36m) / 100 : null,
       ten_year_volatility: etfDetails.ten_year_volatility ? Number(etfDetails.ten_year_volatility) / 100 : null,
-      max_drawdown: etfDetails.max_drawdown ? Number(etfDetails.max_drawdown) / 100 : null
+      max_drawdown: etfDetails.max_drawdown ? Number(etfDetails.max_drawdown) / 100 : null,
+      
+      // Novos campos enriquecidos
+      beta_12m: etfDetails.beta_12m,
+      morningstar_rating: etfDetails.morningstar_rating,
+      top_10_holdings: etfDetails.top_10_holdings,
+      sector_allocation: etfDetails.sector_allocation,
+      
+      // AI Insights
+      ai_investment_thesis: etfDetails.ai_investment_thesis,
+      ai_risk_analysis: etfDetails.ai_risk_analysis,
+      ai_market_context: etfDetails.ai_market_context,
+      ai_use_cases: etfDetails.ai_use_cases
     };
 
     return NextResponse.json({

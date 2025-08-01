@@ -410,6 +410,7 @@ export const METRIC_TYPES = {
   volume: 'volume' as const,
   max_drawdown: 'percentage' as const,
   beta: 'number' as const,
+  beta_12m: 'number' as const,
   pe_ratio: 'number' as const,
   pb_ratio: 'number' as const,
   
