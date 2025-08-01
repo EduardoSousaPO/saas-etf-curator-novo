@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, TrendingUp, Shield } from 'lucide-react';
+import { Search, Plus, TrendingUp, Shield, ExternalLink } from 'lucide-react';
+import { useETFNavigation } from '@/hooks/useETFNavigation';
 
 interface ETF {
   symbol: string;
@@ -26,6 +27,7 @@ export default function ETFSelector({ onSelectETF, selectedSymbols, maxSelection
   const [popularETFs, setPopularETFs] = useState<ETF[]>([]);
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const { navigateToETF } = useETFNavigation({ openInNewTab: true });
 
   // Carregar ETFs populares ao montar o componente
   useEffect(() => {
@@ -109,7 +111,17 @@ export default function ETFSelector({ onSelectETF, selectedSymbols, maxSelection
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <div className="flex items-center">
-            <h4 className="font-medium text-gray-900">{etf.symbol}</h4>
+            <h4 
+              className="font-medium text-gray-900 cursor-pointer hover:text-blue-600 transition-colors flex items-center gap-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateToETF(etf.symbol);
+              }}
+              title="Ver detalhes do ETF"
+            >
+              {etf.symbol}
+              <ExternalLink className="w-3 h-3 opacity-50" />
+            </h4>
             {etf.assetclass && (
               <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
                 {etf.assetclass}

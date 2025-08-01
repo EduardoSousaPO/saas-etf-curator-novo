@@ -20,8 +20,10 @@ import {
   Plus,
   X,
   Eye,
-  Activity
+  Activity,
+  ExternalLink
 } from 'lucide-react';
+import { useETFNavigation } from '@/hooks/useETFNavigation';
 
 interface ETF {
   symbol: string;
@@ -56,6 +58,7 @@ interface UserProfile {
 export default function ComparadorPage() {
   const [selectedETFs, setSelectedETFs] = useState<ETF[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const { navigateToETF } = useETFNavigation({ openInNewTab: true });
 
   // Carregar perfil do usuário do localStorage
   useEffect(() => {
@@ -255,8 +258,13 @@ export default function ComparadorPage() {
                     <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <BarChart3 className="w-8 h-8 text-blue-600" />
                     </div>
-                    <h3 className="text-xl font-medium text-gray-900 text-center mb-2">
+                    <h3 
+                      className="text-xl font-medium text-gray-900 text-center mb-2 cursor-pointer hover:text-blue-600 transition-colors flex items-center justify-center gap-1"
+                      onClick={() => navigateToETF(etf.symbol)}
+                      title="Ver detalhes do ETF"
+                    >
                       {etf.symbol}
+                      <ExternalLink className="w-4 h-4 opacity-50" />
                     </h3>
                     <p className="text-sm text-gray-500 text-center truncate">
                       {etf.name || 'N/A'}

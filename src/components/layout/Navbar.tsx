@@ -16,7 +16,6 @@ const publicNavItems: Array<{href: string, label: string, highlight?: boolean, a
 
 // Navegação para usuários autenticados (privado) - REMOVIDO item "Perfil"
 const privateNavItems: Array<{href: string, label: string, highlight?: boolean, authRequired?: boolean}> = [
-  // { href: "/chat-ia", label: "Chat IA", highlight: true }, // TEMPORARIAMENTE DESABILITADO
   { href: "/dashboard", label: "Dashboard" },
   { href: "/comparador", label: "Comparador" },
   { href: "/portfolio-master", label: "Portfolio Master" },

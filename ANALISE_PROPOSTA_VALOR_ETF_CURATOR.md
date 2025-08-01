@@ -348,7 +348,6 @@ VISTA ETF: Alertas contextuais, rebalanceamento automático
 
 ### **Q1 2025: FOUNDATION**
 - ✅ MVP com 1.370+ ETFs
-- ✅ Chat IA funcional
 - ✅ Portfolio Master científico
 - 🎯 1.000 usuários ativos
 

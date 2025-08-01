@@ -25,8 +25,10 @@ import {
   ArrowDown,
   Activity,
   Eye,
-  Gauge
+  Gauge,
+  ExternalLink
 } from "lucide-react";
+import { useETFNavigation } from '@/hooks/useETFNavigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -184,6 +186,7 @@ export default function RankingsPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { navigateToETF } = useETFNavigation({ openInNewTab: true });
 
   useEffect(() => {
     const fetchRankings = async () => {
@@ -398,8 +401,16 @@ export default function RankingsPage() {
                               <IconComponent className="h-5 w-5 text-blue-600" />
                             </div>
                             <div>
-                              <h3 className="font-bold text-lg text-gray-900 group-hover:text-gray-800 transition-colors">
+                              <h3 
+                                className="font-bold text-lg text-gray-900 group-hover:text-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigateToETF(etf.symbol);
+                                }}
+                                title="Ver detalhes do ETF"
+                              >
                                 {etf.symbol}
+                                <ExternalLink className="w-4 h-4 opacity-50" />
                               </h3>
                               <p className="text-sm text-gray-600 font-medium">{etf.etfcompany}</p>
                             </div>

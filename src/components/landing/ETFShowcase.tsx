@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { ExternalLink } from 'lucide-react';
+import { useETFNavigation } from '@/hooks/useETFNavigation';
 
 interface ETFData {
   symbol: string;
@@ -25,6 +27,8 @@ interface ShowcaseData {
 }
 
 function ETFCard({ etf }: { etf: ETFData }) {
+  const { navigateToETF } = useETFNavigation({ openInNewTab: true });
+  
   const formatPercentage = (value: number) => {
     // CORREÇÃO: Os dados vêm em formato decimal do banco (0.359224 = 35.92%)
     return `${(Number(value) * 100).toFixed(2)}%`;
@@ -56,8 +60,13 @@ function ETFCard({ etf }: { etf: ETFData }) {
   return (
     <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-300 hover:border-blue-300 group">
       <div className="flex items-center justify-between mb-4">
-        <div className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+        <div 
+          className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+          onClick={() => navigateToETF(etf.symbol)}
+          title="Ver detalhes do ETF"
+        >
           {etf.symbol}
+          <ExternalLink className="w-4 h-4 opacity-50" />
         </div>
         <div className={`text-sm px-2 py-1 rounded ${getAssetClassColor(etf.assetclass)}`}>
           {etf.assetclass}

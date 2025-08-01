@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   X, 
   TrendingUp, 
@@ -13,6 +13,7 @@ import {
   Shield, 
   Target, 
   Activity,
+  Download,
   Info,
   Award,
   ExternalLink,
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 import { formatPercentage, formatCurrency, formatNumber, formatMetric, METRIC_TYPES, getValueColor, formatDate } from '@/lib/formatters';
 import { ETFDetails } from "@/types/etf";
+import { exportETFToPDF } from '@/utils/pdfExport';
 
 interface ETFDetailCardProps {
   etf: ETFDetails;
@@ -109,6 +111,19 @@ const PerformanceSection: React.FC<{ title: string; data: Array<{ period: string
 );
 
 const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onClose }) => {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportPDF = async () => {
+    try {
+      setIsExporting(true);
+      await exportETFToPDF(etf);
+    } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
+      alert('Erro ao gerar PDF. Tente novamente.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
   // Dados de performance organizados
   const performanceData = [
     { period: '12 meses', return: etf.returns_12m, volatility: etf.volatility_12m, sharpe: etf.sharpe_12m },
@@ -373,6 +388,14 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                   Website
                 </a>
               )}
+              <button
+                onClick={handleExportPDF}
+                disabled={isExporting}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                {isExporting ? 'Gerando PDF...' : 'Exportar PDF'}
+              </button>
               <button
                 onClick={onClose}
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
