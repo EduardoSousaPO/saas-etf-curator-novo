@@ -14,7 +14,7 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 // Schema de validação unificado
 const UnifiedInputSchema = z.object({
   // Onboarding essencial
-  objective: z.enum(['retirement', 'emergency', 'house', 'growth']),
+  objective: z.enum(['retirement', 'emergency', 'house', 'growth', 'income']),
   investmentAmount: z.number().min(1000).max(50000000),
   monthlyContribution: z.number().min(0).max(100000),
   riskProfile: z.enum(['conservative', 'moderate', 'aggressive']),
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     
     // 2. Scoring multi-dimensional
     const scoredETFs = candidateETFs.map(etf => {
-      const score = calculateETFScore(etf);
+      const score = calculateETFScore(etf, validatedInput.objective);
       // 🔥 PRESERVAR DADOS ORIGINAIS: Adicionar todos os dados do ETF ao objeto score
       return {
         ...score,
@@ -189,12 +189,26 @@ export async function POST(request: NextRequest) {
  */
 async function selectCandidateETFs(input: any): Promise<ETFData[]> {
   
-  // 1. CRITÉRIOS BASE PARA TODOS OS PERFIS
+  // 1. CRITÉRIOS BASE MELHORADOS COM DADOS ENRIQUECIDOS
   const baseFilters = {
     totalasset: { gte: 50000000 }, // AUM >= 50M (reduzido para mais opções)
     expenseratio: { lte: 1.5 }, // Expense ratio <= 1.5% (mais flexível)
     returns_12m: { not: null },
     volatility_12m: { not: null }
+  };
+
+  // 2. FILTROS INTELIGENTES OPCIONAIS (aplicados separadamente para evitar conflito)
+  const qualityFilters = {
+    OR: [
+      { morningstar_rating: { gte: 3 } }, // Rating Morningstar >= 3 estrelas
+      { 
+        AND: [
+          { totalasset: { gte: 1000000000 } }, // OU AUM >= $1B
+          { expenseratio: { lte: 0.5 } } // E expense ratio baixo
+        ]
+      },
+      { sharpe_12m: { gte: 0.8 } } // OU Sharpe ratio excelente
+    ]
   };
 
   // 2. FILTROS ESPECÍFICOS POR OBJETIVO
@@ -270,6 +284,32 @@ async function selectCandidateETFs(input: any): Promise<ETFData[]> {
       };
       break;
       
+    case 'income':
+      // Renda Passiva: foco em dividend yield e estabilidade de dividendos
+      objectiveFilters = {
+        OR: [
+          { assetclass: { contains: 'Dividend' } }, // Dividend ETFs
+          { assetclass: { contains: 'REIT' } }, // REITs
+          { assetclass: { contains: 'Utility' } }, // Utilities
+          { assetclass: { contains: 'High Dividend Yield' } }, // High dividend
+          { assetclass: { contains: 'Preferred Stock' } }, // Preferred stocks
+          {
+            AND: [
+              { dividends_12m: { gte: 3.0 } }, // Dividend yield >= 3%
+              { volatility_12m: { lte: 22 } }, // Volatilidade controlada
+              { totalasset: { gte: 100000000 } } // Liquidez mínima
+            ]
+          },
+          {
+            AND: [
+              { assetclass: { contains: 'Bond' } }, // Corporate bonds
+              { dividends_12m: { gte: 2.5 } } // Yield mínimo para bonds
+            ]
+          }
+        ]
+      };
+      break;
+      
     default:
       // Objetivo genérico: mix balanceado
       objectiveFilters = {
@@ -330,7 +370,7 @@ async function selectCandidateETFs(input: any): Promise<ETFData[]> {
       break;
   }
 
-  // 4. COMBINAR TODOS OS FILTROS
+  // 4. COMBINAR TODOS OS FILTROS (sem qualityFilters por enquanto para evitar erro)
   const finalFilters = {
     AND: [
       baseFilters,
@@ -675,7 +715,7 @@ export async function PUT(request: NextRequest) {
     
     // Scoring dos ETFs selecionados com dados originais preservados
     const scoredETFs = selectedETFs.map(etf => {
-      const score = calculateETFScore(etf);
+      const score = calculateETFScore(etf, validatedInput.objective);
       // Preservar dados originais no objeto score
       return {
         ...score,
@@ -725,7 +765,8 @@ function determineTimeHorizon(objective: string, customHorizon?: number): number
     retirement: 240,    // 20 anos
     emergency: 18,      // 1.5 anos
     house: 84,          // 7 anos
-    growth: 120         // 10 anos
+    growth: 120,        // 10 anos
+    income: 180         // 15 anos (foco em renda passiva de longo prazo)
   };
   
   return defaultHorizons[objective as keyof typeof defaultHorizons] || 60;
@@ -734,7 +775,7 @@ function determineTimeHorizon(objective: string, customHorizon?: number): number
 /**
  * Calcula score de qualidade multi-dimensional
  */
-function calculateETFScore(etf: ETFData): ETFScore {
+function calculateETFScore(etf: ETFData, objective: string = 'growth'): ETFScore {
   // COMPONENTES DO SCORE TÉCNICO AVANÇADO
   
   // 1. PERFORMANCE AJUSTADA AO RISCO (35% do peso total)
@@ -805,15 +846,30 @@ function calculateETFScore(etf: ETFData): ETFScore {
     dividendScore = 0.4; // Sem dividendos ou muito altos (suspeitos)
   }
   
-  // CÁLCULO DO SCORE FINAL PONDERADO
-  const qualityScore = Math.round(
-    (performanceScore * 35 +
-     consistencyScore * 25 +
-     volatilityScore * 20 +
-     liquidityScore * 10 +
-     costScore * 5 +
-     dividendScore * 5)
-  );
+  // CÁLCULO DO SCORE FINAL PONDERADO BASEADO NO OBJETIVO
+  let qualityScore = 0;
+  
+  if (objective === 'income') {
+    // Para Renda Passiva: priorizar dividendos e estabilidade
+    qualityScore = Math.round(
+      (dividendScore * 40 +        // 40% - Prioridade máxima em dividendos
+       volatilityScore * 25 +      // 25% - Estabilidade importante
+       consistencyScore * 15 +     // 15% - Consistência de retornos
+       liquidityScore * 10 +       // 10% - Liquidez
+       costScore * 5 +            // 5% - Custos
+       performanceScore * 5)       // 5% - Performance menos importante
+    );
+  } else {
+    // Para outros objetivos: scoring tradicional
+    qualityScore = Math.round(
+      (performanceScore * 35 +
+       consistencyScore * 25 +
+       volatilityScore * 20 +
+       liquidityScore * 10 +
+       costScore * 5 +
+       dividendScore * 5)
+    );
+  }
   
   return {
     symbol: etf.symbol,

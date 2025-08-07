@@ -58,7 +58,7 @@ import { useAuth } from '@/hooks/useAuth'
 
 // Interfaces
 interface OnboardingData {
-  objective: 'retirement' | 'house' | 'emergency' | 'growth'
+  objective: 'retirement' | 'house' | 'emergency' | 'growth' | 'income'
   initialAmount: number
   monthlyAmount: number
   timeHorizon: number
@@ -120,7 +120,8 @@ const objectives = [
   { value: 'retirement', label: 'Aposentadoria', icon: Target, description: 'Planejamento de longo prazo' },
   { value: 'house', label: 'Casa Própria', icon: Home, description: 'Conquista do imóvel' },
   { value: 'emergency', label: 'Reserva de Emergência', icon: Umbrella, description: 'Segurança financeira' },
-  { value: 'growth', label: 'Crescimento Patrimonial', icon: Rocket, description: 'Multiplicar patrimônio' }
+  { value: 'growth', label: 'Crescimento Patrimonial', icon: Rocket, description: 'Multiplicar patrimônio' },
+  { value: 'income', label: 'Renda Passiva', icon: DollarSign, description: 'Dividendos e renda recorrente' }
 ]
 
 const riskProfiles = [
@@ -161,6 +162,116 @@ export default function UnifiedPortfolioMaster() {
   // Estados para controle de validação conforme melhores práticas UX
   const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({})
   const [hasInteracted, setHasInteracted] = useState<{[key: string]: boolean}>({})
+
+  // Novos estados para controles manuais de alocação
+  const [manualAllocations, setManualAllocations] = useState<{[key: string]: number}>({})
+  const [allocationMode, setAllocationMode] = useState<'auto' | 'manual'>('auto')
+  const [showAdvancedControls, setShowAdvancedControls] = useState(false)
+
+  // Estados para filtros opcionais
+  const [optionalFilters, setOptionalFilters] = useState({
+    minMorningstarRating: 0,
+    maxExpenseRatio: 2.0,
+    minDividendYield: 0,
+    minAUM: 50, // em milhões
+    maxVolatility: 50,
+    preferredSectors: [] as string[]
+  })
+  const [showOptionalFilters, setShowOptionalFilters] = useState(false)
+
+  // Estados para templates personalizados
+  const [savedTemplates, setSavedTemplates] = useState<Array<{
+    id: string
+    name: string
+    onboardingData: OnboardingData
+    optionalFilters: typeof optionalFilters
+    createdAt: string
+  }>>([])
+  const [showTemplates, setShowTemplates] = useState(false)
+  const [templateName, setTemplateName] = useState('')
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false)
+
+  // Funções para controles manuais de alocação
+  const handleAllocationChange = (symbol: string, newAllocation: number) => {
+    setManualAllocations(prev => ({
+      ...prev,
+      [symbol]: newAllocation
+    }))
+  }
+
+  const normalizeAllocations = () => {
+    const symbols = Object.keys(manualAllocations)
+    const total = symbols.reduce((sum, symbol) => sum + (manualAllocations[symbol] || 0), 0)
+    
+    if (total === 0) return
+    
+    const normalized = symbols.reduce((acc, symbol) => {
+      acc[symbol] = (manualAllocations[symbol] / total) * 100
+      return acc
+    }, {} as {[key: string]: number})
+    
+    setManualAllocations(normalized)
+  }
+
+  const resetToAutoAllocations = () => {
+    if (!results) return
+    
+    const autoAllocations = results.portfolio.reduce((acc, etf) => {
+      acc[etf.symbol] = etf.allocation_percent
+      return acc
+    }, {} as {[key: string]: number})
+    
+    setManualAllocations(autoAllocations)
+  }
+
+  // Funções para templates personalizados
+  const loadTemplatesFromStorage = () => {
+    const templates = JSON.parse(localStorage.getItem('portfolioTemplates') || '[]')
+    setSavedTemplates(templates)
+  }
+
+  const saveTemplate = () => {
+    if (!templateName.trim()) {
+      alert('Digite um nome para o template')
+      return
+    }
+
+    const newTemplate = {
+      id: `template_${Date.now()}`,
+      name: templateName.trim(),
+      onboardingData: { ...onboardingData },
+      optionalFilters: { ...optionalFilters },
+      createdAt: new Date().toISOString()
+    }
+
+    const updatedTemplates = [newTemplate, ...savedTemplates].slice(0, 10) // Máximo 10 templates
+    setSavedTemplates(updatedTemplates)
+    localStorage.setItem('portfolioTemplates', JSON.stringify(updatedTemplates))
+    
+    setTemplateName('')
+    setShowSaveTemplate(false)
+    alert(`Template "${newTemplate.name}" salvo com sucesso!`)
+  }
+
+  const loadTemplate = (template: typeof savedTemplates[0]) => {
+    setOnboardingData(template.onboardingData)
+    setOptionalFilters(template.optionalFilters)
+    setShowTemplates(false)
+    alert(`Template "${template.name}" carregado com sucesso!`)
+  }
+
+  const deleteTemplate = (templateId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este template?')) return
+    
+    const updatedTemplates = savedTemplates.filter(t => t.id !== templateId)
+    setSavedTemplates(updatedTemplates)
+    localStorage.setItem('portfolioTemplates', JSON.stringify(updatedTemplates))
+  }
+
+  // Carregar templates na inicialização
+  useEffect(() => {
+    loadTemplatesFromStorage()
+  }, [])
 
   // Função para salvar carteira
   const handleSavePortfolio = async () => {
@@ -372,7 +483,15 @@ export default function UnifiedPortfolioMaster() {
         riskProfile: onboardingData.riskProfile,
         preferences: {
           currency: onboardingData.currency
-        }
+        },
+        // Novos filtros opcionais
+        optionalFilters: showOptionalFilters ? {
+          minMorningstarRating: optionalFilters.minMorningstarRating > 0 ? optionalFilters.minMorningstarRating : undefined,
+          maxExpenseRatio: optionalFilters.maxExpenseRatio < 2.0 ? optionalFilters.maxExpenseRatio : undefined,
+          minDividendYield: optionalFilters.minDividendYield > 0 ? optionalFilters.minDividendYield : undefined,
+          minAUM: optionalFilters.minAUM > 50 ? optionalFilters.minAUM * 1000000 : undefined, // Converter para valor real
+          maxVolatility: optionalFilters.maxVolatility < 50 ? optionalFilters.maxVolatility : undefined
+        } : undefined
       }
       
       const response = await fetch('/api/portfolio/unified-master', {
@@ -927,9 +1046,52 @@ export default function UnifiedPortfolioMaster() {
                 <h3 className="text-xl font-medium text-gray-900">ETFs da Carteira</h3>
                 <Badge variant="outline" className="bg-gray-100">{selectedETFs.length} ativos</Badge>
               </div>
+              
+              {/* Controles de Alocação */}
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={allocationMode === 'auto' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setAllocationMode('auto')}
+                    className="text-xs"
+                  >
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Auto
+                  </Button>
+                  <Button
+                    variant={allocationMode === 'manual' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => {
+                      setAllocationMode('manual')
+                      resetToAutoAllocations()
+                    }}
+                    className="text-xs"
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Manual
+                  </Button>
+                </div>
+                
+                {allocationMode === 'manual' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={normalizeAllocations}
+                    className="text-xs text-blue-600 border-blue-200"
+                  >
+                    <BarChart3 className="h-3 w-3 mr-1" />
+                    Normalizar
+                  </Button>
+                )}
+              </div>
+              
               <CustomTooltip text="Clique nos ETFs para ver detalhes ou usar as checkboxes para remover">
                 <p className="text-gray-600 text-sm cursor-help">
-                  Clique para ver detalhes ou desmarque para remover
+                  {allocationMode === 'auto' 
+                    ? 'Alocações otimizadas automaticamente'
+                    : 'Ajuste as alocações manualmente com os sliders'
+                  }
                 </p>
               </CustomTooltip>
             </div>
@@ -943,7 +1105,8 @@ export default function UnifiedPortfolioMaster() {
                         : 'border-gray-200 bg-gray-100 opacity-50'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    {/* Header do ETF */}
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
                         <Checkbox
                           checked={selectedETFs.includes(etf.symbol)}
@@ -963,16 +1126,51 @@ export default function UnifiedPortfolioMaster() {
                       <div className="text-right">
                         <CustomTooltip text="Percentual da carteira alocado neste ETF">
                           <div className="font-medium" style={{ color: COLORS[index % COLORS.length] }}>
-                            {formatPercentage(etf.allocation_percent)}
+                            {allocationMode === 'manual' && manualAllocations[etf.symbol] !== undefined
+                              ? formatPercentage(manualAllocations[etf.symbol])
+                              : formatPercentage(etf.allocation_percent)
+                            }
                           </div>
                         </CustomTooltip>
                         <CustomTooltip text="Valor em moeda investido neste ETF">
                           <div className="text-sm text-gray-500">
-                            {formatCurrency(etf.allocation_amount, onboardingData.currency)}
+                            {formatCurrency(
+                              allocationMode === 'manual' && manualAllocations[etf.symbol] !== undefined
+                                ? (manualAllocations[etf.symbol] / 100) * onboardingData.initialAmount
+                                : etf.allocation_amount, 
+                              onboardingData.currency
+                            )}
                           </div>
                         </CustomTooltip>
                       </div>
                     </div>
+                    
+                    {/* Slider de Alocação Manual */}
+                    {allocationMode === 'manual' && selectedETFs.includes(etf.symbol) && (
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-gray-500 w-8">0%</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="0.5"
+                            value={manualAllocations[etf.symbol] || etf.allocation_percent}
+                            onChange={(e) => handleAllocationChange(etf.symbol, parseFloat(e.target.value))}
+                            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                            style={{
+                              background: `linear-gradient(to right, ${COLORS[index % COLORS.length]} 0%, ${COLORS[index % COLORS.length]} ${manualAllocations[etf.symbol] || etf.allocation_percent}%, #e5e7eb ${manualAllocations[etf.symbol] || etf.allocation_percent}%, #e5e7eb 100%)`
+                            }}
+                          />
+                          <span className="text-xs text-gray-500 w-12">100%</span>
+                        </div>
+                        <div className="text-center mt-1">
+                          <span className="text-xs font-medium" style={{ color: COLORS[index % COLORS.length] }}>
+                            {(manualAllocations[etf.symbol] || etf.allocation_percent).toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1592,7 +1790,30 @@ export default function UnifiedPortfolioMaster() {
           })}
         </div>
 
-        <div className="flex justify-center mt-16">
+        {/* Seção de Templates */}
+        <div className="mt-12 text-center">
+          <div className="flex justify-center gap-4 mb-8">
+            <Button
+              variant="outline"
+              onClick={() => setShowTemplates(true)}
+              className="flex items-center gap-2"
+              disabled={savedTemplates.length === 0}
+            >
+              <Download className="h-4 w-4" />
+              Carregar Template ({savedTemplates.length})
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowSaveTemplate(true)}
+              className="flex items-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              Salvar como Template
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex justify-center mt-8">
           <Button 
             onClick={() => setStep(2)}
             className="bg-gray-900 hover:bg-gray-800 text-white px-12 py-4 rounded-xl text-lg font-light tracking-wide transition-all"
@@ -1827,11 +2048,149 @@ export default function UnifiedPortfolioMaster() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-light text-gray-900 mb-4">
-            Perfil de Risco
+            Perfil de Risco & Filtros
           </h2>
           <p className="text-lg text-gray-600 leading-relaxed">
-            Escolha seu perfil de investimento baseado na sua tolerância ao risco
+            Escolha seu perfil de investimento e configure filtros opcionais
           </p>
+        </div>
+
+        {/* Seção de Filtros Opcionais */}
+        <div className="mb-12">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-xl font-medium text-gray-900 mb-2">Filtros Avançados</h3>
+                <p className="text-gray-600">Personalize os critérios de seleção de ETFs (opcional)</p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setShowOptionalFilters(!showOptionalFilters)}
+                className="flex items-center gap-2"
+              >
+                <TrendingUp className="h-4 w-4" />
+                {showOptionalFilters ? 'Ocultar' : 'Mostrar'} Filtros
+              </Button>
+            </div>
+
+            {showOptionalFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
+                {/* Rating Morningstar */}
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Rating Morningstar Mínimo
+                  </Label>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-500">0★</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="5"
+                      step="1"
+                      value={optionalFilters.minMorningstarRating}
+                      onChange={(e) => setOptionalFilters(prev => ({
+                        ...prev,
+                        minMorningstarRating: parseInt(e.target.value)
+                      }))}
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <span className="text-xs text-gray-500">5★</span>
+                  </div>
+                  <div className="text-center mt-1">
+                    <span className="text-sm font-medium text-blue-600">
+                      {optionalFilters.minMorningstarRating === 0 ? 'Sem filtro' : `${optionalFilters.minMorningstarRating}★+`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Expense Ratio Máximo */}
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Taxa de Administração Máxima
+                  </Label>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-500">0%</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="2"
+                      step="0.1"
+                      value={optionalFilters.maxExpenseRatio}
+                      onChange={(e) => setOptionalFilters(prev => ({
+                        ...prev,
+                        maxExpenseRatio: parseFloat(e.target.value)
+                      }))}
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <span className="text-xs text-gray-500">2%</span>
+                  </div>
+                  <div className="text-center mt-1">
+                    <span className="text-sm font-medium text-blue-600">
+                      ≤ {optionalFilters.maxExpenseRatio.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Dividend Yield Mínimo */}
+                {onboardingData.objective === 'income' && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Dividend Yield Mínimo
+                    </Label>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-gray-500">0%</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        step="0.5"
+                        value={optionalFilters.minDividendYield}
+                        onChange={(e) => setOptionalFilters(prev => ({
+                          ...prev,
+                          minDividendYield: parseFloat(e.target.value)
+                        }))}
+                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <span className="text-xs text-gray-500">10%</span>
+                    </div>
+                    <div className="text-center mt-1">
+                      <span className="text-sm font-medium text-blue-600">
+                        ≥ {optionalFilters.minDividendYield.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* AUM Mínimo */}
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Patrimônio Mínimo (Liquidez)
+                  </Label>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-500">$50M</span>
+                    <input
+                      type="range"
+                      min="50"
+                      max="5000"
+                      step="50"
+                      value={optionalFilters.minAUM}
+                      onChange={(e) => setOptionalFilters(prev => ({
+                        ...prev,
+                        minAUM: parseInt(e.target.value)
+                      }))}
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <span className="text-xs text-gray-500">$5B</span>
+                  </div>
+                  <div className="text-center mt-1">
+                    <span className="text-sm font-medium text-blue-600">
+                      ≥ ${optionalFilters.minAUM < 1000 ? `${optionalFilters.minAUM}M` : `${(optionalFilters.minAUM/1000).toFixed(1)}B`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="space-y-6">
@@ -1957,6 +2316,109 @@ export default function UnifiedPortfolioMaster() {
 
         {/* Modal de Detalhes do ETF */}
         <ETFDetailsModal />
+
+        {/* Modal para Salvar Template */}
+        {showSaveTemplate && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+              <h3 className="text-xl font-medium text-gray-900 mb-4">Salvar Template</h3>
+              <p className="text-gray-600 mb-6">
+                Salve suas configurações atuais como um template reutilizável
+              </p>
+              <Input
+                placeholder="Nome do template (ex: Renda Passiva Conservador)"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                className="mb-6"
+              />
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowSaveTemplate(false)
+                    setTemplateName('')
+                  }}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={saveTemplate}
+                  className="flex-1"
+                  disabled={!templateName.trim()}
+                >
+                  Salvar Template
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal para Carregar Templates */}
+        {showTemplates && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-medium text-gray-900">Templates Salvos</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowTemplates(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {savedTemplates.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">Nenhum template salvo ainda</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {savedTemplates.map((template) => (
+                    <div
+                      key={template.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-medium text-gray-900">{template.name}</h4>
+                            <Badge variant="outline" className="text-xs">
+                              {objectives.find(obj => obj.value === template.onboardingData.objective)?.label}
+                            </Badge>
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {template.onboardingData.riskProfile} • {template.onboardingData.currency} • 
+                            {new Date(template.createdAt).toLocaleDateString('pt-BR')}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => loadTemplate(template)}
+                          >
+                            Carregar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteTemplate(template.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
