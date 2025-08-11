@@ -1,0 +1,46 @@
+{
+  "timestamp": "2025-08-01T21:23:11.818Z",
+  "execution_time": 0.137,
+  "etfs_processed": 2,
+  "successes": 0,
+  "errors": 0,
+  "no_data_found": 2,
+  "success_rate": "0.0",
+  "yfinance_successes": 0,
+  "mcp_perplexity_successes": 0,
+  "fields_enriched": {
+    "inceptiondate": 0,
+    "website": 0,
+    "holdingscount": 0,
+    "domicile": 0,
+    "expenseratio": 0,
+    "securitycusip": 0
+  },
+  "completeness": {
+    "inceptiondate": {
+      "count": 31,
+      "percentage": "3.1"
+    },
+    "website": {
+      "count": 0,
+      "percentage": "0.0"
+    },
+    "holdingscount": {
+      "count": 4,
+      "percentage": "0.4"
+    },
+    "domicile": {
+      "count": 0,
+      "percentage": "0.0"
+    },
+    "expenseratio": {
+      "count": 693,
+      "percentage": "69.3"
+    },
+    "securitycusip": {
+      "count": 0,
+      "percentage": "0.0"
+    }
+  },
+  "data_quality": "MCP_PERPLEXITY_REAL_DATA_ONLY"
+}
