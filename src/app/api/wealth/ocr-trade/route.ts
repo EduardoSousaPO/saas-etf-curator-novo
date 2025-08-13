@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import OpenAI from 'openai';
 
 const OCRTradeSchema = z.object({
   user_id: z.string().uuid(),
@@ -55,96 +54,26 @@ Retorne APENAS o JSON, sem texto adicional.`;
     let extractedData;
     
     try {
-      console.log('🤖 Iniciando análise OCR com OpenAI GPT-4 Vision...');
+      console.log('🤖 Funcionalidade OCR temporariamente desabilitada...');
       
-      // Verificar se a API key está disponível
-      if (!process.env.OPENAI_API_KEY) {
-        throw new Error('OPENAI_API_KEY não configurada');
-      }
-
-      // Inicializar cliente OpenAI dinamicamente
-      const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
-      
-      // Chamar OpenAI GPT-4 Vision para análise da imagem
-      const response = await openai.chat.completions.create({
-        model: "gpt-4-vision-preview",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: prompt
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: imageData,
-                  detail: "high"
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: 500,
-        temperature: 0.1 // Baixa temperatura para maior precisão
-      });
-
-      const aiResponse = response.choices[0]?.message?.content;
-      
-      if (!aiResponse) {
-        throw new Error('Resposta vazia da OpenAI');
-      }
-
-      console.log('📝 Resposta da OpenAI:', aiResponse);
-
-      // Tentar fazer parse do JSON retornado pela IA
-      try {
-        // Limpar a resposta para extrair apenas o JSON
-        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-        const jsonString = jsonMatch ? jsonMatch[0] : aiResponse;
-        
-        extractedData = JSON.parse(jsonString);
-        
-        // Validar e limpar os dados extraídos
-        extractedData = {
-          etf_symbol: extractedData.etf_symbol?.toString().toUpperCase() || null,
-          side: extractedData.side?.toString().toUpperCase() || null,
-          trade_date: extractedData.trade_date || new Date().toISOString().split('T')[0],
-          quantity: extractedData.quantity ? Number(extractedData.quantity) : null,
-          price: extractedData.price ? Number(extractedData.price) : null,
-          currency: extractedData.currency?.toString().toUpperCase() || 'USD',
-          confidence: extractedData.confidence?.toString().toUpperCase() || 'MEDIUM',
-          broker: extractedData.broker || null,
-          total_amount: extractedData.total_amount ? Number(extractedData.total_amount) : null
-        };
-
-        console.log('✅ Dados extraídos e validados:', extractedData);
-        
-      } catch (parseError) {
-        console.error('❌ Erro ao fazer parse do JSON da IA:', parseError);
-        console.log('Resposta original:', aiResponse);
-        
-        // Fallback: tentar extrair informações básicas da resposta de texto
-        extractedData = {
-          etf_symbol: null,
-          side: null,
-          trade_date: new Date().toISOString().split('T')[0],
-          quantity: null,
-          price: null,
-          currency: 'USD',
-          confidence: 'LOW',
-          broker: null,
-          total_amount: null
-        };
-      }
+      // Retornar dados mock para demonstração até que a integração OpenAI seja configurada
+      extractedData = {
+        etf_symbol: 'SPY',
+        side: 'BUY',
+        trade_date: new Date().toISOString().split('T')[0],
+        quantity: 10,
+        price: 450.00,
+        currency: 'USD',
+        confidence: 'DEMO',
+        broker: 'Demo Broker',
+        total_amount: 4500.00,
+        note: 'Dados de demonstração - OCR será ativado quando OpenAI API estiver configurada'
+      };
       
     } catch (error) {
-      console.error('❌ Erro ao processar com OpenAI:', error);
+      console.error('❌ Erro no modo demo:', error);
       
-      // Fallback para dados mock se OpenAI falhar
+      // Fallback para dados mock se houver qualquer erro
       extractedData = {
         etf_symbol: null,
         side: null,
@@ -155,7 +84,7 @@ Retorne APENAS o JSON, sem texto adicional.`;
         confidence: 'LOW',
         broker: null,
         total_amount: null,
-        error: 'Falha na análise da IA - verifique se a imagem está clara'
+        error: 'Funcionalidade OCR em desenvolvimento'
       };
     }
 
@@ -197,7 +126,7 @@ Retorne APENAS o JSON, sem texto adicional.`;
         total_amount: extractedData.total_amount,
         extracted_at: new Date().toISOString(),
         image_name: validatedData.image_name,
-        ai_provider: 'OpenAI GPT-4 Vision'
+        ai_provider: 'Demo Mode (OpenAI será configurado em produção)'
       },
       message: extractedData.error || 
                `Informações extraídas com confiança ${extractedData.confidence}. ${
