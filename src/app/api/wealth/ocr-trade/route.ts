@@ -8,10 +8,7 @@ const OCRTradeSchema = z.object({
   image_name: z.string()
 });
 
-// Inicializar cliente OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Cliente OpenAI será inicializado dinamicamente
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,6 +56,16 @@ Retorne APENAS o JSON, sem texto adicional.`;
     
     try {
       console.log('🤖 Iniciando análise OCR com OpenAI GPT-4 Vision...');
+      
+      // Verificar se a API key está disponível
+      if (!process.env.OPENAI_API_KEY) {
+        throw new Error('OPENAI_API_KEY não configurada');
+      }
+
+      // Inicializar cliente OpenAI dinamicamente
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
       
       // Chamar OpenAI GPT-4 Vision para análise da imagem
       const response = await openai.chat.completions.create({
