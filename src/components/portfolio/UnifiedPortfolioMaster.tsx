@@ -27,8 +27,8 @@ import {
   Shield, 
   TrendingUp, 
   BarChart3, 
-  Search, 
-  Sparkles, 
+    Search, 
+  Sparkles,
   Home, 
   Umbrella, 
   Rocket,
@@ -273,7 +273,9 @@ export default function UnifiedPortfolioMaster() {
     loadTemplatesFromStorage()
   }, [])
 
-  // Função para salvar carteira
+
+
+  // Função para salvar carteira (modo legado)
   const handleSavePortfolio = async () => {
     if (!results) return
     
@@ -348,6 +350,42 @@ export default function UnifiedPortfolioMaster() {
           console.log('✅ Alocações populadas com sucesso')
         } else {
           console.warn('⚠️ Erro ao popular alocações:', allocationsResult.error)
+        }
+        
+        // Integrar automaticamente com Dashboard
+        try {
+          const wealthPlanResponse = await fetch('/api/wealth/portfolio-plans', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: user.id,
+              name: `Plano ${onboardingData.objective} - ${new Date().toLocaleDateString()}`,
+              objective: onboardingData.objective,
+              risk_profile: onboardingData.riskProfile,
+              base_currency: onboardingData.currency,
+              etfs: results.portfolio.map(etf => ({
+                symbol: etf.symbol,
+                name: etf.name,
+                allocation_percentage: etf.allocation_percent,
+                band_lower: 5.0,
+                band_upper: 5.0
+              })),
+              notes: 'Plano criado automaticamente via Portfolio Master'
+            })
+          })
+
+          const wealthResult = await wealthPlanResponse.json()
+          if (wealthResult.success) {
+            console.log('✅ Plano Dashboard criado automaticamente:', wealthResult.data)
+            // Opcional: mostrar link para o Dashboard
+            setTimeout(() => {
+              if (confirm('Carteira salva com sucesso! Deseja ir para o Dashboard para acompanhar sua carteira?')) {
+                window.location.href = '/dashboard'
+              }
+            }, 2000)
+          }
+        } catch (error) {
+          console.error('Erro na integração com Dashboard:', error)
         }
         
         setSaveSuccess(true)
@@ -865,10 +903,12 @@ export default function UnifiedPortfolioMaster() {
               <Plus className="mr-2 h-4 w-4" />
               Nova Simulação
             </Button>
+
             <Button 
               onClick={handleSavePortfolio}
               disabled={isSaving}
-              className="bg-[#0090d8] hover:bg-[#0090d8]/90 text-white px-8 py-3 rounded-xl"
+              variant="outline"
+              className="px-8 py-3 rounded-xl border-gray-300"
             >
               {isSaving ? (
                 <>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Wealth IA - Frontend</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .pending { background: #fff3cd; border-color: #ffeaa7; color: #856404; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .highlight { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="highlight">
+            <h1>🚀 Teste Wealth IA - Frontend</h1>
+            <p>Verificação completa das funcionalidades do Wealth IA no Vista</p>
+        </div>
+
+        <div id="results">
+            <div class="test-section pending">
+                <h3>📋 Status dos Testes</h3>
+                <p>Clique nos botões abaixo para testar cada funcionalidade:</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔗 1. Verificar URLs do Wealth IA</h3>
+            <button class="btn-primary" onclick="testUrls()">Testar URLs</button>
+            <div id="url-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 2. Testar Portfolio Master (Botão Salvar como Plano)</h3>
+            <button class="btn-primary" onclick="testPortfolioMaster()">Verificar Botão</button>
+            <div id="portfolio-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 3. Testar APIs do Wealth IA</h3>
+            <button class="btn-primary" onclick="testAPIs()">Testar APIs</button>
+            <div id="api-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎨 4. Verificar Navegação</h3>
+            <button class="btn-primary" onclick="testNavigation()">Verificar Menu</button>
+            <div id="nav-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>💾 5. Testar Dados do Eduardo</h3>
+            <button class="btn-success" onclick="testEduardoData()">Verificar Dados</button>
+            <div id="eduardo-results"></div>
+        </div>
+    </div>
+
+    <script>
+        async function testUrls() {
+            const urlResults = document.getElementById('url-results');
+            urlResults.innerHTML = '<p>🔍 Testando URLs...</p>';
+            
+            const urls = [
+                '/portfolio-master',
+                '/wealth-dashboard',
+                '/api/wealth/portfolio-plans',
+                '/api/wealth/dashboard/test',
+                '/api/wealth/trades'
+            ];
+            
+            let results = '<h4>Resultados dos URLs:</h4>';
+            
+            for (const url of urls) {
+                try {
+                    const response = await fetch(url, { method: 'HEAD' });
+                    const status = response.status;
+                    const statusText = status < 400 ? '✅ OK' : '❌ Erro';
+                    results += `<p>${statusText} ${url} (${status})</p>`;
+                } catch (error) {
+                    results += `<p>❌ ${url} - Erro: ${error.message}</p>`;
+                }
+            }
+            
+            urlResults.innerHTML = results;
+        }
+
+        async function testPortfolioMaster() {
+            const portfolioResults = document.getElementById('portfolio-results');
+            portfolioResults.innerHTML = '<p>🔍 Verificando Portfolio Master...</p>';
+            
+            try {
+                const response = await fetch('/portfolio-master');
+                if (response.ok) {
+                    const html = await response.text();
+                    const hasSalvarComoPlano = html.includes('Salvar como Plano');
+                    const hasWealthFunction = html.includes('handleSaveAsWealthPlan');
+                    
+                    let result = '<h4>Portfolio Master:</h4>';
+                    result += hasSalvarComoPlano ? '<p>✅ Botão "Salvar como Plano" encontrado</p>' : '<p>❌ Botão "Salvar como Plano" NÃO encontrado</p>';
+                    result += hasWealthFunction ? '<p>✅ Função handleSaveAsWealthPlan encontrada</p>' : '<p>❌ Função handleSaveAsWealthPlan NÃO encontrada</p>';
+                    
+                    portfolioResults.innerHTML = result;
+                } else {
+                    portfolioResults.innerHTML = '<p>❌ Erro ao acessar /portfolio-master</p>';
+                }
+            } catch (error) {
+                portfolioResults.innerHTML = `<p>❌ Erro: ${error.message}</p>`;
+            }
+        }
+
+        async function testAPIs() {
+            const apiResults = document.getElementById('api-results');
+            apiResults.innerHTML = '<p>🔍 Testando APIs...</p>';
+            
+            const apis = [
+                { url: '/api/wealth/portfolio-plans', method: 'GET' },
+                { url: '/api/wealth/trades', method: 'GET' },
+                { url: '/api/wealth/timeline', method: 'GET' }
+            ];
+            
+            let results = '<h4>Resultados das APIs:</h4>';
+            
+            for (const api of apis) {
+                try {
+                    const response = await fetch(api.url, { method: api.method });
+                    const status = response.status;
+                    const statusText = status < 500 ? '✅ Respondendo' : '❌ Erro Servidor';
+                    results += `<p>${statusText} ${api.method} ${api.url} (${status})</p>`;
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        results += `<pre>${JSON.stringify(data, null, 2).substring(0, 200)}...</pre>`;
+                    }
+                } catch (error) {
+                    results += `<p>❌ ${api.url} - Erro: ${error.message}</p>`;
+                }
+            }
+            
+            apiResults.innerHTML = results;
+        }
+
+        async function testNavigation() {
+            const navResults = document.getElementById('nav-results');
+            navResults.innerHTML = '<p>🔍 Verificando navegação...</p>';
+            
+            try {
+                const response = await fetch('/');
+                if (response.ok) {
+                    const html = await response.text();
+                    const hasWealthIA = html.includes('Wealth IA');
+                    const hasWealthDashboard = html.includes('/wealth-dashboard');
+                    
+                    let result = '<h4>Navegação:</h4>';
+                    result += hasWealthIA ? '<p>✅ Link "Wealth IA" encontrado</p>' : '<p>❌ Link "Wealth IA" NÃO encontrado</p>';
+                    result += hasWealthDashboard ? '<p>✅ URL /wealth-dashboard encontrada</p>' : '<p>❌ URL /wealth-dashboard NÃO encontrada</p>';
+                    
+                    navResults.innerHTML = result;
+                } else {
+                    navResults.innerHTML = '<p>❌ Erro ao acessar página inicial</p>';
+                }
+            } catch (error) {
+                navResults.innerHTML = `<p>❌ Erro: ${error.message}</p>`;
+            }
+        }
+
+        async function testEduardoData() {
+            const eduardoResults = document.getElementById('eduardo-results');
+            eduardoResults.innerHTML = '<p>🔍 Verificando dados do Eduardo...</p>';
+            
+            try {
+                // Simular busca de planos para o usuário Eduardo
+                const response = await fetch('/api/wealth/portfolio-plans?user_id=9ba39a20-7409-479d-a010-284ad452d4f8');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    let result = '<h4>Dados do Eduardo:</h4>';
+                    
+                    if (data.success && data.data && data.data.length > 0) {
+                        result += `<p>✅ ${data.data.length} plano(s) encontrado(s)</p>`;
+                        result += '<h5>Planos:</h5>';
+                        data.data.forEach(plan => {
+                            result += `<p>📋 ${plan.name} - ${plan.objective} (${plan.risk_profile})</p>`;
+                        });
+                    } else {
+                        result += '<p>⚠️ Nenhum plano encontrado para Eduardo</p>';
+                    }
+                    
+                    eduardoResults.innerHTML = result;
+                } else {
+                    eduardoResults.innerHTML = `<p>❌ Erro na API: ${response.status}</p>`;
+                }
+            } catch (error) {
+                eduardoResults.innerHTML = `<p>❌ Erro: ${error.message}</p>`;
+            }
+        }
+
+        // Executar teste inicial
+        window.onload = function() {
+            document.getElementById('results').innerHTML = `
+                <div class="test-section success">
+                    <h3>✅ Página de Teste Carregada</h3>
+                    <p><strong>Usuário:</strong> eduspires123@gmail.com</p>
+                    <p><strong>Status:</strong> Pronto para testar!</p>
+                    <p><strong>Servidor:</strong> ${window.location.origin}</p>
+                </div>
+            `;
+        };
+    </script>
+</body>
+</html>
+
+

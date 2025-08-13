@@ -14,14 +14,15 @@ const publicNavItems: Array<{href: string, label: string, highlight?: boolean, a
   { href: "/pricing", label: "Preços", authRequired: true },
 ];
 
-// Navegação para usuários autenticados (privado) - REMOVIDO item "Perfil"
+// Navegação para usuários autenticados (privado)
 const privateNavItems: Array<{href: string, label: string, highlight?: boolean, authRequired?: boolean}> = [
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard", label: "Dashboard", highlight: true },
   { href: "/comparador", label: "Comparador" },
   { href: "/portfolio-master", label: "Portfolio Master" },
   { href: "/consultoria", label: "Wealth Management" },
   { href: "/rankings", label: "Rankings" },
   { href: "/screener", label: "Screener" },
+  { href: "/profile", label: "Perfil" },
 ];
 
 export default function Navbar() {

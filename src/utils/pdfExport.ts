@@ -158,14 +158,14 @@ export class ETFPDFExporter {
     
     // Métricas principais
     const metrics = [
-      ['Taxa de Administração:', this.formatPercentage(etf.expenseratio)],
+      ['Taxa de Administração:', this.formatPercentage(etf.expense_ratio)],
       ['Patrimônio Líquido:', this.formatLargeNumber(etf.totalasset)],
       ['Volume Médio:', this.formatLargeNumber(etf.avgvolume)],
       ['NAV:', this.formatCurrency(etf.nav, etf.navcurrency || 'USD')],
       ['Número de Holdings:', etf.holdingscount?.toString() || 'N/A'],
-      ['Beta 12m:', etf.beta_12m?.toFixed(2) || 'N/A'],
-      ['Tracking Error:', this.formatPercentage(etf.tracking_error)],
-      ['R-Squared:', etf.r_squared?.toFixed(2) || 'N/A']
+      ['Volatilidade 12m:', this.formatPercentage(etf.volatility_12m)],
+      ['Max Drawdown:', this.formatPercentage(etf.max_drawdown)],
+      ['Sharpe 12m:', etf.sharpe_12m?.toFixed(2) || 'N/A']
     ];
     
     this.doc.setFontSize(10);
@@ -286,7 +286,8 @@ export class ETFPDFExporter {
    * Adicionar alocação setorial
    */
   private addSectorAllocation(etf: ETF): void {
-    if (!etf.sector_allocation) return;
+    const etfDetails = etf as any; // Cast para acessar campos enriquecidos
+    if (!etfDetails.sector_allocation) return;
     
     this.checkPageBreak(50);
     
@@ -297,9 +298,9 @@ export class ETFPDFExporter {
     this.currentY += 12;
     
     try {
-      const sectors = typeof etf.sector_allocation === 'string' 
-        ? JSON.parse(etf.sector_allocation) 
-        : etf.sector_allocation;
+            const sectors = typeof etfDetails.sector_allocation === 'string'
+        ? JSON.parse(etfDetails.sector_allocation)
+        : etfDetails.sector_allocation;
       
       if (sectors && typeof sectors === 'object') {
         this.doc.setFontSize(10);
@@ -323,7 +324,8 @@ export class ETFPDFExporter {
    * Adicionar top holdings
    */
   private addTopHoldings(etf: ETF): void {
-    if (!etf.top_10_holdings) return;
+    const etfDetails = etf as any; // Cast para acessar campos enriquecidos
+    if (!etfDetails.top_10_holdings) return;
     
     this.checkPageBreak(60);
     
@@ -334,9 +336,9 @@ export class ETFPDFExporter {
     this.currentY += 12;
     
     try {
-      const holdings = typeof etf.top_10_holdings === 'string' 
-        ? JSON.parse(etf.top_10_holdings) 
-        : etf.top_10_holdings;
+            const holdings = typeof etfDetails.top_10_holdings === 'string'
+        ? JSON.parse(etfDetails.top_10_holdings)
+        : etfDetails.top_10_holdings;
       
       if (Array.isArray(holdings)) {
         this.doc.setFontSize(10);
@@ -381,12 +383,12 @@ export class ETFPDFExporter {
     this.currentY += 12;
     
     const ratings = [
-      ['Morningstar Rating:', etf.morningstar_rating ? `${etf.morningstar_rating}/5 estrelas` : 'N/A'],
-      ['Sustainability Rating:', etf.sustainability_rating ? `${etf.sustainability_rating}/5` : 'N/A'],
+      ['Morningstar Rating:', (etf as any).morningstar_rating ? `${(etf as any).morningstar_rating}/5 estrelas` : 'N/A'],
+      ['Sustainability Rating:', (etf as any).sustainability_rating ? `${(etf as any).sustainability_rating}/5` : 'N/A'],
       ['Categoria de Tamanho:', etf.size_category || 'N/A'],
       ['Categoria de Liquidez:', etf.liquidity_category || 'N/A'],
       ['Rating de Liquidez:', etf.liquidity_rating || 'N/A'],
-      ['Score de Liquidez:', etf.liquidity_score?.toFixed(1) || 'N/A']
+      ['Score de Liquidez:', (etf as any).liquidity_score?.toFixed(1) || 'N/A']
     ];
     
     this.doc.setFontSize(10);

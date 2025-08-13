@@ -416,7 +416,7 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
                   label="Data de Criação"
                   value={etf.inception_date ? formatDate(etf.inception_date) : "N/A"}
                 />
-                <MorningstarRating rating={etf.morningstar_rating} />
+                <MorningstarRating rating={etf.morningstar_rating || null} />
                 {etf.website && (
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-2">
@@ -494,10 +494,10 @@ const ETFDetailCard: React.FC<ETFDetailCardProps> = ({ etf, loading = false, onC
           </div>
 
           {/* Seção 2.5: Top Holdings */}
-          <TopHoldingsSection holdings={etf.top_10_holdings} />
+          <TopHoldingsSection holdings={etf.top_10_holdings || null} />
 
           {/* Seção 2.6: Sector Allocation */}
-          <SectorAllocationSection allocation={etf.sector_allocation} />
+          <SectorAllocationSection allocation={etf.sector_allocation || null} />
 
           {/* Seção 2.7: AI Insights */}
           <AIInsightsSection 
