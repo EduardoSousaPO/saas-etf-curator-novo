@@ -26,68 +26,226 @@
 
 ---
 
-## 🏗️ **ARQUITETURA TÉCNICA**
+## 🏗️ **ARQUITETURA TÉCNICA EXECUTÁVEL**
 
-### **📊 DIAGRAMA DE SISTEMA**:
+### **📊 ESTRUTURA DE ARQUIVOS SUGERIDA**:
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   USUÁRIO       │◄──►│   CHAT AI        │◄──►│   SUPABASE      │
-│   (Linguagem    │    │   (OpenAI API)   │    │   (ETF Curator  │
-│    Natural)     │    │                  │    │    Database)    │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌──────────────────┐
-                       │   ORQUESTRADOR   │
-                       │   (Middleware)   │
-                       └──────────────────┘
-                                │
-        ┌───────────────────────┼───────────────────────┐
-        ▼                       ▼                       ▼
-┌─────────────┐        ┌─────────────┐        ┌─────────────┐
-│  DASHBOARD  │        │ COMPARADOR  │        │  RANKINGS   │
-│     API     │        │     API     │        │     API     │
-└─────────────┘        └─────────────┘        └─────────────┘
-        │                       │                       │
-        ▼                       ▼                       ▼
-┌─────────────┐        ┌─────────────┐        ┌─────────────┐
-│   SCREENER  │        │   WEALTH    │        │  PORTFOLIO  │
-│     API     │        │ MANAGEMENT  │        │   MASTER    │
-└─────────────┘        └─────────────┘        └─────────────┘
+/src/ai/
+  agent.config.ts          # Configuração de modelos (GPT-4o-mini/GPT-4)
+  intents.ts              # Catálogo fechado de 10 intents (5 no MVP)
+  tools.registry.ts       # Tools mapeadas às APIs + JSON Schema
+  orchestrator.ts         # Pipeline: Classificar → Validar → Executar → Persistir
+  validators.ts           # Pré/pós validação + anti-alucinação
+  news.perplexity.ts     # Módulo específico para notícias (Perplexity obrigatório)
+  prompts/
+    system.core.ts        # System prompt principal (OpenAI)
+    system.news.ts        # System prompt para notícias (Perplexity)
+    developer.guardrails.ts # Guardrails anti-alucinação
+    classifier.intent.ts   # Classificador de intents
+    user.templates.ts     # Templates para síntese final
+  qa/
+    mvp-checklist.md      # Checklist de QA para MVP (5 intents)
 ```
 
-### **🔧 COMPONENTES PRINCIPAIS**:
+### **🔧 VARIÁVEIS DE AMBIENTE**:
+```env
+OPENAI_API_KEY=sk-...           # Para explicações e classificação
+PERPLEXITY_API_KEY=pplx-...     # OBRIGATÓRIO para notícias
+VISTA_API_BASE=https://seu-domain.com/api
+```
 
-#### **1. CHAT AI ENGINE**:
+### **🎯 CATÁLOGO DE INTENTS (FECHADO)**:
+
 ```typescript
-interface ChatAIEngine {
-  model: 'gpt-4' | 'gpt-4-turbo'
-  systemPrompt: string
-  userContext: UserProfile
-  conversationHistory: Message[]
-  availableFunctions: ETFCuratorFunction[]
-  guardrails: SafetyRules[]
+export type IntentName =
+  | "CREATE_OPTIMIZED_PORTFOLIO"   // MVP - Criar carteira otimizada
+  | "FILTER_ETFS"                  // MVP - Filtrar ETFs com 50+ critérios
+  | "GET_RANKINGS"                 // MVP - Rankings dinâmicos por categoria
+  | "COMPARE_ETFS"                 // MVP - Comparar 2-6 ETFs
+  | "GET_DASHBOARD_PERFORMANCE"    // MVP - Performance do dashboard
+  | "SUGGEST_REBALANCING"          // Sugerir rebalanceamento (regra 5/25)
+  | "PLAN_CONTRIBUTION"            // Planejar aportes ideais
+  | "EXPLAIN_CONCEPT"              // Explicar conceitos (texto puro)
+  | "GET_NEWS_RECENT"              // Notícias via Perplexity (obrigatório)
+  | "CONFIGURE_ALERTS";            // Configurar alertas inteligentes
+
+export interface Intent {
+  name: IntentName;
+  requiredFields: string[];        // Campos obrigatórios para pré-validação
+  allowedTools: string[];          // Tools permitidas para esta intent
+  simulateByDefault?: boolean;     // Default: simular antes de executar
 }
 ```
 
-#### **2. FUNCTION ORCHESTRATOR**:
+### **🔧 TOOLS REGISTRY (MAPEAMENTO APIS)**:
+
 ```typescript
-interface FunctionOrchestrator {
-  interpretIntent(userMessage: string): Intent
-  executeFunction(intent: Intent, params: any): Promise<Result>
-  validateSafety(intent: Intent): boolean
-  logActivity(activity: ActivityLog): void
+export type ToolDef = {
+  name: string;
+  description: string;
+  inputSchema: any;                // JSON Schema para validação
+  endpoint?: string;               // Rota HTTP do backend Vista
+  method?: "GET"|"POST";
+  usesPerplexity?: boolean;        // true apenas para notícias
+};
+
+// Exemplos de tools mapeadas:
+const Tools: ToolDef[] = [
+  {
+    name: "portfolio_create_optimized",
+    description: "Cria carteira otimizada via Portfolio Master",
+    endpoint: `${process.env.VISTA_API_BASE}/portfolio/unified-master`,
+    method: "POST",
+    inputSchema: {
+      type: "object",
+      properties: {
+        goal: { type: "string", enum: ["aposentadoria","casa","emergencia","crescimento"] },
+        risk_profile: { type: "string", enum: ["conservador","moderado","arrojado"] },
+        amount: { type: "number", minimum: 0 },
+        currency: { type: "string", enum: ["BRL","USD"] },
+        simulate: { type: "boolean", default: true }
+      },
+      required: ["goal","risk_profile","amount","currency"]
+    }
+  },
+  {
+    name: "perplexity_news_search",
+    description: "Busca notícias recentes com citações (Perplexity obrigatório)",
+    usesPerplexity: true,
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+        recencyDays: { type: "integer", minimum: 1, maximum: 30, default: 7 }
+      },
+      required: ["query"]
+    }
+  }
+];
+```
+
+### **⚡ ORQUESTRADOR (PIPELINE)**:
+
+```typescript
+export async function handleUserMessage(input: {
+  userId: string;
+  projectId: string;
+  message: string;
+  simulate?: boolean;
+}) {
+  // 1) Classificar intent com OpenAI (barato) + NER leve
+  const intent: IntentName = await classifyIntent(input.message);
+
+  // 2) Pré-validação determinística (máx 2 follow-ups)
+  const parsed = await preValidate(INTENTS[intent], input.message);
+
+  // 3) Guardrail: escopo ETFs apenas (exceto GET_NEWS_RECENT)
+  enforceInternalDataOnly(intent);
+
+  // 4) Execução via tools apropriadas
+  const results = await executeTools(INTENTS[intent].allowedTools, parsed);
+
+  // 5) Síntese e explicação com OpenAI
+  const answer = await synthesizeResponse(intent, parsed, results);
+
+  // 6) Pós-validação (trace, fontes, anti-alucinação)
+  postValidate(answer, results);
+
+  // 7) Persistir no Supabase via MCP
+  await persistConversation(input.userId, input.projectId, input.message, answer, results);
+
+  return { intent, parsed, results, answer };
 }
 ```
 
-#### **3. CONVERSATION MANAGER**:
+---
+
+## 📊 **FLUXOGRAMAS DETALHADOS**
+
+### **🔄 FLUXO PRINCIPAL (End-to-End)**:
+O diagrama abaixo mostra o fluxo completo desde a mensagem do usuário até a resposta final, destacando a separação entre notícias (Perplexity obrigatório) e funcionalidades do app (APIs internas):
+
+### **⚙️ FLUXO DE MENSAGEM DETALHADO**:
+Este fluxograma mostra o pipeline de processamento de cada mensagem, incluindo classificação, validação, execução e persistência:
+
+### **🖥️ FLUXO DA INTERFACE DO USUÁRIO**:
+Este diagrama ilustra a jornada do usuário na interface, desde a criação de projetos até a execução de ações:
+
+---
+
+## 🛠️ **PROMPTS PRONTOS PARA IMPLEMENTAÇÃO**
+
+### **📋 SYSTEM PROMPT PRINCIPAL (OpenAI)**:
 ```typescript
-interface ConversationManager {
-  createProject(name: string): Project
-  saveMessage(projectId: string, message: Message): void
-  generateInsight(conversation: Message[]): Insight
-  exportProject(projectId: string): ProjectExport
-}
+export const CORE_SYSTEM_PROMPT = `
+Você é o Vista ETF AI: um assistente conversacional que OPERA APENAS as 
+funcionalidades do app Vista ETF (Dashboard, Portfolio Master, Comparador, 
+Rankings, Screener, Rebalanceamento) e explica resultados em linguagem clara.
+
+REGRAS CRÍTICAS:
+1) Fale somente sobre ETFs, funcionalidades do app e educação financeira geral.
+2) Dados factuais DEVEM vir das APIs internas (ou Perplexity SOMENTE para GET_NEWS_RECENT).
+3) Se um dado não existir nas APIs internas, diga: "Não tenho essa informação no meu banco interno."
+4) Nunca invente números, taxas, composições ou resultados.
+5) Sempre peça confirmação antes de EXECUTAR; SIMULATE é o padrão.
+6) Cite a origem interna (endpoint e trace_id) em notas breves no final.
+7) Adapte a linguagem ao nível do usuário (iniciante/intermediário/avançado).
+
+FORMATOS:
+- Use listas curtas e passos claros
+- Sempre ofereça próximos passos (Simular / Aplicar / Exportar)
+- Para comparações, traga prós/contras + métrica chave (custo, diversificação)
+- Inclua disclaimers educativos quando apropriado
+`;
+```
+
+### **🔒 GUARDRAILS ANTI-ALUCINAÇÃO**:
+```typescript
+export const DEV_GUARDRAILS_PROMPT = `
+NUNCA responda fora do escopo de ETFs e funcionalidades do Vista ETF.
+TODA afirmação factual deve estar ancorada em:
+- Endpoint interno (carteira, screener, rankings, comparador, métricas), OU
+- Resultado da ferramenta "perplexity_news_search" EXCLUSIVAMENTE para notícias.
+
+OBRIGATÓRIO:
+- Se a resposta não tiver base de dados, devolva "Não sei com os dados internos."
+- Mostre "Simular" vs "Aplicar" quando houver efeito prático.
+- Inclua trace_id das tools usadas para auditoria.
+
+PROIBIDO:
+- Recomendação personalizada sem suitability/aceite
+- Cripto, ações individuais, previsões de preço, temas alheios ao app
+- Inventar dados não retornados pelas APIs
+`;
+```
+
+### **🎯 CLASSIFICADOR DE INTENT**:
+```typescript
+export const CLASSIFIER_PROMPT = `
+Classifique a seguinte mensagem do usuário em UMA intent do conjunto:
+[CREATE_OPTIMIZED_PORTFOLIO, FILTER_ETFS, GET_RANKINGS, COMPARE_ETFS,
+ GET_DASHBOARD_PERFORMANCE, SUGGEST_REBALANCING, PLAN_CONTRIBUTION,
+ EXPLAIN_CONCEPT, GET_NEWS_RECENT, CONFIGURE_ALERTS].
+
+Responda APENAS com o nome da intent.
+Mensagem: """{{MESSAGE}}"""
+`;
+```
+
+### **📰 SYSTEM PROMPT PARA NOTÍCIAS (Perplexity)**:
+```typescript
+export const NEWS_SYSTEM_PROMPT = `
+Você é um buscador de notícias financeiras. Traga SOMENTE fatos recentes (<= N dias),
+com datas, títulos e URLs. Não opine. Não resuma fontes não retornadas pela sua busca.
+Foque em ETFs, mercado de capitais e economia global.
+
+FORMATO OBRIGATÓRIO:
+- 3-5 bullets factuais
+- Datas (ISO format)
+- Títulos originais das notícias
+- 3-5 fontes com URLs
+- Sem análise ou opinião própria
+`;
 ```
 
 ---
@@ -1379,26 +1537,148 @@ Estimativa baseada em 1.000 usuários ativos:
 - Payback: 3-6 meses por usuário
 - Escalabilidade linear e previsível
 
+---
+
+## 🤖 **PROMPTS PRONTOS PARA CURSOR AI**
+
+### **🚀 PROMPT 1: IMPLEMENTAR MVP DO AGENTE**
+
+**Título**: `VistaAI - MVP Conversacional (Tools + Intents + Guardrails)`
+
+**Contexto**:
+- App: Vista ETF (antigo ETF Curator), Next.js 14 + TS + Supabase + Vercel
+- APIs já existentes: 
+  - `/api/portfolio/unified-master`
+  - `/api/portfolio/real-data`
+  - `/api/portfolio/modern-rebalancing`
+  - `/api/etfs/screener`
+  - `/api/etfs/rankings`
+  - `/api/market/metrics`
+
+**Objetivo**:
+Implementar o MVP do agente conversacional com:
+1. Catálogo fechado de intents (5 no MVP)
+2. Tools mapeadas às APIs reais (JSON-Schema)
+3. Orquestrador com pré/pós validação determinística
+4. Guardrails (escopo do app, internal-data-first, dual-mode simulate/execute)
+5. Persistência de conversa (Supabase) via MCP Supabase
+
+**Instruções (MCPs OBRIGATÓRIOS)**:
+- Use MCP Supabase para criar/usar tabelas: `chat_projects`, `chat_conversations`, `chat_messages`, `chat_function_logs`, `chat_insights`
+- Use MCP Memory para armazenar preferências do usuário (perfil, moeda, horizonte)
+- Use MCP Sequential para orquestrar: Classificar intent → Pré-validate → Executar tools → Pós-validate → Persistir logs
+- NÃO usar MCP Web nesta fase (será implementado depois para notícias)
+
+**Tarefas**:
+1. Criar arquivos conforme `/src/ai/` (agent.config.ts, intents.ts, tools.registry.ts, orchestrator.ts, validators.ts, prompts/*)
+2. Implementar INTENTS do MVP: `CREATE_OPTIMIZED_PORTFOLIO`, `FILTER_ETFS`, `GET_RANKINGS`, `COMPARE_ETFS`, `GET_DASHBOARD_PERFORMANCE`
+3. Implementar Tools mapeadas aos endpoints reais
+4. Implementar orquestrador com dual-mode: simulate (default) vs execute (confirmação explícita)
+5. Persistir TODA interação no Supabase
+6. Criar testes de fumaça para cada intent do MVP
+7. Entregar relatório final com endpoints, latências, logs e exemplos
+
+**Critérios de aceite**:
+- 100% das respostas com "origem" (endpoint + tool) — exceto EXPLAIN_CONCEPT
+- simulate por padrão; execute exige confirmação
+- Nenhuma afirmação factual sem dado interno
+- Tempo p95 < 6s
+
+### **📰 PROMPT 2: ADICIONAR NOTÍCIAS (PERPLEXITY)**
+
+**Título**: `VistaAI - Notícias Recentes (Perplexity) + Explicação OpenAI`
+
+**Objetivo**:
+Adicionar a intent `GET_NEWS_RECENT` com a tool obrigatória "perplexity_news_search" para buscar notícias recentes e explicar/sintetizar em PT-BR usando OpenAI.
+
+**Regras**:
+- BUSCA: somente Perplexity API (MCP Perplexity se disponível; caso contrário, HTTP com PERPLEXITY_API_KEY)
+- SÍNTESE/EXPLICAÇÃO: somente OpenAI
+- A resposta DEVE listar: 3–5 bullets factuais, datas, títulos e 3–5 fontes (URLs)
+- Sem opinião. Sem previsão. Sem extrapolação de dados não retornados
+- Marcar seção final "fontes:" com URLs
+
+**Tarefas**:
+1. Implementar `/src/ai/news.perplexity.ts` com chamada real à Perplexity
+2. Adicionar tool "perplexity_news_search" no tools.registry.ts (usesPerplexity: true)
+3. No orchestrator, se intent = GET_NEWS_RECENT: chamar perplexity → passar resultado para OpenAI apenas para organização
+4. Pós-validador: exigir 3–5 URLs e datas; caso contrário, refazer síntese
+5. Criar testes simulando: "notícias VTI semana", "ETF bonds fed rate", "volatilidade ETFs Brasil 7 dias"
+
+### **✅ PROMPT 3: QA DO MVP**
+
+**Título**: `VistaAI - QA do MVP (5 intents)`
+
+Rode o checklist `/src/ai/qa/mvp-checklist.md`:
+- Executar testes automáticos de cada intent do MVP (simulate)
+- Verificar presença de "origem:" nas respostas
+- Medir latência p50/p95
+- Validar que nenhuma resposta factual é gerada sem dados internos
+- Gerar relatório curto com pass/fail e trechos de log
+
+---
+
+## 📋 **CHECKLIST DE QA (MVP)**
+
+### **🎯 INTENTS DO MVP**:
+
+#### **1. CREATE_OPTIMIZED_PORTFOLIO**:
+- [ ] Entrada mínima (goal, risk_profile, amount, currency) validada
+- [ ] Chama `/api/portfolio/unified-master` (simulate=true)
+- [ ] Resposta contém composição + métricas + "origem:"
+- [ ] Sem números inexistentes no banco (anti-alucinação)
+
+#### **2. FILTER_ETFS**:
+- [ ] Aplica 2–3 filtros e ordenações
+- [ ] Chama `/api/etfs/screener`
+- [ ] Limite respeitado (<= 15 no MVP)
+- [ ] "origem:" presente
+
+#### **3. GET_RANKINGS**:
+- [ ] Categoria válida (6 opções)
+- [ ] Chama `/api/etfs/rankings`
+- [ ] Lista até 15 com notas breves
+- [ ] "origem:" presente
+
+#### **4. COMPARE_ETFS**:
+- [ ] 2–4 símbolos; período válido
+- [ ] Chama `/etfs/compare` e `/market/metrics`
+- [ ] Mostra prós/contras e métrica (taxa, diversificação)
+- [ ] "origem:" presente
+
+#### **5. GET_DASHBOARD_PERFORMANCE**:
+- [ ] portfolio_id válido
+- [ ] Chama `/api/portfolio/real-data` com período
+- [ ] Mostra retorno/vol/MD/benchmark
+- [ ] "origem:" presente
+
+### **📰 NOTÍCIAS (quando implementado)**:
+- [ ] GET_NEWS_RECENT usa APENAS perplexity_news_search
+- [ ] 3–5 bullets + datas + 3–5 URLs
+- [ ] Sem extrapolação além das fontes
+
+---
+
 ### **🎯 RECOMENDAÇÃO FINAL**:
 
 #### **🚀 IMPLEMENTAR EM 4 FASES**:
-1. **MVP (6 semanas)**: Chat básico + funcionalidades core
+1. **MVP (6 semanas)**: Chat básico + 5 intents core
 2. **Projetos (4 semanas)**: Organização e múltiplas conversas
 3. **Insights (5 semanas)**: Analytics e colaboração
 4. **Scale (3 semanas)**: Otimização e produção
 
 #### **💡 FATORES CRÍTICOS DE SUCESSO**:
-- **Prompt engineering** excepcional (80% do sucesso)
-- **User onboarding** perfeito (primeiros 5 minutos)
-- **Data quality** impecável (base de ETFs)
-- **Safety guardrails** robustos (compliance)
-- **Performance** consistente (<3s response time)
+- **Dual-mode sempre visível** (Simular/Aplicar) — default simulate=true
+- **Traceability completa**: salvar trace_id, tool_name, endpoint, request_body, response_hash
+- **Memória inteligente**: usar MCP Memory para moeda preferida, horizonte e perfil
+- **Compliance por plano**: personalizar texto e escopo por plano (Starter/Pro vs Wealth/Offshore)
+- **Custo otimizado**: usar gpt-4o-mini como padrão, GPT-4 apenas para respostas longas
 
 #### **🎪 POSICIONAMENTO DE MERCADO**:
 ```
 "O ChatGPT dos investimentos em ETFs"
 "Seu consultor financeiro pessoal, disponível 24/7"
-"A primeira plataforma de ETFs verdadeiramente conversacional"
+"A primeira plataforma de ETFs verdadeiramente conversacional do Brasil"
 ```
 
 ---
@@ -1406,10 +1686,10 @@ Estimativa baseada em 1.000 usuários ativos:
 ### **🔥 PRÓXIMOS PASSOS SUGERIDOS**:
 
 1. **✅ APROVAÇÃO EXECUTIVA** (1 semana)
-2. **📋 DETALHAMENTO TÉCNICO** (1 semana)  
-3. **👥 FORMAÇÃO DO TIME** (1 semana)
-4. **🚀 INÍCIO DO DESENVOLVIMENTO** (Fase 1)
+2. **📋 IMPLEMENTAÇÃO MVP** (6 semanas) - usar prompts Cursor AI acima
+3. **🧪 TESTES COM USUÁRIOS BETA** (2 semanas)
+4. **🚀 LANÇAMENTO GRADUAL** (4 semanas)
 
-**Eduardo, esta funcionalidade tem potencial de transformar o ETF Curator no líder absoluto do mercado brasileiro de investimentos em ETFs. A combinação de IA conversacional + dados proprietários + experiência premium pode criar um moat competitivo de anos.**
+**Eduardo, esta especificação técnica executável transforma o conceito em realidade. Os prompts estão prontos para colar no Cursor AI e começar a implementação imediatamente. A combinação de IA conversacional + dados proprietários + experiência premium pode criar um moat competitivo de anos.**
 
 **Recomendo fortemente a implementação! 🚀**

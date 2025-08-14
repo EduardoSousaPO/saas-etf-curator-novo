@@ -22,6 +22,7 @@ const privateNavItems: Array<{href: string, label: string, highlight?: boolean, 
   { href: "/consultoria", label: "Wealth Management" },
   { href: "/rankings", label: "Rankings" },
   { href: "/screener", label: "Screener" },
+  { href: "/chat", label: "Vista AI Chat", highlight: true },
   { href: "/profile", label: "Perfil" },
 ];
 

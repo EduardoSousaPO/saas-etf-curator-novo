@@ -83,7 +83,9 @@ export async function middleware(request: NextRequest) {
     '/comparador',
     '/rankings',
     '/portfolios',
-    '/onboarding'
+    '/onboarding',
+    '/chat',
+    '/portfolio-master'
   ]
 
   // Rotas que requerem email confirmado
@@ -94,7 +96,9 @@ export async function middleware(request: NextRequest) {
     '/simulador',
     '/comparador',
     '/rankings',
-    '/portfolios'
+    '/portfolios',
+    '/chat',
+    '/portfolio-master'
   ]
 
   // Verificar se é uma rota pública
