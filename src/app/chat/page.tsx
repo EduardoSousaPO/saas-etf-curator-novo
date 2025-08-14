@@ -52,37 +52,37 @@ export default function ChatPage() {
     { 
       title: "Criar Carteira Balanceada", 
       message: "Quero criar uma carteira balanceada com $100.000 para aposentadoria em 30 anos",
-      icon: "🎯",
+      icon: "Target",
       category: "portfolio"
     },
     { 
       title: "Comparar ETFs Populares", 
       message: "Compare SPY vs VTI vs VOO - qual é melhor para longo prazo?",
-      icon: "⚖️",
+      icon: "BarChart3",
       category: "analysis"
     },
     { 
       title: "ETFs de Dividendos", 
       message: "Encontre os melhores ETFs de dividendos com yield acima de 3%",
-      icon: "💰",
+      icon: "DollarSign",
       category: "income"
     },
     { 
       title: "Estratégia de Rebalanceamento", 
       message: "Como e quando devo rebalancear minha carteira de ETFs?",
-      icon: "🔄",
+      icon: "RefreshCw",
       category: "strategy"
     },
     { 
       title: "ETFs por Setor", 
       message: "Analise os melhores ETFs de tecnologia para 2025",
-      icon: "🚀",
+      icon: "TrendingUp",
       category: "sector"
     },
     { 
       title: "Reserva de Emergência", 
       message: "Quero montar uma reserva de emergência conservadora com R$ 50.000",
-      icon: "🛡️",
+      icon: "Shield",
       category: "safety"
     }
   ];
@@ -93,31 +93,31 @@ export default function ChatPage() {
       name: "Aposentadoria 2055", 
       color: "#0088FE", 
       description: "Estratégias de longo prazo para aposentadoria",
-      icon: "🎯"
+      icon: "Target"
     },
     { 
       name: "Compra da Casa", 
       color: "#00C49F", 
       description: "Investimentos para aquisição imobiliária",
-      icon: "🏠"
+      icon: "Home"
     },
     { 
       name: "Reserva de Emergência", 
       color: "#FF8042", 
       description: "Segurança financeira e liquidez",
-      icon: "🛡️"
+      icon: "Shield"
     },
     { 
       name: "Crescimento Agressivo", 
       color: "#8884D8", 
       description: "Alto potencial de retorno",
-      icon: "📈"
+      icon: "TrendingUp"
     },
     { 
       name: "Renda Passiva", 
       color: "#FFBB28", 
       description: "Dividendos e distribuições",
-      icon: "💰"
+      icon: "DollarSign"
     }
   ];
 

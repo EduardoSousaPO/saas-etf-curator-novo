@@ -102,7 +102,7 @@ const humanizeEvent = (event: TimelineEvent) => {
     color: 'bg-gray-100 text-gray-800 border-gray-200',
     title: 'Evento registrado',
     description: event.event_type,
-    emoji: '📝'
+    emoji: ''
   }
 
   return {

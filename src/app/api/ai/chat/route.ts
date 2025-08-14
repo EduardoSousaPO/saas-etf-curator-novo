@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
     
-    console.log(`🎯 Nova mensagem do chat: User ${userId}, Message: "${message.slice(0, 50)}..."`);
+    console.log(`Nova mensagem do chat: User ${userId}, Message: "${message.slice(0, 50)}..."`);
     
     // Preparar input para o orquestrador
     const messageInput: MessageInput = {
