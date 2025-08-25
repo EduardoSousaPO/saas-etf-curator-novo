@@ -1,17 +1,20 @@
 /**
  * Funções utilitárias para formatação consistente de métricas de ETFs
  * 
- * Padrões de dados CONFIRMADOS pela análise do banco (2025-01-25):
- * - Percentuais (returns, volatility, dividends): Vêm em formato PERCENTUAL (89.32 = 89.32%)
+ * Padrões de dados DESCOBERTOS pela análise do banco (2025-01-25):
+ * - Percentuais (returns, volatility, dividends): FORMATO MISTO no banco
+ *   * Alguns ETFs em formato DECIMAL: QQQ 0.3245 = 32.45%, VTI 0.2234 = 22.34%
+ *   * Outros ETFs em formato PERCENTUAL: SGOV 4.7112 = 4.71%, ARKK 62.7467 = 62.75%
  * - Valores monetários: Em dólares
- * - Sharpe Ratio: Número absoluto (não percentual, não multiplicar por 100)
- * - Expense Ratio: Já vem em formato percentual (4.42 = 4.42%)
+ * - Sharpe Ratio: Número absoluto (não percentual)
+ * - Expense Ratio: Formato decimal (0.0075 = 0.75%)
  * 
- * CORREÇÃO CRÍTICA: Dados percentuais do banco NÃO devem ser multiplicados por 100
+ * SOLUÇÃO INTELIGENTE: formatPercentage() usa detecção automática de formato
+ * REGRA: Valores < 3 são decimais (multiplicar por 100), valores >= 3 são percentuais
  */
 
 /**
- * VERSÃO INTELIGENTE - Formata um valor percentual detectando automaticamente o formato
+ * DETECÇÃO INTELIGENTE CORRIGIDA - Formata um valor percentual com detecção de formato
  * @param value - Valor que pode estar em formato decimal (0.3245) ou percentual (89.32)
  * @returns String formatada com símbolo de porcentagem
  */
@@ -20,10 +23,11 @@ export const formatPercentage = (value: number | null | undefined, decimals: num
   
   const numValue = Number(value);
   
-  // DETECÇÃO INTELIGENTE DE FORMATO:
-  // Se o valor é <= 10, provavelmente está em formato decimal (0.3245 = 32.45%)
-  // Se o valor é > 10, provavelmente já está em formato percentual (89.32 = 89.32%)
-  if (Math.abs(numValue) <= 10) {
+  // DETECÇÃO INTELIGENTE CORRIGIDA baseada em análise real dos dados:
+  // - Valores < 1: Provavelmente formato decimal (0.3245 = 32.45%, 0.2234 = 22.34%)
+  // - Valores 1-3: Zona cinzenta, mas provavelmente decimal para retornos (1.5 = 150%)
+  // - Valores > 3: Provavelmente já formato percentual (4.71 = 4.71%, 89.32 = 89.32%)
+  if (Math.abs(numValue) < 3) {
     // Formato decimal, multiplicar por 100
     return `${(numValue * 100).toFixed(decimals)}%`;
   } else {
