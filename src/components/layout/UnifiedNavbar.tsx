@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { 
   Menu, 
   X, 
@@ -75,6 +75,46 @@ export default function UnifiedNavbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const { user, profile, signOut, loading } = useAuth();
+  
+  // Refs para controle de delay nos dropdowns
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Função para abrir dropdown com delay mínimo
+  const handleDropdownEnter = (sectionTitle: string) => {
+    // Cancelar timeout de fechamento se existir
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+    
+    // Abrir imediatamente se já não estiver aberto
+    if (activeSection !== sectionTitle) {
+      setActiveSection(sectionTitle);
+    }
+  };
+
+  // Função para fechar dropdown com delay
+  const handleDropdownLeave = () => {
+    // Cancelar qualquer timeout anterior
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+    }
+    
+    // Criar novo timeout para fechar após delay
+    leaveTimeoutRef.current = setTimeout(() => {
+      setActiveSection(null);
+      leaveTimeoutRef.current = null;
+    }, 300); // 300ms de delay
+  };
+
+  // Limpar timeouts ao desmontar componente
+  React.useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+      if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
+    };
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -121,28 +161,29 @@ export default function UnifiedNavbar() {
               <>
                 {/* Seções ETFs e Stocks */}
                 {unifiedNavSections.map((section) => (
-                  <div key={section.title} className="relative">
+                  <div 
+                    key={section.title} 
+                    className="relative"
+                    onMouseEnter={() => handleDropdownEnter(section.title)}
+                    onMouseLeave={handleDropdownLeave}
+                  >
                     <button
                       className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                         getCurrentSection() === section.title
                           ? 'text-[#0090d8] bg-blue-50'
                           : 'text-gray-600 hover:text-[#0090d8] hover:bg-gray-50'
                       }`}
-                      onMouseEnter={() => setActiveSection(section.title)}
-                      onMouseLeave={() => setActiveSection(null)}
                     >
                       {section.icon}
                       {section.title}
-                      <ChevronDown className="w-3 h-3" />
+                      <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${
+                        activeSection === section.title ? 'rotate-180' : ''
+                      }`} />
                     </button>
 
                     {/* Dropdown Menu */}
                     {activeSection === section.title && (
-                      <div 
-                        className="absolute top-full left-0 mt-1 w-56 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50"
-                        onMouseEnter={() => setActiveSection(section.title)}
-                        onMouseLeave={() => setActiveSection(null)}
-                      >
+                      <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50 animate-in fade-in-0 zoom-in-95 duration-200">
                         {section.items.map((item) => (
                           <Link
                             key={item.href}
@@ -152,6 +193,7 @@ export default function UnifiedNavbar() {
                                 ? 'text-[#0090d8] bg-blue-50'
                                 : 'text-gray-700 hover:text-[#0090d8] hover:bg-gray-50'
                             }`}
+                            onClick={() => setActiveSection(null)}
                           >
                             {item.icon}
                             {item.label}
