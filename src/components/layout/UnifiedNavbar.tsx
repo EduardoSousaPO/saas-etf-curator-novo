@@ -167,11 +167,13 @@ export default function UnifiedNavbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActivePath(item.href)
-                        ? 'text-[#0090d8] bg-blue-50'
-                        : 'text-gray-600 hover:text-[#0090d8] hover:bg-gray-50'
-                    } ${item.highlight ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700' : ''}`}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-300 ${
+                      item.highlight 
+                        ? 'bg-black text-white hover:bg-gray-800 rounded-lg border border-black hover:border-gray-700' 
+                        : isActivePath(item.href)
+                        ? 'text-[#0090d8] bg-blue-50 rounded-lg'
+                        : 'text-gray-600 hover:text-[#0090d8] hover:bg-gray-50 rounded-lg'
+                    }`}
                   >
                     {item.icon}
                     {item.label}
@@ -184,11 +186,13 @@ export default function UnifiedNavbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePath(item.href)
-                      ? 'text-[#0090d8] bg-blue-50'
-                      : 'text-gray-600 hover:text-[#0090d8] hover:bg-gray-50'
-                  } ${item.highlight ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700' : ''}`}
+                  className={`px-4 py-2 text-sm font-medium transition-all duration-300 ${
+                    item.highlight 
+                      ? 'bg-black text-white hover:bg-gray-800 rounded-lg border border-black hover:border-gray-700' 
+                      : isActivePath(item.href)
+                      ? 'text-[#0090d8] bg-blue-50 rounded-lg'
+                      : 'text-gray-600 hover:text-[#0090d8] hover:bg-gray-50 rounded-lg'
+                  }`}
                 >
                   {item.label}
                 </Link>
