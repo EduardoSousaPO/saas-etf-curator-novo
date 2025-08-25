@@ -488,8 +488,21 @@ export default function ChatPage() {
         <div className="bg-white border-b border-gray-200 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              {/* Botão Voltar - Melhor Posicionado */}
+              <button
+                onClick={() => window.location.href = '/'}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
+                title="Voltar ao Início"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span className="hidden sm:inline">Início</span>
+              </button>
+
               {selectedProject && (
                 <>
+                  <div className="w-px h-6 bg-gray-300 mx-2" />
                   <div
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: selectedProject.color }}
@@ -506,9 +519,12 @@ export default function ChatPage() {
                 </>
               )}
               {!selectedProject && !selectedConversation && (
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Assistente de ETFs
-                </h2>
+                <>
+                  <div className="w-px h-6 bg-gray-300 mx-2" />
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Vista AI Chat
+                  </h2>
+                </>
               )}
             </div>
 
@@ -542,19 +558,6 @@ export default function ChatPage() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
-              {/* Botão Voltar */}
-              <div className="absolute top-4 left-4">
-                <button
-                  onClick={() => window.location.href = '/'}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
-                  Voltar ao Início
-                </button>
-              </div>
-
               {/* VISTA AI com Logo - Centralizado e Maior */}
               <div className="text-center">
                 <div className="flex items-center justify-center gap-6 mb-8">
