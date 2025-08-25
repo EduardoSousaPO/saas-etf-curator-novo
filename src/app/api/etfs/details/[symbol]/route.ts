@@ -106,16 +106,16 @@ export async function GET(
       // Manter compatibilidade com campos existentes
       ten_year_return: etfDetails.ten_year_return || etfDetails.returns_5y,
       
-      // Converter percentuais do banco para formato decimal para o frontend
-      returns_12m: etfDetails.returns_12m ? Number(etfDetails.returns_12m) / 100 : null,
-      returns_24m: etfDetails.returns_24m ? Number(etfDetails.returns_24m) / 100 : null,
-      returns_36m: etfDetails.returns_36m ? Number(etfDetails.returns_36m) / 100 : null,
-      returns_5y: etfDetails.returns_5y ? Number(etfDetails.returns_5y) / 100 : null,
-      volatility_12m: etfDetails.volatility_12m ? Number(etfDetails.volatility_12m) / 100 : null,
-      volatility_24m: etfDetails.volatility_24m ? Number(etfDetails.volatility_24m) / 100 : null,
-      volatility_36m: etfDetails.volatility_36m ? Number(etfDetails.volatility_36m) / 100 : null,
-      ten_year_volatility: etfDetails.ten_year_volatility ? Number(etfDetails.ten_year_volatility) / 100 : null,
-      max_drawdown: etfDetails.max_drawdown ? Number(etfDetails.max_drawdown) / 100 : null,
+      // Manter valores percentuais como estão no banco (formatPercentage fará detecção inteligente)
+      returns_12m: etfDetails.returns_12m ? Number(etfDetails.returns_12m) : null,
+      returns_24m: etfDetails.returns_24m ? Number(etfDetails.returns_24m) : null,
+      returns_36m: etfDetails.returns_36m ? Number(etfDetails.returns_36m) : null,
+      returns_5y: etfDetails.returns_5y ? Number(etfDetails.returns_5y) : null,
+      volatility_12m: etfDetails.volatility_12m ? Number(etfDetails.volatility_12m) : null,
+      volatility_24m: etfDetails.volatility_24m ? Number(etfDetails.volatility_24m) : null,
+      volatility_36m: etfDetails.volatility_36m ? Number(etfDetails.volatility_36m) : null,
+      ten_year_volatility: etfDetails.ten_year_volatility ? Number(etfDetails.ten_year_volatility) : null,
+      max_drawdown: etfDetails.max_drawdown ? Number(etfDetails.max_drawdown) : null,
       
       // Novos campos enriquecidos
       beta_12m: etfDetails.beta_12m,

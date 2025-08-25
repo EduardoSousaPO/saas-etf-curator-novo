@@ -106,12 +106,12 @@ export async function GET(request: NextRequest) {
       query = query.lte('expenseratio', expenseRatioMax / 100);
     }
     
-    // Aplicar filtros de performance
+    // Aplicar filtros de performance (valores já estão em formato percentual no banco)
     if (returns12mMin) {
-      query = query.gte('returns_12m', returns12mMin / 100);
+      query = query.gte('returns_12m', returns12mMin);
     }
     if (returns12mMax) {
-      query = query.lte('returns_12m', returns12mMax / 100);
+      query = query.lte('returns_12m', returns12mMax);
     }
     
     // Aplicar ordenação
