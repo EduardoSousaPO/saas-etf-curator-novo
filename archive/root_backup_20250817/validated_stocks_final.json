@@ -1,0 +1,272 @@
+[
+  {
+    "ticker": "CLDI",
+    "name": "Calidi Biotherapeutics",
+    "sector": "Biotechnology & Medical Research",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:52.221659",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "AMD",
+    "name": "Advanced Micro Devices",
+    "sector": "Semiconductors & Semiconductor Equipment",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:52.722142",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "DNN",
+    "name": "Denison Mines",
+    "sector": "Uranium",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:53.222847",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BBAI",
+    "name": "BigBear.ai Holdings",
+    "sector": "Software & IT Services",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:53.723260",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "AAL",
+    "name": "American Airlines Group",
+    "sector": "Passenger Transportation Services",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:54.223779",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "DRRX",
+    "name": "DURECT Corporation",
+    "sector": "Pharmaceuticals",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:54.724044",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "SMCI",
+    "name": "Super Micro Computer",
+    "sector": "Computers, Phones & Household Electronics",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:55.224541",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "AMDL",
+    "name": "GrnShs:2x Lg AMD Dly",
+    "sector": "ETF/Leveraged",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:55.725112",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "ADAP",
+    "name": "Adaptimmune Therapeutics",
+    "sector": "Pharmaceuticals",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:56.225493",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BMNR",
+    "name": "Bitmine Immersion Technologies",
+    "sector": "Financial Technology",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:56.725840",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "F",
+    "name": "Ford Motor Company",
+    "sector": "Automobiles & Auto Parts",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:00.227802",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BTBT",
+    "name": "Bit Digital",
+    "sector": "Financial Technology",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:00.728291",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "CAN",
+    "name": "Canaan Inc",
+    "sector": "Financial Technology",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:01.228548",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "AAPL",
+    "name": "Apple Inc",
+    "sector": "Computers, Phones & Household Electronics",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:01.729255",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "CASK",
+    "name": "Heritage Distilling",
+    "sector": "Beverages",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:02.229730",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "CSX",
+    "name": "CSX Corporation",
+    "sector": "Freight & Logistics Services",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:02.729957",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "MARA",
+    "name": "MARA Holdings",
+    "sector": "Financial Technology",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:03.230433",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BTG",
+    "name": "B2Gold Corp",
+    "sector": "Metals & Mining",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:03.730621",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "LIDR",
+    "name": "AEye Inc",
+    "sector": "Electronic Equipment & Parts",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:04.231270",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "ACHR",
+    "name": "Archer Aviation",
+    "sector": "Aerospace & Defense",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:04.731680",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "NU",
+    "name": "Nu Holdings Ltd",
+    "sector": "Banking Services",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:08.233750",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BITF",
+    "name": "Bitfarms Ltd",
+    "sector": "Financial Technology",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:08.734487",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "AMZN",
+    "name": "Amazon.com Inc",
+    "sector": "Diversified Retail",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:09.234900",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BTE",
+    "name": "Baytex Energy",
+    "sector": "Oil & Gas",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:09.735575",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "MRK",
+    "name": "Merck & Co Inc",
+    "sector": "Pharmaceuticals",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:10.235979",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BCS",
+    "name": "Barclays PLC",
+    "sector": "Banking Services",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:10.736676",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BBD",
+    "name": "Banco Bradesco",
+    "sector": "Banking Services",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:11.237352",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "ADIL",
+    "name": "Adial Pharmaceuticals",
+    "sector": "Biotechnology & Medical Research",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:11.737617",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BULL",
+    "name": "Webull Corporation",
+    "sector": "Financial Technology",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:12.238126",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "ABP",
+    "name": "Abpro Holdings",
+    "sector": "Biotechnology & Medical Research",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:12.738761",
+    "source": "perplexity_ai_mcp"
+  }
+]

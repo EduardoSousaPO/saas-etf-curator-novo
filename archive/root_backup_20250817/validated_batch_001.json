@@ -1,0 +1,92 @@
+[
+  {
+    "ticker": "CLDI",
+    "name": "Calidi Biotherapeutics",
+    "sector": "Biotechnology & Medical Research",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:52.221659",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "AMD",
+    "name": "Advanced Micro Devices",
+    "sector": "Semiconductors & Semiconductor Equipment",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:52.722142",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "DNN",
+    "name": "Denison Mines",
+    "sector": "Uranium",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:53.222847",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BBAI",
+    "name": "BigBear.ai Holdings",
+    "sector": "Software & IT Services",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:53.723260",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "AAL",
+    "name": "American Airlines Group",
+    "sector": "Passenger Transportation Services",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:54.223779",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "DRRX",
+    "name": "DURECT Corporation",
+    "sector": "Pharmaceuticals",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:54.724044",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "SMCI",
+    "name": "Super Micro Computer",
+    "sector": "Computers, Phones & Household Electronics",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:55.224541",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "AMDL",
+    "name": "GrnShs:2x Lg AMD Dly",
+    "sector": "ETF/Leveraged",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:55.725112",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "ADAP",
+    "name": "Adaptimmune Therapeutics",
+    "sector": "Pharmaceuticals",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:56.225493",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BMNR",
+    "name": "Bitmine Immersion Technologies",
+    "sector": "Financial Technology",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:48:56.725840",
+    "source": "perplexity_ai_mcp"
+  }
+]

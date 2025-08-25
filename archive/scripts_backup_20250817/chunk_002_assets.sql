@@ -1,0 +1,6 @@
+INSERT INTO assets_master (ticker, asset_type, name, exchange, sector, industry, currency, business_description) VALUES ('GOOGL', 'STOCK', 'Alphabet Inc.', 'NASDAQ', 'Communication Services', 'Internet Content & Information', 'USD', 'Alphabet Inc. provides various products and services worldwide through Google and Other Bets.'),
+('AMZN', 'STOCK', 'Amazon.com, Inc.', 'NASDAQ', 'Consumer Cyclical', 'Internet Retail', 'USD', 'Amazon.com, Inc. engages in the retail sale of consumer products and subscriptions.'),
+('MSFT', 'STOCK', 'Microsoft Corporation', 'NASDAQ', 'Technology', 'Software—Infrastructure', 'USD', 'Microsoft Corporation develops and supports software, services, devices and solutions worldwide.'),
+('AAPL', 'STOCK', 'Apple Inc.', 'NASDAQ', 'Technology', 'Consumer Electronics', 'USD', 'Apple Inc. designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories.'),
+('AMD', 'STOCK', 'Advanced Micro Devices, Inc.', 'NASDAQ', 'Technology', 'Semiconductors', 'USD', 'Advanced Micro Devices, Inc. operates as a semiconductor company worldwide.')
+ON CONFLICT (ticker) DO NOTHING;

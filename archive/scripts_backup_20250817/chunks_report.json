@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-08-17T00:21:14.238125",
+  "total_chunks": 2,
+  "total_stocks": 10,
+  "chunks": [
+    {
+      "chunk_id": 1,
+      "tickers": [
+        "TSLA",
+        "META",
+        "NVDA",
+        "NFLX",
+        "CRM"
+      ],
+      "assets_file": "scripts/chunk_001_assets.sql",
+      "metrics_file": "scripts/chunk_001_metrics.sql",
+      "status": "prepared"
+    },
+    {
+      "chunk_id": 2,
+      "tickers": [
+        "GOOGL",
+        "AMZN",
+        "MSFT",
+        "AAPL",
+        "AMD"
+      ],
+      "assets_file": "scripts/chunk_002_assets.sql",
+      "metrics_file": "scripts/chunk_002_metrics.sql",
+      "status": "prepared"
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ETF } from "../../types";
-import Navbar from "@/components/layout/Navbar";
+import UnifiedNavbar from "@/components/layout/UnifiedNavbar";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { toast } from "react-hot-toast";
 import { 
@@ -218,7 +218,7 @@ export default function RankingsPage() {
     return (
       <RequireAuth>
         <div className="min-h-screen bg-white">
-          <Navbar />
+          <UnifiedNavbar />
           <div className="max-w-7xl mx-auto px-6 py-24">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-2 border-black border-t-transparent mx-auto mb-8"></div>
@@ -235,7 +235,7 @@ export default function RankingsPage() {
     return (
       <RequireAuth>
         <div className="min-h-screen bg-white">
-          <Navbar />
+          <UnifiedNavbar />
           <div className="max-w-7xl mx-auto px-6 py-24">
             <div className="text-center">
               <div className="text-red-500 mb-8">
@@ -259,7 +259,7 @@ export default function RankingsPage() {
   return (
     <RequireAuth>
       <div className="min-h-screen bg-white">
-        <Navbar />
+        <UnifiedNavbar />
         
         {/* Hero Section - Tesla style */}
         <div className="bg-white">

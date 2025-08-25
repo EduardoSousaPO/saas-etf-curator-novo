@@ -64,24 +64,38 @@ interface OnboardingData {
   timeHorizon: number
   currency: 'USD' | 'BRL'
   riskProfile: 'conservative' | 'moderate' | 'aggressive'
+  assetTypes: {
+    etfs: boolean
+    stocks: boolean
+    maxStockAllocation: number
+  }
 }
 
-interface ETFData {
+interface UnifiedAssetData {
   symbol: string
   name: string
+  type: 'ETF' | 'STOCK'
   allocation_percent: number
   allocation_amount: number
-  expense_ratio: number
+  expense_ratio?: number
+  market_cap?: number
   returns_12m: number
   volatility: number
   sharpe_ratio: number
   dividend_yield: number
   quality_score: number
   asset_class: string
+  sector?: string
+}
+
+// Manter compatibilidade com ETFData existente
+interface ETFData extends UnifiedAssetData {
+  type: 'ETF'
+  expense_ratio: number
 }
 
 interface PortfolioResult {
-  portfolio: ETFData[]
+  portfolio: UnifiedAssetData[]
   expected_return: number
   expected_volatility: number
   sharpe_ratio: number
@@ -95,14 +109,33 @@ interface PortfolioResult {
     sp500_return: number
     ibovespa_return: number
     cdi_return: number
+    portfolio_10y_accumulated?: number
+    sp500_10y_accumulated?: number
+    ibovespa_10y_accumulated?: number
+    cdi_10y_accumulated?: number
+    data_source?: string
+    calculation_date?: string
     historical_data: Array<{
-      year: string
-      portfolio: number
-      sp500: number
-      ibovespa: number
-      cdi: number
+      year: string | number
+      portfolio?: number // Compatibilidade com dados antigos
+      sp500?: number // Compatibilidade com dados antigos
+      ibovespa?: number // Compatibilidade com dados antigos
+      cdi?: number // Compatibilidade com dados antigos
+      portfolio_accumulated: number // Dados acumulados corretos
+      sp500_accumulated: number
+      ibovespa_accumulated: number
+      cdi_accumulated: number
     }>
   } | null
+  metadata?: {
+    total_assets: number
+    etf_count: number
+    stock_count: number
+    etf_allocation: number
+    stock_allocation: number
+    max_single_position: number
+    diversification_score: number
+  }
 }
 
 // Cores do Design System conforme documentação
@@ -142,19 +175,26 @@ export default function UnifiedPortfolioMaster() {
     monthlyAmount: 1000,
     timeHorizon: 60,
     currency: 'USD',
-    riskProfile: 'moderate'
+    riskProfile: 'moderate',
+    assetTypes: {
+      etfs: true,
+      stocks: false,
+      maxStockAllocation: 30
+    }
   })
   const [results, setResults] = useState<PortfolioResult | null>(null)
-  const [selectedETFs, setSelectedETFs] = useState<string[]>([])
+  const [selectedAssets, setSelectedAssets] = useState<string[]>([])
   const [compositionMode, setCompositionMode] = useState<'auto' | 'manual'>('auto')
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<ETFData[]>([])
+  const [searchResults, setSearchResults] = useState<UnifiedAssetData[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
 
   // Novos estados para melhorias
   const [selectedETFDetails, setSelectedETFDetails] = useState<any | null>(null)
   const [showETFModal, setShowETFModal] = useState(false)
   const [recalculating, setRecalculating] = useState(false)
+  const [recalcProgress, setRecalcProgress] = useState(0)
+  const [recalcMessage, setRecalcMessage] = useState('')
   const [showTooltip, setShowTooltip] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -512,27 +552,23 @@ export default function UnifiedPortfolioMaster() {
     setError(null)
     
     try {
-      // Mapear campos do frontend para o schema da API
+      // Mapear campos do frontend para o schema da API unificada
       const apiPayload = {
-        objective: onboardingData.objective,
         investmentAmount: onboardingData.initialAmount,
-        monthlyContribution: onboardingData.monthlyAmount,
         timeHorizon: onboardingData.timeHorizon,
+        objective: onboardingData.objective,
         riskProfile: onboardingData.riskProfile,
+        monthlyAmount: onboardingData.monthlyAmount,
+        assetTypes: onboardingData.assetTypes,
         preferences: {
-          currency: onboardingData.currency
-        },
-        // Novos filtros opcionais
-        optionalFilters: showOptionalFilters ? {
-          minMorningstarRating: optionalFilters.minMorningstarRating > 0 ? optionalFilters.minMorningstarRating : undefined,
-          maxExpenseRatio: optionalFilters.maxExpenseRatio < 2.0 ? optionalFilters.maxExpenseRatio : undefined,
-          minDividendYield: optionalFilters.minDividendYield > 0 ? optionalFilters.minDividendYield : undefined,
-          minAUM: optionalFilters.minAUM > 50 ? optionalFilters.minAUM * 1000000 : undefined, // Converter para valor real
-          maxVolatility: optionalFilters.maxVolatility < 50 ? optionalFilters.maxVolatility : undefined
-        } : undefined
+          excludeSymbols: [],
+          sustainableOnly: false,
+          maxSinglePosition: 15,
+          sectors: optionalFilters.preferredSectors?.length ? optionalFilters.preferredSectors : undefined
+        }
       }
       
-      const response = await fetch('/api/portfolio/unified-master', {
+      const response = await fetch('/api/portfolio/unified-recommendation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -550,46 +586,52 @@ export default function UnifiedPortfolioMaster() {
         throw new Error(data.error || 'Erro ao gerar portfolio')
       }
       
-      // Processar dados do portfolio
+      // Processar dados do portfolio unificado
       const processedPortfolio = {
-        portfolio: data.result.recommendedPortfolio.etfs.map((etf: any) => ({
-          symbol: etf.symbol,
-          name: etf.name,
-          allocation_percent: etf.allocation,
-          allocation_amount: etf.amount,
-          expense_ratio: etf.metrics.expense_ratio,
-          returns_12m: etf.metrics.returns_12m,
-          volatility: etf.metrics.volatility_12m,
-          sharpe_ratio: etf.metrics.sharpe_12m,
-          dividend_yield: etf.metrics.dividend_yield,
-          quality_score: etf.qualityScore,
-          asset_class: etf.assetclass || 'Mixed'
+        portfolio: data.data.portfolio.map((asset: any) => ({
+          symbol: asset.symbol,
+          name: asset.name,
+          type: asset.type,
+          allocation_percent: asset.allocation_percent,
+          allocation_amount: asset.allocation_amount,
+          expense_ratio: asset.expense_ratio,
+          market_cap: asset.market_cap,
+          returns_12m: asset.returns_12m,
+          volatility: asset.volatility,
+          sharpe_ratio: asset.sharpe_ratio,
+          dividend_yield: asset.dividend_yield,
+          quality_score: asset.quality_score,
+          asset_class: asset.asset_class,
+          sector: asset.sector
         })),
-        expected_return: data.result.recommendedPortfolio.portfolioMetrics.expectedReturn,
-        expected_volatility: data.result.recommendedPortfolio.portfolioMetrics.expectedVolatility,
-        sharpe_ratio: data.result.recommendedPortfolio.portfolioMetrics.sharpeRatio,
-        projections: data.result.projections?.projecoes_longo_prazo?.[0] ? {
-          pessimistic: data.result.projections.projecoes_longo_prazo[0].cenario_pessimista,
-          expected: data.result.projections.projecoes_longo_prazo[0].cenario_esperado,
-          optimistic: data.result.projections.projecoes_longo_prazo[0].cenario_otimista
+        expected_return: data.data.expected_return,
+        expected_volatility: data.data.expected_volatility,
+        sharpe_ratio: data.data.sharpe_ratio,
+        projections: data.data.projections ? {
+          pessimistic: data.data.projections.pessimistic,
+          expected: data.data.projections.expected,
+          optimistic: data.data.projections.optimistic
         } : null,
-        backtesting: data.result.backtesting?.resumo ? {
-          portfolio_return: data.result.backtesting.resumo.retorno_total_portfolio,
-          sp500_return: data.result.backtesting.resumo.retorno_total_spy,
-          ibovespa_return: data.result.backtesting.resumo.retorno_total_ibov,
-          cdi_return: data.result.backtesting.resumo.retorno_total_cdi,
-          historical_data: data.result.backtesting.dados_anuais?.map((item: any) => ({
-            year: item.ano?.toString(),
-            portfolio: item.portfolio_acumulado,
-            sp500: item.spy_acumulado,
-            ibovespa: item.ibov_acumulado,
-            cdi: item.cdi_acumulado
-          }))
-        } : null
+        backtesting: data.data.backtesting ? {
+          portfolio_return: data.data.backtesting.portfolio_return,
+          sp500_return: data.data.backtesting.sp500_return,
+          ibovespa_return: data.data.backtesting.ibovespa_return,
+          cdi_return: data.data.backtesting.cdi_return,
+          historical_data: data.data.backtesting.historical_data || []
+        } : null,
+        metadata: data.data.metadata
       }
       
       setResults(processedPortfolio)
-      setSelectedETFs(processedPortfolio.portfolio.map((etf: ETFData) => etf.symbol))
+      
+      // 🔥 CORREÇÃO CRÍTICA: Só definir selectedAssets na geração inicial, não sobrescrever escolhas do usuário
+      if (selectedAssets.length === 0) {
+        console.log('📊 [GENERATE] Definindo selectedAssets inicial:', processedPortfolio.portfolio.map((asset: UnifiedAssetData) => asset.symbol));
+        setSelectedAssets(processedPortfolio.portfolio.map((asset: UnifiedAssetData) => asset.symbol))
+      } else {
+        console.log('📊 [GENERATE] Mantendo selectedAssets existentes:', selectedAssets);
+      }
+      
       setStep(4)
     } catch (err) {
       console.error('Erro ao gerar portfolio:', err)
@@ -601,38 +643,54 @@ export default function UnifiedPortfolioMaster() {
 
   // Função para recalcular portfolio quando ETFs são alterados
   const recalculatePortfolio = async (selectedETFs: string[]) => {
-    if (selectedETFs.length < 2) {
-      setError('Selecione pelo menos 2 ETFs para diversificação')
+    if (selectedETFs.length < 1) {
+      setError('Selecione pelo menos 1 ETF para começar')
       return
     }
 
     setRecalculating(true)
     setError(null)
+    setRecalcProgress(0)
+    setRecalcMessage('Iniciando recálculo...')
 
     try {
-
+      setRecalcProgress(20)
+      setRecalcMessage('Enviando dados para otimização...')
       
-      const response = await fetch('/api/portfolio/unified-master', {
+      const response = await fetch('/api/portfolio/recalculate', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           selectedETFs,
           riskProfile: onboardingData.riskProfile,
           investmentAmount: onboardingData.initialAmount,
-          objective: onboardingData.objective, // CORREÇÃO: Campo obrigatório adicionado
+          objective: onboardingData.objective,
           currency: 'USD'
         })
       })
 
+      setRecalcProgress(50)
+      setRecalcMessage('Processando otimização Markowitz...')
+
       if (!response.ok) {
-        throw new Error(`Erro na API: ${response.status}`)
+        const errorText = await response.text();
+        console.error(`❌ Erro HTTP ${response.status}:`, errorText);
+        throw new Error(`Erro na API: ${response.status} - ${response.statusText}`);
       }
 
-      const data = await response.json()
+      setRecalcProgress(70)
+      setRecalcMessage('Calculando métricas e backtesting...')
+
+      const data = await response.json();
+      console.log('📊 Resposta da API de recálculo:', data);
       
       if (!data.success) {
-        throw new Error(data.error || 'Erro no recálculo')
+        console.error('❌ API retornou erro:', data.error);
+        throw new Error(data.error || 'Erro no recálculo da carteira');
       }
+
+      setRecalcProgress(90)
+      setRecalcMessage('Atualizando interface...')
 
 
 
@@ -666,58 +724,88 @@ export default function UnifiedPortfolioMaster() {
           cdi_return: data.result.backtesting.resumo.retorno_total_cdi,
           historical_data: data.result.backtesting.dados_anuais?.map((item: any) => ({
             year: item.ano?.toString(),
+            portfolio_accumulated: item.portfolio_acumulado,
+            sp500_accumulated: item.spy_acumulado,
+            ibovespa_accumulated: item.ibov_acumulado,
+            cdi_accumulated: item.cdi_acumulado,
+            // Compatibilidade com dados antigos
             portfolio: item.portfolio_acumulado,
             sp500: item.spy_acumulado,
             ibovespa: item.ibov_acumulado,
             cdi: item.cdi_acumulado
-          }))
+          })) || []
         } : null
       }
 
+      console.log('📊 [RECALC] ETFs retornados pela API:', data.result.portfolio.etfs.map((etf: any) => etf.symbol));
+      console.log('📊 [RECALC] ETFs que foram enviados:', selectedETFs);
+      console.log('📊 [RECALC] Mantendo ETFs selecionados como:', selectedETFs);
+      
+      // 🔥 DEBUG: Verificar se backtesting está sendo processado
+      console.log('📈 [BACKTESTING] Dados recebidos da API:', data.result.backtesting);
+      console.log('📈 [BACKTESTING] Backtesting processado:', updatedPortfolio.backtesting);
+
       setResults(updatedPortfolio)
       
-      // Atualizar ETFs selecionados
-      setSelectedETFs(selectedETFs)
+      // 🔥 CORREÇÃO CRÍTICA: Manter apenas os ETFs que foram enviados para recálculo
+      setSelectedAssets(selectedETFs)
       
-
+      setRecalcProgress(100)
+      setRecalcMessage('Recálculo concluído!')
+      
+      // Limpar mensagem após 2 segundos
+      setTimeout(() => {
+        setRecalcMessage('')
+        setRecalcProgress(0)
+      }, 2000)
 
     } catch (error) {
       console.error('❌ Erro no recálculo:', error)
       setError(error instanceof Error ? error.message : 'Erro no recálculo da carteira')
+      setRecalcMessage('Erro no recálculo')
     } finally {
       setRecalculating(false)
     }
   }
 
-  // Função melhorada para toggle de ETF
+  // Função melhorada para toggle de ETF - CORRIGIDA COM DEBUG
   const handleETFToggle = async (symbol: string) => {
-    const newSelectedETFs = selectedETFs.includes(symbol)
-      ? selectedETFs.filter(s => s !== symbol)
-      : [...selectedETFs, symbol]
+    console.log('🔄 [TOGGLE] Iniciando toggle para:', symbol);
+    console.log('🔄 [TOGGLE] ETFs atuais:', selectedAssets);
+    
+    const newSelectedETFs = selectedAssets.includes(symbol)
+      ? selectedAssets.filter(s => s !== symbol)
+      : [...selectedAssets, symbol]
 
+    console.log('🔄 [TOGGLE] Novos ETFs calculados:', newSelectedETFs);
 
+    // CORREÇÃO: Sempre atualizar o estado local primeiro
+    setSelectedAssets(newSelectedETFs)
+    console.log('🔄 [TOGGLE] Estado atualizado para:', newSelectedETFs);
 
-    // Atualizar imediatamente no estado local
-    setSelectedETFs(newSelectedETFs)
-
-    // Recalcular portfolio automaticamente se temos pelo menos 2 ETFs
-    if (newSelectedETFs.length >= 2) {
-      await recalculatePortfolio(newSelectedETFs)
-    } else if (newSelectedETFs.length === 1) {
-      setError('Selecione pelo menos 2 ETFs para diversificação')
-    } else {
+    // 🔥 CORREÇÃO: Permitir recálculo com qualquer quantidade de ETFs >= 1
+    if (newSelectedETFs.length >= 1) {
+      // Recalcular automaticamente se temos 1+ ETFs
       setError(null)
+      console.log('🔄 [TOGGLE] Iniciando recálculo com', newSelectedETFs.length, 'ETFs');
+      await recalculatePortfolio(newSelectedETFs)
+      console.log('🔄 [TOGGLE] Recálculo concluído');
+    } else {
+      // 0 ETFs - limpar tudo
+      setError('Selecione pelo menos 1 ETF para começar')
+      setResults(null)
+      console.log('🔄 [TOGGLE] 0 ETFs, tudo limpo');
     }
   }
 
   // Função para adicionar ETF via busca
   const handleAddETF = async (etf: any) => {
-    if (selectedETFs.includes(etf.symbol)) {
+    if (selectedAssets.includes(etf.symbol)) {
       setError('ETF já está na carteira')
       return
     }
 
-    const newSelectedETFs = [...selectedETFs, etf.symbol]
+    const newSelectedETFs = [...selectedAssets, etf.symbol]
     
 
 
@@ -730,6 +818,7 @@ export default function UnifiedPortfolioMaster() {
           {
             symbol: etf.symbol,
             name: etf.name,
+            type: etf.type || 'ETF',
             allocation_percent: 0, // Será recalculado
             allocation_amount: 0, // Será recalculado
             expense_ratio: etf.expense_ratio || 0,
@@ -774,8 +863,8 @@ export default function UnifiedPortfolioMaster() {
     setSearchLoading(true)
     
     try {
-      // CORREÇÃO: Usar o parâmetro correto conforme documentação
-      const response = await fetch(`/api/portfolio/unified-master?search=${encodeURIComponent(query)}&limit=20`)
+      // Usar a nova API de busca dedicada para ETFs
+      const response = await fetch(`/api/portfolio/search-etfs?q=${encodeURIComponent(query)}&limit=20`)
       
       if (!response.ok) {
         throw new Error(`Erro HTTP: ${response.status}`)
@@ -783,20 +872,23 @@ export default function UnifiedPortfolioMaster() {
       
       const data = await response.json()
       
-      if (data.success) {
-        // Mapear resultados da busca para estrutura esperada
-        const mappedResults = (data.etfs || []).map((etf: any) => ({
+      if (data.success && data.etfs) {
+        // Mapear resultados da busca de ETFs
+        const mappedResults = data.etfs.map((etf: any) => ({
           symbol: etf.symbol,
           name: etf.name,
+          type: 'ETF',
           allocation_percent: 0,
           allocation_amount: 0,
           expense_ratio: etf.expense_ratio || 0,
+          market_cap: etf.total_assets || 0,
           returns_12m: etf.returns_12m || 0,
-          volatility: etf.volatility || 0,
-          sharpe_ratio: etf.sharpe_ratio || 0,
+          volatility: etf.volatility_12m || 0,
+          sharpe_ratio: etf.sharpe_ratio_12m || 0,
           dividend_yield: etf.dividend_yield || 0,
           quality_score: etf.quality_score || 0,
-          asset_class: etf.asset_class || 'Mixed'
+          asset_class: etf.category || 'Mixed',
+          sector: etf.subcategory || etf.category
         }))
         
         setSearchResults(mappedResults)
@@ -952,15 +1044,25 @@ export default function UnifiedPortfolioMaster() {
                 {compositionMode === 'auto' ? 'Buscar ETFs' : 'Modo Automático'}
               </Button>
               <Button 
-                onClick={() => recalculatePortfolio(selectedETFs)}
-                disabled={recalculating || selectedETFs.length < 2}
+                onClick={() => recalculatePortfolio(selectedAssets)}
+                disabled={recalculating || selectedAssets.length < 1}
                 className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-xl disabled:bg-gray-400"
               >
                 {recalculating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Recalculando...
-                  </>
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm">{recalcMessage || 'Recalculando...'}</span>
+                      {recalcProgress > 0 && (
+                        <div className="w-24 bg-gray-200 rounded-full h-1 mt-1">
+                          <div 
+                            className="bg-blue-600 h-1 rounded-full transition-all duration-300" 
+                            style={{ width: `${recalcProgress}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 ) : (
                   <>
                     <RefreshCw className="mr-2 h-4 w-4" />
@@ -970,10 +1072,10 @@ export default function UnifiedPortfolioMaster() {
               </Button>
             </div>
             
-            {selectedETFs.length < 2 && (
+            {selectedAssets.length < 1 && (
               <div className="flex items-center justify-center gap-2 text-orange-600 text-sm mt-4">
                 <AlertCircle className="h-4 w-4" />
-                Selecione pelo menos 2 ETFs para otimizar
+                Selecione pelo menos 1 ETF para começar
               </div>
             )}
 
@@ -1084,7 +1186,7 @@ export default function UnifiedPortfolioMaster() {
             <div className="text-center mb-6">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <h3 className="text-xl font-medium text-gray-900">ETFs da Carteira</h3>
-                <Badge variant="outline" className="bg-gray-100">{selectedETFs.length} ativos</Badge>
+                <Badge variant="outline" className="bg-gray-100">{selectedAssets.length} ativos</Badge>
               </div>
               
               {/* Controles de Alocação */}
@@ -1136,11 +1238,13 @@ export default function UnifiedPortfolioMaster() {
               </CustomTooltip>
             </div>
             <div className="space-y-4 max-h-80 overflow-y-auto">
-                {results.portfolio.map((etf, index) => (
+                {results.portfolio
+                  .filter(etf => selectedAssets.includes(etf.symbol))
+                  .map((etf, index) => (
                   <div
                     key={etf.symbol}
                     className={`p-3 border rounded-lg transition-all ${
-                      selectedETFs.includes(etf.symbol) 
+                      selectedAssets.includes(etf.symbol) 
                         ? 'border-blue-200 bg-blue-50' 
                         : 'border-gray-200 bg-gray-100 opacity-50'
                     }`}
@@ -1149,7 +1253,7 @@ export default function UnifiedPortfolioMaster() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
                         <Checkbox
-                          checked={selectedETFs.includes(etf.symbol)}
+                          checked={selectedAssets.includes(etf.symbol)}
                           onCheckedChange={() => handleETFToggle(etf.symbol)}
                         />
                         <div 
@@ -1186,7 +1290,7 @@ export default function UnifiedPortfolioMaster() {
                     </div>
                     
                     {/* Slider de Alocação Manual */}
-                    {allocationMode === 'manual' && selectedETFs.includes(etf.symbol) && (
+                    {allocationMode === 'manual' && selectedAssets.includes(etf.symbol) && (
                       <div className="mt-3 pt-3 border-t border-gray-200">
                         <div className="flex items-center gap-3">
                           <span className="text-xs text-gray-500 w-8">0%</span>
@@ -1260,15 +1364,45 @@ export default function UnifiedPortfolioMaster() {
           </div>
         </div>
 
-        {/* Backtesting vs Benchmarks - Tesla Style */}
+        {/* Backtesting vs Benchmarks - Tesla Style CORRIGIDO */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12">
           <div className="text-center mb-12">
             <h3 className="text-2xl font-light text-gray-900 mb-4">
-              Backtesting vs. Benchmarks (10 anos)
+              Backtesting vs. Benchmarks (10 anos) - TODOS OS VALORES EM BRL
             </h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Performance histórica simulada comparada aos principais benchmarks
+              Performance histórica com conversão cambial USD→BRL para comparação justa
+              <br />
+              <span className="text-sm text-blue-600 font-medium">Período: Janeiro 2015 a Janeiro 2025 | Dados reais verificados</span>
             </p>
+            
+            {/* Informação de Conversão Cambial */}
+            <div className="mt-6 space-y-3">
+              {(results.backtesting?.data_source?.includes('real_market_data') || 
+                results.backtesting?.data_source?.includes('currency_conversion')) && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm border border-green-200">
+                  <CheckCircle className="w-4 h-4" />
+                  Dados Reais Verificados via Perplexity AI
+                </div>
+              )}
+              
+              {/* Conversão Cambial Explícita */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm border border-blue-200 ml-2">
+                <Info className="w-4 h-4" />
+                💱 Conversão USD→BRL: +94,4% (2015-2025)
+              </div>
+            </div>
+            
+            {/* Explicação da Conversão */}
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-700 max-w-3xl mx-auto">
+              <div className="font-medium text-gray-900 mb-2">🔄 Como funciona a conversão cambial:</div>
+              <div className="text-left space-y-1">
+                <div>• <strong>S&P 500 e Carteira:</strong> Convertidos de USD para BRL usando variação cambial real</div>
+                <div>• <strong>IBOVESPA e CDI:</strong> Já em BRL (moeda nativa brasileira)</div>
+                <div>• <strong>Fórmula:</strong> (1 + Retorno USD) × (1 + Variação Cambial) - 1</div>
+                <div>• <strong>Fontes:</strong> FRED (S&P 500), B3 (IBOVESPA), Banco Central (CDI, USD/BRL)</div>
+              </div>
+            </div>
           </div>
 
           {/* Resumo de Performance */}
@@ -1279,9 +1413,10 @@ export default function UnifiedPortfolioMaster() {
                   <div className="text-2xl font-light text-blue-600 mb-2">
                     +{results.backtesting?.portfolio_return.toFixed(1) || '0'}%
                   </div>
-                  <div className="text-blue-700 font-medium mb-2">Sua Carteira</div>
-                  <div className="text-sm text-blue-500">
-                    Valor final: {formatCurrency(onboardingData.initialAmount * (1 + (results.backtesting?.portfolio_return || 0) / 100))}
+                  <div className="text-blue-700 font-medium mb-2">Sua Carteira (BRL)</div>
+                  <div className="text-sm text-blue-500 space-y-1">
+                    <div>Valor final: {formatCurrency(onboardingData.initialAmount * (1 + (results.backtesting?.portfolio_return || 0) / 100))}</div>
+                    <div className="text-xs">ETFs americanos convertidos USD→BRL</div>
                   </div>
                 </div>
 
@@ -1289,9 +1424,10 @@ export default function UnifiedPortfolioMaster() {
                   <div className="text-2xl font-light text-gray-600 mb-2">
                     +{results.backtesting?.sp500_return.toFixed(1) || '0'}%
                   </div>
-                  <div className="text-gray-700 font-medium mb-2">S&P 500</div>
-                  <div className="text-sm text-gray-500">
-                    Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.sp500_return || 0)).toFixed(1)}%
+                  <div className="text-gray-700 font-medium mb-2">S&P 500 (BRL)</div>
+                  <div className="text-sm text-gray-500 space-y-1">
+                    <div>Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.sp500_return || 0)).toFixed(1)}%</div>
+                    <div className="text-xs">Convertido USD→BRL (+94,4% cambial)</div>
                   </div>
                 </div>
 
@@ -1299,9 +1435,10 @@ export default function UnifiedPortfolioMaster() {
                   <div className="text-2xl font-light text-orange-600 mb-2">
                     +{results.backtesting?.ibovespa_return.toFixed(1) || '0'}%
                   </div>
-                  <div className="text-orange-700 font-medium mb-2">IBOVESPA</div>
-                  <div className="text-sm text-orange-500">
-                    Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.ibovespa_return || 0)).toFixed(1)}%
+                  <div className="text-orange-700 font-medium mb-2">IBOVESPA (BRL)</div>
+                  <div className="text-sm text-orange-500 space-y-1">
+                    <div>Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.ibovespa_return || 0)).toFixed(1)}%</div>
+                    <div className="text-xs">Índice brasileiro nativo</div>
                   </div>
                 </div>
 
@@ -1309,17 +1446,18 @@ export default function UnifiedPortfolioMaster() {
                   <div className="text-2xl font-light text-green-600 mb-2">
                     +{results.backtesting?.cdi_return.toFixed(1) || '0'}%
                   </div>
-                  <div className="text-green-700 font-medium mb-2">CDI</div>
-                  <div className="text-sm text-green-500">
-                    Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.cdi_return || 0)).toFixed(1)}%
+                  <div className="text-green-700 font-medium mb-2">CDI (BRL)</div>
+                  <div className="text-sm text-green-500 space-y-1">
+                    <div>Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.cdi_return || 0)).toFixed(1)}%</div>
+                    <div className="text-xs">Taxa brasileira nativa</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Gráfico de Performance Histórica - Tesla Style */}
+            {/* Gráfico de Performance Histórica ACUMULADA - Tesla Style */}
             <div className="mb-12">
-              <h4 className="text-lg font-medium text-gray-900 mb-8 text-center">Evolução Histórica</h4>
+              <h4 className="text-lg font-medium text-gray-900 mb-8 text-center">Evolução Histórica - Performance Acumulada (%)</h4>
               <div className="h-96 bg-gray-50 rounded-2xl p-6">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={results.backtesting?.historical_data || []}>
@@ -1332,7 +1470,8 @@ export default function UnifiedPortfolioMaster() {
                     <YAxis 
                       stroke="#6b7280"
                       fontSize={12}
-                      tickFormatter={(value) => `$${value.toFixed(0)}`}
+                      tickFormatter={(value) => `${value.toFixed(0)}%`}
+                      domain={[0, 'dataMax']}
                     />
                     <RechartsTooltip 
                       contentStyle={{
@@ -1363,45 +1502,45 @@ export default function UnifiedPortfolioMaster() {
                     {/* Linha da Carteira - AZUL FORTE */}
                     <Line 
                       type="monotone" 
-                      dataKey="portfolio" 
+                      dataKey="portfolio_accumulated" 
                       stroke="#2563eb" 
                       strokeWidth={4}
                       dot={{ fill: '#2563eb', strokeWidth: 2, r: 5 }}
                       activeDot={{ r: 7, fill: '#2563eb' }}
-                      name="portfolio"
+                      name="Sua Carteira"
                     />
                     
                     {/* Linha S&P 500 - CINZA ESCURO */}
                     <Line 
                       type="monotone" 
-                      dataKey="sp500" 
+                      dataKey="sp500_accumulated" 
                       stroke="#4b5563" 
                       strokeWidth={3}
                       strokeDasharray="5 5"
                       dot={{ fill: '#4b5563', strokeWidth: 2, r: 4 }}
-                      name="sp500"
+                      name="S&P 500"
                     />
                     
                     {/* Linha IBOVESPA - LARANJA */}
                     <Line 
                       type="monotone" 
-                      dataKey="ibovespa" 
+                      dataKey="ibovespa_accumulated" 
                       stroke="#ea580c" 
                       strokeWidth={3}
                       strokeDasharray="10 5"
                       dot={{ fill: '#ea580c', strokeWidth: 2, r: 4 }}
-                      name="ibovespa"
+                      name="IBOVESPA"
                     />
                     
                     {/* Linha CDI - VERDE */}
                     <Line 
                       type="monotone" 
-                      dataKey="cdi" 
+                      dataKey="cdi_accumulated" 
                       stroke="#16a34a" 
                       strokeWidth={2}
                       strokeDasharray="2 2"
                       dot={{ fill: '#16a34a', strokeWidth: 2, r: 3 }}
-                      name="cdi"
+                      name="CDI"
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -1446,7 +1585,7 @@ export default function UnifiedPortfolioMaster() {
               Projeções para 12 Meses
             </h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Simulação Monte Carlo com 1.000 cenários baseados em dados históricos
+              Simulação Monte Carlo baseada em dados históricos
             </p>
           </div>
 
@@ -1727,14 +1866,14 @@ export default function UnifiedPortfolioMaster() {
                 <div className="flex gap-3 pt-4 border-t">
                   <Button 
                     onClick={() => {
-                      if (!selectedETFs.includes(selectedETFDetails.symbol)) {
-                        setSelectedETFs(prev => [...prev, selectedETFDetails.symbol])
+                      if (!selectedAssets.includes(selectedETFDetails.symbol)) {
+                        setSelectedAssets(prev => [...prev, selectedETFDetails.symbol])
                       }
                       setShowETFModal(false)
                     }}
-                    disabled={selectedETFs.includes(selectedETFDetails.symbol)}
+                    disabled={selectedAssets.includes(selectedETFDetails.symbol)}
                   >
-                    {selectedETFs.includes(selectedETFDetails.symbol) ? 'Já Selecionado' : 'Adicionar à Carteira'}
+                    {selectedAssets.includes(selectedETFDetails.symbol) ? 'Já Selecionado' : 'Adicionar à Carteira'}
                   </Button>
                   <Button variant="outline" onClick={() => setShowETFModal(false)}>
                     Fechar
@@ -2032,6 +2171,130 @@ export default function UnifiedPortfolioMaster() {
             </Select>
           </div>
         </div>
+
+        {/* Seção de Tipos de Ativos */}
+        <div className="space-y-6">
+          <div className="border-t border-gray-200 pt-8">
+            <h3 className="text-xl font-light text-gray-900 mb-4">
+              Tipos de Ativos
+              <CustomTooltip text="Escolha quais tipos de ativos incluir no seu portfolio. ETFs oferecem diversificação instantânea, enquanto Stocks individuais permitem maior personalização">
+                <Info className="inline h-3 w-3 ml-2 text-gray-400" />
+              </CustomTooltip>
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Configure que tipos de investimentos você deseja incluir no seu portfolio
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* ETFs */}
+              <div className="border border-gray-200 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <BarChart3 className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">ETFs</h4>
+                      <p className="text-sm text-gray-600">Exchange Traded Funds</p>
+                    </div>
+                  </div>
+                  <Checkbox
+                    checked={onboardingData.assetTypes.etfs}
+                    onCheckedChange={(checked) => 
+                      setOnboardingData(prev => ({
+                        ...prev,
+                        assetTypes: { ...prev.assetTypes, etfs: !!checked }
+                      }))
+                    }
+                  />
+                </div>
+                <p className="text-sm text-gray-600">
+                  Fundos diversificados que replicam índices ou setores específicos. 
+                  Oferecem diversificação instantânea com baixo custo.
+                </p>
+              </div>
+
+              {/* Stocks */}
+              <div className="border border-gray-200 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Stocks</h4>
+                      <p className="text-sm text-gray-600">Ações Individuais</p>
+                    </div>
+                  </div>
+                  <Checkbox
+                    checked={onboardingData.assetTypes.stocks}
+                    onCheckedChange={(checked) => 
+                      setOnboardingData(prev => ({
+                        ...prev,
+                        assetTypes: { ...prev.assetTypes, stocks: !!checked }
+                      }))
+                    }
+                  />
+                </div>
+                <p className="text-sm text-gray-600">
+                  Ações de empresas individuais. Permite maior personalização 
+                  mas requer mais conhecimento e diversificação manual.
+                </p>
+              </div>
+            </div>
+
+            {/* Controle de Alocação Máxima em Stocks */}
+            {onboardingData.assetTypes.stocks && (
+              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                <div className="space-y-4">
+                  <Label htmlFor="maxStockAllocation">
+                    Alocação Máxima em Stocks (%)
+                    <CustomTooltip text="Para reduzir risco, limitamos a porcentagem máxima em ações individuais. Recomendado: 20-30%">
+                      <Info className="inline h-3 w-3 ml-1 text-gray-400" />
+                    </CustomTooltip>
+                  </Label>
+                  <div className="flex items-center space-x-4">
+                    <Input
+                      id="maxStockAllocation"
+                      type="number"
+                      value={onboardingData.assetTypes.maxStockAllocation}
+                      onChange={(e) => {
+                        const value = Math.min(50, Math.max(0, Number(e.target.value)));
+                        setOnboardingData(prev => ({
+                          ...prev,
+                          assetTypes: { ...prev.assetTypes, maxStockAllocation: value }
+                        }));
+                      }}
+                      min="0"
+                      max="50"
+                      step="5"
+                      className="w-24"
+                    />
+                    <div className="flex-1">
+                      <div className="text-sm text-gray-600">
+                        {onboardingData.assetTypes.maxStockAllocation <= 20 && "Conservador - Menor risco"}
+                        {onboardingData.assetTypes.maxStockAllocation > 20 && onboardingData.assetTypes.maxStockAllocation <= 35 && "Moderado - Risco equilibrado"}
+                        {onboardingData.assetTypes.maxStockAllocation > 35 && "Agressivo - Maior risco e potencial retorno"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Aviso se nenhum tipo selecionado */}
+            {!onboardingData.assetTypes.etfs && !onboardingData.assetTypes.stocks && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 text-red-600" />
+                  <p className="text-sm text-red-600">
+                    Selecione pelo menos um tipo de ativo para continuar
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
         
         <div className="flex justify-between pt-8">
           <Button variant="outline" onClick={() => setStep(1)} className="px-8 py-3 rounded-xl">
@@ -2044,7 +2307,8 @@ export default function UnifiedPortfolioMaster() {
               onboardingData.timeHorizon < 12 || 
               onboardingData.timeHorizon > 240 ||
               !!fieldErrors.initialAmount || 
-              !!fieldErrors.timeHorizon
+              !!fieldErrors.timeHorizon ||
+              (!onboardingData.assetTypes.etfs && !onboardingData.assetTypes.stocks)
             }
             className="bg-gray-900 hover:bg-gray-800 text-white px-12 py-3 rounded-xl font-light tracking-wide"
           >

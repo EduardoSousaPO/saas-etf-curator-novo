@@ -1,0 +1,50 @@
+{
+  "results": {
+    "success": false,
+    "error": "Falha na conexão API"
+  },
+  "execution_log": [
+    {
+      "timestamp": "2025-08-17T00:28:55.292977",
+      "elapsed_seconds": 3.1e-05,
+      "type": "STARTUP",
+      "message": "Iniciando executor via API",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:28:55.293031",
+      "elapsed_seconds": 7.9e-05,
+      "type": "SAMPLE_START",
+      "message": "Iniciando inserção de amostra",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:28:55.293063",
+      "elapsed_seconds": 0.000111,
+      "type": "API_TEST",
+      "message": "Testando conexão com API Supabase",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:28:55.330136",
+      "elapsed_seconds": 0.037189,
+      "type": "API_ERROR",
+      "message": "❌ Erro conexão: HTTPSConnectionPool(host='kpjbshzqpqnbdxvtgzau.supabase.co', port=443): Max retries exceeded with url: /rest/v1/stocks_ativos_reais?select=count&limit=1 (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x000001B53238F770>: Failed to resolve 'kpjbshzqpqnbdxvtgzau.supabase.co' ([Errno 11001] getaddrinfo failed)\"))",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:28:55.330343",
+      "elapsed_seconds": 0.037394,
+      "type": "REFRESH_MV",
+      "message": "Atualizando Materialized View",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:28:55.331369",
+      "elapsed_seconds": 0.038419,
+      "type": "REFRESH_ERROR",
+      "message": "❌ Erro: HTTPSConnectionPool(host='kpjbshzqpqnbdxvtgzau.supabase.co', port=443): Max retries exceeded with url: /rest/v1/rpc/refresh_stocks_view (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x000001B532387750>: Failed to resolve 'kpjbshzqpqnbdxvtgzau.supabase.co' ([Errno 11001] getaddrinfo failed)\"))",
+      "data": {}
+    }
+  ]
+}

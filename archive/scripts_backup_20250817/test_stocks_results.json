@@ -1,0 +1,72 @@
+[
+  {
+    "ticker": "AAPL",
+    "name": "Apple Inc.",
+    "sector": "Technology",
+    "industry": "Consumer Electronics",
+    "exchange": "NMS",
+    "current_price": 232.76980590820312,
+    "market_cap": 3454251302912,
+    "returns_12m": 5.472281344929741,
+    "volatility_12m": 32.107204292698476,
+    "pe_ratio": 35.37386,
+    "dividend_yield": 0.45,
+    "collected_at": "2025-08-14T15:23:39.832349"
+  },
+  {
+    "ticker": "MSFT",
+    "name": "Microsoft Corporation",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure",
+    "exchange": "NMS",
+    "current_price": 521.489990234375,
+    "market_cap": 3876323590144,
+    "returns_12m": 26.05868644397571,
+    "volatility_12m": 24.933777823081048,
+    "pe_ratio": 38.232403,
+    "dividend_yield": 0.64,
+    "collected_at": "2025-08-14T15:23:40.692791"
+  },
+  {
+    "ticker": "GOOGL",
+    "name": "Alphabet Inc.",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information",
+    "exchange": "NMS",
+    "current_price": 203.0850067138672,
+    "market_cap": 2461958930432,
+    "returns_12m": 27.248733930751467,
+    "volatility_12m": 31.05705878440327,
+    "pe_ratio": 21.67396,
+    "dividend_yield": 0.42,
+    "collected_at": "2025-08-14T15:23:41.501807"
+  },
+  {
+    "ticker": "AMZN",
+    "name": "Amazon.com, Inc.",
+    "sector": "Consumer Cyclical",
+    "industry": "Internet Retail",
+    "exchange": "NMS",
+    "current_price": 232.8043975830078,
+    "market_cap": 2482884575232,
+    "returns_12m": 36.86325057586004,
+    "volatility_12m": 34.10071107840081,
+    "pe_ratio": 35.489178,
+    "dividend_yield": null,
+    "collected_at": "2025-08-14T15:23:42.258987"
+  },
+  {
+    "ticker": "TSLA",
+    "name": "Tesla, Inc.",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers",
+    "exchange": "NMS",
+    "current_price": 333.2207946777344,
+    "market_cap": 1074786992128,
+    "returns_12m": 65.46865954822225,
+    "volatility_12m": 71.75614397891957,
+    "pe_ratio": 196.01222,
+    "dividend_yield": null,
+    "collected_at": "2025-08-14T15:23:43.265907"
+  }
+]

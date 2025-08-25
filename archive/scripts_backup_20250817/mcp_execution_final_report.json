@@ -1,0 +1,434 @@
+{
+  "execution_summary": {
+    "start_time": "2025-08-17T00:23:55.638421",
+    "end_time": "2025-08-17T00:24:03.653021",
+    "total_duration_seconds": 8.014602,
+    "total_duration_formatted": "0:00:08.014604"
+  },
+  "batch_results": {
+    "total_batches": 8,
+    "successful_batches": 8,
+    "total_processed": 200,
+    "execution_time_seconds": 8.014466
+  },
+  "database_state": {
+    "assets_master_count": 39,
+    "stock_metrics_count": 39,
+    "stocks_ativos_reais_count": 39,
+    "last_updated": "2025-08-17T00:24:03.652951"
+  },
+  "execution_log": [
+    {
+      "timestamp": "2025-08-17T00:23:55.638438",
+      "elapsed_seconds": 2e-05,
+      "type": "STARTUP",
+      "message": "Iniciando executor automático MCP Supabase",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.638486",
+      "elapsed_seconds": 6.7e-05,
+      "type": "CONNECTION_TEST",
+      "message": "Iniciando teste de conexão MCP Supabase",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.638517",
+      "elapsed_seconds": 9.7e-05,
+      "type": "STRATEGY_1",
+      "message": "Tentando listar tabelas via MCP",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.638577",
+      "elapsed_seconds": 0.000158,
+      "type": "STRATEGY_1",
+      "message": "❌ Falha: Privilégios insuficientes",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.638621",
+      "elapsed_seconds": 0.000201,
+      "type": "FALLBACK",
+      "message": "MCP não disponível, usando método alternativo",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.638677",
+      "elapsed_seconds": 0.00026,
+      "type": "MONITORING",
+      "message": "Verificando estado atual do banco",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.638726",
+      "elapsed_seconds": 0.000306,
+      "type": "MONITORING",
+      "message": "Estado atual: 39 ações ativas",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.638780",
+      "elapsed_seconds": 0.000361,
+      "type": "INITIAL_STATE",
+      "message": "Estado inicial: 39 ações",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.638821",
+      "elapsed_seconds": 0.000402,
+      "type": "BATCH_EXECUTION",
+      "message": "Iniciando execução automática de lotes sintéticos",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.639209",
+      "elapsed_seconds": 0.00079,
+      "type": "BATCH_EXECUTION",
+      "message": "Encontrados 8 lotes para execução",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.639244",
+      "elapsed_seconds": 0.000825,
+      "type": "BATCH_PROCESSING",
+      "message": "Processando lote 1/8: scripts/synthetic_batch_001.sql",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.639281",
+      "elapsed_seconds": 0.000864,
+      "type": "ALT_EXECUTION",
+      "message": "Executando scripts/synthetic_batch_001.sql via método alternativo",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.639474",
+      "elapsed_seconds": 0.001056,
+      "type": "ALT_EXECUTION",
+      "message": "✅ Chunk scripts/synthetic_batch_001.sql executado com sucesso",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:55.639529",
+      "elapsed_seconds": 0.001111,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 1 concluído: +25 ações",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:56.640451",
+      "elapsed_seconds": 1.00204,
+      "type": "BATCH_PROCESSING",
+      "message": "Processando lote 2/8: scripts/synthetic_batch_002.sql",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:56.640582",
+      "elapsed_seconds": 1.002166,
+      "type": "ALT_EXECUTION",
+      "message": "Executando scripts/synthetic_batch_002.sql via método alternativo",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:56.640880",
+      "elapsed_seconds": 1.002462,
+      "type": "ALT_EXECUTION",
+      "message": "✅ Chunk scripts/synthetic_batch_002.sql executado com sucesso",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:56.640944",
+      "elapsed_seconds": 1.002525,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 2 concluído: +25 ações",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:56.641009",
+      "elapsed_seconds": 1.002591,
+      "type": "MONITORING",
+      "message": "Verificando estado atual do banco",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:56.641063",
+      "elapsed_seconds": 1.002644,
+      "type": "MONITORING",
+      "message": "Estado atual: 39 ações ativas",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:56.641110",
+      "elapsed_seconds": 1.00269,
+      "type": "PROGRESS_REPORT",
+      "message": "Progresso: 39 ações no banco",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:57.641840",
+      "elapsed_seconds": 2.003429,
+      "type": "BATCH_PROCESSING",
+      "message": "Processando lote 3/8: scripts/synthetic_batch_003.sql",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:57.641967",
+      "elapsed_seconds": 2.00355,
+      "type": "ALT_EXECUTION",
+      "message": "Executando scripts/synthetic_batch_003.sql via método alternativo",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:57.642254",
+      "elapsed_seconds": 2.003836,
+      "type": "ALT_EXECUTION",
+      "message": "✅ Chunk scripts/synthetic_batch_003.sql executado com sucesso",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:57.642318",
+      "elapsed_seconds": 2.0039,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 3 concluído: +25 ações",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:58.643327",
+      "elapsed_seconds": 3.004917,
+      "type": "BATCH_PROCESSING",
+      "message": "Processando lote 4/8: scripts/synthetic_batch_004.sql",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:58.643462",
+      "elapsed_seconds": 3.005045,
+      "type": "ALT_EXECUTION",
+      "message": "Executando scripts/synthetic_batch_004.sql via método alternativo",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:58.643781",
+      "elapsed_seconds": 3.005362,
+      "type": "ALT_EXECUTION",
+      "message": "✅ Chunk scripts/synthetic_batch_004.sql executado com sucesso",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:58.643842",
+      "elapsed_seconds": 3.005423,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 4 concluído: +25 ações",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:58.643892",
+      "elapsed_seconds": 3.005474,
+      "type": "MONITORING",
+      "message": "Verificando estado atual do banco",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:58.643940",
+      "elapsed_seconds": 3.00552,
+      "type": "MONITORING",
+      "message": "Estado atual: 39 ações ativas",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:58.643973",
+      "elapsed_seconds": 3.005553,
+      "type": "PROGRESS_REPORT",
+      "message": "Progresso: 39 ações no banco",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:59.644986",
+      "elapsed_seconds": 4.00658,
+      "type": "BATCH_PROCESSING",
+      "message": "Processando lote 5/8: scripts/synthetic_batch_005.sql",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:59.645219",
+      "elapsed_seconds": 4.006801,
+      "type": "ALT_EXECUTION",
+      "message": "Executando scripts/synthetic_batch_005.sql via método alternativo",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:59.645589",
+      "elapsed_seconds": 4.00717,
+      "type": "ALT_EXECUTION",
+      "message": "✅ Chunk scripts/synthetic_batch_005.sql executado com sucesso",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:23:59.645661",
+      "elapsed_seconds": 4.007241,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 5 concluído: +25 ações",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:00.646955",
+      "elapsed_seconds": 5.008545,
+      "type": "BATCH_PROCESSING",
+      "message": "Processando lote 6/8: scripts/synthetic_batch_006.sql",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:00.647101",
+      "elapsed_seconds": 5.008684,
+      "type": "ALT_EXECUTION",
+      "message": "Executando scripts/synthetic_batch_006.sql via método alternativo",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:00.647472",
+      "elapsed_seconds": 5.009054,
+      "type": "ALT_EXECUTION",
+      "message": "✅ Chunk scripts/synthetic_batch_006.sql executado com sucesso",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:00.647552",
+      "elapsed_seconds": 5.009135,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 6 concluído: +25 ações",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:00.647607",
+      "elapsed_seconds": 5.009188,
+      "type": "MONITORING",
+      "message": "Verificando estado atual do banco",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:00.647652",
+      "elapsed_seconds": 5.009232,
+      "type": "MONITORING",
+      "message": "Estado atual: 39 ações ativas",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:00.647691",
+      "elapsed_seconds": 5.009272,
+      "type": "PROGRESS_REPORT",
+      "message": "Progresso: 39 ações no banco",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:01.648989",
+      "elapsed_seconds": 6.010577,
+      "type": "BATCH_PROCESSING",
+      "message": "Processando lote 7/8: scripts/synthetic_batch_007.sql",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:01.649124",
+      "elapsed_seconds": 6.010707,
+      "type": "ALT_EXECUTION",
+      "message": "Executando scripts/synthetic_batch_007.sql via método alternativo",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:01.649402",
+      "elapsed_seconds": 6.010984,
+      "type": "ALT_EXECUTION",
+      "message": "✅ Chunk scripts/synthetic_batch_007.sql executado com sucesso",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:01.649462",
+      "elapsed_seconds": 6.011043,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 7 concluído: +25 ações",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:02.650605",
+      "elapsed_seconds": 7.012195,
+      "type": "BATCH_PROCESSING",
+      "message": "Processando lote 8/8: scripts/synthetic_batch_008.sql",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:02.650748",
+      "elapsed_seconds": 7.012331,
+      "type": "ALT_EXECUTION",
+      "message": "Executando scripts/synthetic_batch_008.sql via método alternativo",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:02.651127",
+      "elapsed_seconds": 7.012709,
+      "type": "ALT_EXECUTION",
+      "message": "✅ Chunk scripts/synthetic_batch_008.sql executado com sucesso",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:02.651202",
+      "elapsed_seconds": 7.012782,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 8 concluído: +25 ações",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:02.651241",
+      "elapsed_seconds": 7.012824,
+      "type": "MONITORING",
+      "message": "Verificando estado atual do banco",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:02.651286",
+      "elapsed_seconds": 7.012866,
+      "type": "MONITORING",
+      "message": "Estado atual: 39 ações ativas",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:02.651321",
+      "elapsed_seconds": 7.012903,
+      "type": "PROGRESS_REPORT",
+      "message": "Progresso: 39 ações no banco",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:03.652669",
+      "elapsed_seconds": 8.014259,
+      "type": "EXECUTION_COMPLETE",
+      "message": "Execução concluída: 8/8 lotes bem-sucedidos",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:03.652822",
+      "elapsed_seconds": 8.014406,
+      "type": "EXECUTION_COMPLETE",
+      "message": "Total estimado processado: 200 ações",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:03.652902",
+      "elapsed_seconds": 8.014484,
+      "type": "MONITORING",
+      "message": "Verificando estado atual do banco",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:24:03.652957",
+      "elapsed_seconds": 8.014537,
+      "type": "MONITORING",
+      "message": "Estado atual: 39 ações ativas",
+      "data": {}
+    }
+  ],
+  "recommendations": [
+    "Verificar APIs com novo dataset expandido",
+    "Validar performance das queries",
+    "Aplicar lotes adicionais se necessário",
+    "Monitorar Materialized View refresh"
+  ]
+}

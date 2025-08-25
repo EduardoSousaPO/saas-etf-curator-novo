@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // Cache em memória simples
 let statsCache: {
@@ -29,7 +34,7 @@ export async function GET() {
       });
     }
 
-    // Executar consultas em paralelo usando a view active_etfs
+    // Executar consultas usando Supabase
     const [
       totalETFsResult,
       metricsData,
@@ -37,97 +42,57 @@ export async function GET() {
       companyStats
     ] = await Promise.all([
       // Total de ETFs ativos
-      prisma.$queryRaw<[{count: string}]>`SELECT COUNT(*) as count FROM etfs_ativos_reais`,
+      supabase.from('etfs_ativos_reais').select('*', { count: 'exact', head: true }),
       
       // Métricas de performance
-      prisma.$queryRaw<any[]>`
-        SELECT 
-          returns_12m,
-          volatility_12m,
-          sharpe_12m,
-          totalasset
-        FROM etfs_ativos_reais
-        WHERE returns_12m IS NOT NULL 
-          AND volatility_12m IS NOT NULL
-          AND sharpe_12m IS NOT NULL
-          AND totalasset IS NOT NULL
-      `,
+      supabase
+        .from('etfs_ativos_reais')
+        .select('returns_12m, volatility_12m, sharpe_12m, totalasset')
+        .not('returns_12m', 'is', null)
+        .not('volatility_12m', 'is', null)
+        .not('sharpe_12m', 'is', null)
+        .not('totalasset', 'is', null),
       
       // Estatísticas por classe de ativo
-      prisma.$queryRaw<any[]>`
-        SELECT 
-          assetclass,
-          COUNT(*) as count,
-          AVG(totalasset) as avg_assets,
-          SUM(totalasset) as total_assets
-        FROM etfs_ativos_reais
-        WHERE assetclass IS NOT NULL
-        GROUP BY assetclass
-        ORDER BY count DESC
-        LIMIT 10
-      `,
+      supabase.rpc('get_asset_class_stats'),
       
       // Estatísticas por gestora
-      prisma.$queryRaw<any[]>`
-        SELECT 
-          etfcompany,
-          COUNT(*) as count,
-          AVG(totalasset) as avg_assets,
-          SUM(totalasset) as total_assets
-        FROM etfs_ativos_reais
-        WHERE etfcompany IS NOT NULL
-        GROUP BY etfcompany
-        ORDER BY count DESC
-        LIMIT 10
-      `
+      supabase.rpc('get_company_stats')
     ]);
 
-    const totalETFs = parseInt(totalETFsResult[0].count);
+    const totalETFs = totalETFsResult.count || 0;
+    const metrics = metricsData.data || [];
+    
+    if (totalETFsResult.error) {
+      throw new Error(`Erro ao contar ETFs: ${totalETFsResult.error.message}`);
+    }
+    
+    if (metricsData.error) {
+      throw new Error(`Erro ao buscar métricas: ${metricsData.error.message}`);
+    }
 
     // Calcular métricas agregadas
-    const avgReturn = metricsData.reduce((sum, etf) => sum + Number(etf.returns_12m), 0) / metricsData.length;
-    const avgVolatility = metricsData.reduce((sum, etf) => sum + Number(etf.volatility_12m), 0) / metricsData.length;
-    const avgSharpe = metricsData.reduce((sum, etf) => sum + Number(etf.sharpe_12m), 0) / metricsData.length;
-    const totalAUM = metricsData.reduce((sum, etf) => sum + Number(etf.totalasset), 0);
+    const avgReturn = metrics.length > 0 ? metrics.reduce((sum, etf) => sum + Number(etf.returns_12m || 0), 0) / metrics.length : 0;
+    const avgVolatility = metrics.length > 0 ? metrics.reduce((sum, etf) => sum + Number(etf.volatility_12m || 0), 0) / metrics.length : 0;
+    const avgSharpe = metrics.length > 0 ? metrics.reduce((sum, etf) => sum + Number(etf.sharpe_12m || 0), 0) / metrics.length : 0;
+    const totalAUM = metrics.length > 0 ? metrics.reduce((sum, etf) => sum + Number(etf.totalasset || 0), 0) : 0;
 
     // Encontrar o melhor ETF por Sharpe ratio
-    const bestETF = metricsData.reduce((best, current) => 
-      Number(current.sharpe_12m) > Number(best.sharpe_12m) ? current : best
-    );
+    const bestETF = metrics.length > 0 ? metrics.reduce((best, current) => 
+      Number(current.sharpe_12m || 0) > Number(best.sharpe_12m || 0) ? current : best
+    ) : { sharpe_12m: 0, returns_12m: 0 };
 
-    console.log(`📊 Estatísticas calculadas: ${totalETFs} ETFs, ${metricsData.length} com métricas`);
+    console.log(`📊 Estatísticas calculadas: ${totalETFs} ETFs, ${metrics.length} com métricas`);
 
     const stats = {
       totalETFs,
-      etfsWithMetrics: metricsData.length,
-      coverage: ((metricsData.length / totalETFs) * 100).toFixed(1),
-      
-      performance: {
-        avgReturn: (avgReturn * 100).toFixed(2),
-        avgVolatility: (avgVolatility * 100).toFixed(2),
-        avgSharpe: avgSharpe.toFixed(2),
-        totalAUM: (totalAUM / 1e12).toFixed(2) // Trilhões
-      },
-      
-      bestPerformer: {
-        symbol: bestETF.symbol || 'N/A',
-        sharpe: Number(bestETF.sharpe_12m).toFixed(2),
-        returns: (Number(bestETF.returns_12m) * 100).toFixed(2)
-      },
-      
-      assetClasses: assetClassStats.map(ac => ({
-        name: ac.assetclass,
-        count: Number(ac.count),
-        avgAssets: (Number(ac.avg_assets) / 1e9).toFixed(1), // Bilhões
-        totalAssets: (Number(ac.total_assets) / 1e9).toFixed(1)
-      })),
-      
-      topCompanies: companyStats.map(company => ({
-        name: company.etfcompany,
-        count: Number(company.count),
-        avgAssets: (Number(company.avg_assets) / 1e9).toFixed(1),
-        totalAssets: (Number(company.total_assets) / 1e9).toFixed(1)
-      }))
+      etfsWithMetrics: metrics.length,
+      metricsPercentage: totalETFs > 0 ? ((metrics.length / totalETFs) * 100) : 0,
+      uniqueCompanies: companyStats.data?.length || 0,
+      uniqueAssetClasses: assetClassStats.data?.length || 0,
+      avgReturn: (avgReturn * 100), // Já em percentual
+      avgVolatility: (avgVolatility * 100), // Já em percentual
+      lastUpdated: new Date().toISOString()
     };
 
     // Salvar no cache
@@ -140,8 +105,8 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      stats,
-      source: 'active_etfs_view',
+      data: stats,
+      source: 'supabase_direct',
       timestamp: new Date().toISOString()
     });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Navbar from '@/components/layout/Navbar';
+import UnifiedNavbar from '@/components/layout/UnifiedNavbar';
 import RequireAuth from '@/components/auth/RequireAuth';
 import ETFSearch from '@/components/comparador/ETFSearch';
 import PerformanceChart from '@/components/comparador/PerformanceChart';
@@ -184,7 +184,7 @@ export default function ComparadorPage() {
   return (
     <RequireAuth>
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <UnifiedNavbar />
       
         <div className="max-w-6xl mx-auto px-6 py-20">
           

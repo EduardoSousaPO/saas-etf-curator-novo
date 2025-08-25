@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { TrendingUp, Search, BarChart3, Shield, Award, ArrowRight, Star, CheckCircle, Users, TrendingDown } from "lucide-react";
-import Navbar from "@/components/layout/Navbar";
+import UnifiedNavbar from "@/components/layout/UnifiedNavbar";
 import HeroStats from "@/components/landing/HeroStats";
 import ETFShowcase from "@/components/landing/ETFShowcase";
 import { ROISection } from "@/components/landing/ROISection";
@@ -13,7 +13,7 @@ import { ROISection } from "@/components/landing/ROISection";
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <UnifiedNavbar />
       
       <main className="pt-16">
         {/* Hero Section Tesla-style */}

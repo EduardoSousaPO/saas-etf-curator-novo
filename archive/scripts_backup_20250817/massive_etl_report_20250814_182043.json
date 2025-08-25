@@ -1,0 +1,70 @@
+{
+  "execution_summary": {
+    "total_stocks": 2298,
+    "processed": 2298,
+    "successful": 2240,
+    "failed": 58,
+    "success_rate": "97.5%",
+    "duration_minutes": "88.8",
+    "stocks_per_minute": "25.9"
+  },
+  "data_quality": {
+    "assets_with_complete_info": 2214,
+    "assets_with_market_cap": 1919,
+    "assets_with_returns_12m": 2134,
+    "assets_with_volatility": 2132
+  },
+  "failed_symbols": [
+    {
+      "symbol": "BMNR",
+      "error": "Falha ao obter dados históricos",
+      "timestamp": "2025-08-14T16:52:17.862806"
+    },
+    {
+      "symbol": "CRWV",
+      "error": "Falha ao obter dados históricos",
+      "timestamp": "2025-08-14T16:54:30.958188"
+    },
+    {
+      "symbol": "CRCL",
+      "error": "Falha ao obter dados históricos",
+      "timestamp": "2025-08-14T16:55:08.282813"
+    },
+    {
+      "symbol": "ARX",
+      "error": "Falha ao obter dados históricos",
+      "timestamp": "2025-08-14T17:08:15.716770"
+    },
+    {
+      "symbol": "CUPR",
+      "error": "Falha ao obter dados históricos",
+      "timestamp": "2025-08-14T17:10:31.046337"
+    },
+    {
+      "symbol": "ETOR",
+      "error": "Falha ao obter dados históricos",
+      "timestamp": "2025-08-14T17:17:00.172717"
+    },
+    {
+      "symbol": "CHA",
+      "error": "Falha ao obter dados históricos",
+      "timestamp": "2025-08-14T17:18:08.272127"
+    },
+    {
+      "symbol": "AIRO",
+      "error": "Falha ao obter dados históricos",
+      "timestamp": "2025-08-14T17:20:24.137413"
+    },
+    {
+      "symbol": "CCCM",
+      "error": "Falha ao obter dados históricos",
+      "timestamp": "2025-08-14T17:22:07.379171"
+    },
+    {
+      "symbol": "AMUU",
+      "error": "Falha ao obter dados históricos",
+      "timestamp": "2025-08-14T17:24:23.259679"
+    }
+  ],
+  "timestamp": "2025-08-14T18:20:43.428285"
+}

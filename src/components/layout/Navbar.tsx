@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import React, { useState, useEffect } from "react";
 import { Menu, X, LogOut, Settings } from "lucide-react";
+import { ModuleSelector } from "./ModuleSelector";
 
 // Navegação para usuários não autenticados (público)
 const publicNavItems: Array<{href: string, label: string, highlight?: boolean, authRequired?: boolean}> = [
@@ -190,6 +191,12 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Module Selector - apenas para usuários autenticados */}
+            {user && (
+              <div className="border-r border-gray-200 pr-4">
+                <ModuleSelector />
+              </div>
+            )}
             {renderAuthButtons()}
           </div>
 

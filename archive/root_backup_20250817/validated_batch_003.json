@@ -1,0 +1,92 @@
+[
+  {
+    "ticker": "NU",
+    "name": "Nu Holdings Ltd",
+    "sector": "Banking Services",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:08.233750",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BITF",
+    "name": "Bitfarms Ltd",
+    "sector": "Financial Technology",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:08.734487",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "AMZN",
+    "name": "Amazon.com Inc",
+    "sector": "Diversified Retail",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:09.234900",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BTE",
+    "name": "Baytex Energy",
+    "sector": "Oil & Gas",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:09.735575",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "MRK",
+    "name": "Merck & Co Inc",
+    "sector": "Pharmaceuticals",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:10.235979",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BCS",
+    "name": "Barclays PLC",
+    "sector": "Banking Services",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:10.736676",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BBD",
+    "name": "Banco Bradesco",
+    "sector": "Banking Services",
+    "exchange": "NYSE",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:11.237352",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "ADIL",
+    "name": "Adial Pharmaceuticals",
+    "sector": "Biotechnology & Medical Research",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:11.737617",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "BULL",
+    "name": "Webull Corporation",
+    "sector": "Financial Technology",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:12.238126",
+    "source": "perplexity_ai_mcp"
+  },
+  {
+    "ticker": "ABP",
+    "name": "Abpro Holdings",
+    "sector": "Biotechnology & Medical Research",
+    "exchange": "NASDAQ",
+    "validation_status": "CONFIRMED",
+    "validated_at": "2025-08-15T14:49:12.738761",
+    "source": "perplexity_ai_mcp"
+  }
+]

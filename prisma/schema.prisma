@@ -283,56 +283,66 @@ model sso_providers {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model users {
-  instance_id                  String?                        @db.Uuid
-  id                           String                         @id @db.Uuid
-  aud                          String?                        @db.VarChar(255)
-  role                         String?                        @db.VarChar(255)
-  email                        String?                        @db.VarChar(255)
-  encrypted_password           String?                        @db.VarChar(255)
-  email_confirmed_at           DateTime?                      @db.Timestamptz(6)
-  invited_at                   DateTime?                      @db.Timestamptz(6)
-  confirmation_token           String?                        @db.VarChar(255)
-  confirmation_sent_at         DateTime?                      @db.Timestamptz(6)
-  recovery_token               String?                        @db.VarChar(255)
-  recovery_sent_at             DateTime?                      @db.Timestamptz(6)
-  email_change_token_new       String?                        @db.VarChar(255)
-  email_change                 String?                        @db.VarChar(255)
-  email_change_sent_at         DateTime?                      @db.Timestamptz(6)
-  last_sign_in_at              DateTime?                      @db.Timestamptz(6)
-  raw_app_meta_data            Json?
-  raw_user_meta_data           Json?
-  is_super_admin               Boolean?
-  created_at                   DateTime?                      @db.Timestamptz(6)
-  updated_at                   DateTime?                      @db.Timestamptz(6)
-  phone                        String?                        @unique
-  phone_confirmed_at           DateTime?                      @db.Timestamptz(6)
-  phone_change                 String?                        @default("")
-  phone_change_token           String?                        @default("") @db.VarChar(255)
-  phone_change_sent_at         DateTime?                      @db.Timestamptz(6)
-  confirmed_at                 DateTime?                      @default(dbgenerated("LEAST(email_confirmed_at, phone_confirmed_at)")) @db.Timestamptz(6)
-  email_change_token_current   String?                        @default("") @db.VarChar(255)
-  email_change_confirm_status  Int?                           @default(0) @db.SmallInt
-  banned_until                 DateTime?                      @db.Timestamptz(6)
-  reauthentication_token       String?                        @default("") @db.VarChar(255)
-  reauthentication_sent_at     DateTime?                      @db.Timestamptz(6)
-  is_sso_user                  Boolean                        @default(false)
-  deleted_at                   DateTime?                      @db.Timestamptz(6)
-  is_anonymous                 Boolean                        @default(false)
-  identities                   identities[]
-  mfa_factors                  mfa_factors[]
-  one_time_tokens              one_time_tokens[]
-  sessions                     sessions[]
-  efficient_frontier_points    efficient_frontier_points[]
-  offshore_onboarding          offshore_onboarding[]
-  payments                     payments[]
-  portfolio_rebalancing_alerts portfolio_rebalancing_alerts[]
-  portfolio_recommendations    portfolio_recommendations[]
-  portfolio_simulations        portfolio_simulations[]
-  subscriptions                subscriptions[]
-  usage_limits                 usage_limits[]
-  user_portfolio_allocations   user_portfolio_allocations[]
-  user_profiles                user_profiles?
-  wealth_onboarding            wealth_onboarding?
+  instance_id                   String?                         @db.Uuid
+  id                            String                          @id @db.Uuid
+  aud                           String?                         @db.VarChar(255)
+  role                          String?                         @db.VarChar(255)
+  email                         String?                         @db.VarChar(255)
+  encrypted_password            String?                         @db.VarChar(255)
+  email_confirmed_at            DateTime?                       @db.Timestamptz(6)
+  invited_at                    DateTime?                       @db.Timestamptz(6)
+  confirmation_token            String?                         @db.VarChar(255)
+  confirmation_sent_at          DateTime?                       @db.Timestamptz(6)
+  recovery_token                String?                         @db.VarChar(255)
+  recovery_sent_at              DateTime?                       @db.Timestamptz(6)
+  email_change_token_new        String?                         @db.VarChar(255)
+  email_change                  String?                         @db.VarChar(255)
+  email_change_sent_at          DateTime?                       @db.Timestamptz(6)
+  last_sign_in_at               DateTime?                       @db.Timestamptz(6)
+  raw_app_meta_data             Json?
+  raw_user_meta_data            Json?
+  is_super_admin                Boolean?
+  created_at                    DateTime?                       @db.Timestamptz(6)
+  updated_at                    DateTime?                       @db.Timestamptz(6)
+  phone                         String?                         @unique
+  phone_confirmed_at            DateTime?                       @db.Timestamptz(6)
+  phone_change                  String?                         @default("")
+  phone_change_token            String?                         @default("") @db.VarChar(255)
+  phone_change_sent_at          DateTime?                       @db.Timestamptz(6)
+  confirmed_at                  DateTime?                       @default(dbgenerated("LEAST(email_confirmed_at, phone_confirmed_at)")) @db.Timestamptz(6)
+  email_change_token_current    String?                         @default("") @db.VarChar(255)
+  email_change_confirm_status   Int?                            @default(0) @db.SmallInt
+  banned_until                  DateTime?                       @db.Timestamptz(6)
+  reauthentication_token        String?                         @default("") @db.VarChar(255)
+  reauthentication_sent_at      DateTime?                       @db.Timestamptz(6)
+  is_sso_user                   Boolean                         @default(false)
+  deleted_at                    DateTime?                       @db.Timestamptz(6)
+  is_anonymous                  Boolean                         @default(false)
+  identities                    identities[]
+  mfa_factors                   mfa_factors[]
+  one_time_tokens               one_time_tokens[]
+  sessions                      sessions[]
+  auto_deposit_settings         auto_deposit_settings[]
+  auto_rebalance_settings       auto_rebalance_settings[]
+  cashflows                     cashflows[]
+  chat_conversations            chat_conversations[]
+  chat_insights                 chat_insights[]
+  chat_projects                 chat_projects[]
+  offshore_onboarding           offshore_onboarding[]
+  payments                      payments[]
+  planned_contributions         planned_contributions[]
+  portfolio_implementation_runs portfolio_implementation_runs[]
+  portfolio_plans               portfolio_plans[]
+  subscriptions                 subscriptions[]
+  timeline_events               timeline_events[]
+  trades                        trades[]
+  usage_limits                  usage_limits[]
+  user_portfolio_allocations    user_portfolio_allocations[]
+  user_profiles                 user_profiles?
+  wealth_onboarding             wealth_onboarding?
+  stock_portfolio_plans         stock_portfolio_plans[]
+  stock_trades                  stock_trades[]
+  stock_timeline_events         stock_timeline_events[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -358,23 +368,6 @@ model etf_prices {
   @@schema("public")
 }
 
-model etf_rankings {
-  id               Int       @id @default(autoincrement())
-  category         String    @db.VarChar(50)
-  rank_position    Int
-  symbol           String    @db.VarChar(10)
-  value            Decimal?  @db.Decimal
-  percentage_value Decimal?  @db.Decimal
-  updated_at       DateTime? @default(now()) @db.Timestamptz(6)
-
-  @@unique([category, rank_position], map: "unique_category_rank")
-  @@unique([category, symbol], map: "unique_category_symbol")
-  @@index([category], map: "idx_etf_rankings_category")
-  @@index([symbol], map: "idx_etf_rankings_symbol")
-  @@index([updated_at], map: "idx_etf_rankings_updated_at")
-  @@schema("public")
-}
-
 model user_profiles {
   id                    String    @id @db.Uuid
   full_name             String?   @db.VarChar(100)
@@ -391,6 +384,7 @@ model user_profiles {
   email_notifications   Boolean?  @default(true)
   created_at            DateTime? @default(now()) @db.Timestamptz(6)
   updated_at            DateTime? @default(now()) @db.Timestamptz(6)
+  preferred_module      String?   @default("etfs")
   users                 users     @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([email], map: "idx_user_profiles_email")
@@ -546,135 +540,31 @@ model offshore_onboarding {
   @@schema("public")
 }
 
-/// Matriz de correlação entre ETFs para otimização de Markowitz
-model portfolio_correlations {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  symbol_a      String   @db.VarChar(10)
-  symbol_b      String   @db.VarChar(10)
-  correlation   Decimal  @db.Decimal(5, 4)
-  covariance    Decimal  @db.Decimal(10, 8)
-  period_days   Int      @default(252)
-  calculated_at DateTime @default(now()) @db.Timestamptz(6)
-
-  @@unique([symbol_a, symbol_b, period_days])
-  @@index([symbol_a])
-  @@index([symbol_b])
-  @@index([calculated_at])
-  @@schema("public")
-}
-
-/// Cache de simulações Monte Carlo para performance
-model portfolio_simulations {
-  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id             String   @db.Uuid
-  simulation_hash     String   @unique @db.VarChar(64)
-  etf_symbols         Json
-  allocations         Json
-  expected_return     Decimal  @db.Decimal(8, 4)
-  volatility          Decimal  @db.Decimal(8, 4)
-  sharpe_ratio        Decimal  @db.Decimal(8, 4)
-  var_95              Decimal  @db.Decimal(8, 4)
-  max_drawdown        Decimal  @db.Decimal(8, 4)
-  monte_carlo_results Json
-  projection_12m      Json
-  scenarios           Json
-  created_at          DateTime @default(now()) @db.Timestamptz(6)
-  expires_at          DateTime @db.Timestamptz(6)
-  users               users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@index([user_id])
-  @@index([simulation_hash])
-  @@index([expires_at])
-  @@schema("public")
-}
-
-/// Recomendações personalizadas de portfólio baseadas em perfil do usuário
-model portfolio_recommendations {
-  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id             String   @db.Uuid
-  recommendation_type String   @db.VarChar(50)
-  etf_symbols         Json
-  target_allocations  Json
-  current_allocations Json?
-  expected_return     Decimal  @db.Decimal(8, 4)
-  volatility          Decimal  @db.Decimal(8, 4)
-  sharpe_ratio        Decimal  @db.Decimal(8, 4)
-  risk_score          Int
-  justification       String
-  confidence_score    Decimal  @db.Decimal(3, 2)
-  status              String   @default("active") @db.VarChar(20)
-  created_at          DateTime @default(now()) @db.Timestamptz(6)
-  expires_at          DateTime @db.Timestamptz(6)
-  users               users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@index([user_id])
-  @@index([recommendation_type])
-  @@index([status])
-  @@index([created_at])
-  @@schema("public")
-}
-
-/// Alertas de rebalanceamento automático
-model portfolio_rebalancing_alerts {
-  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id            String   @db.Uuid
-  portfolio_id       String?  @db.Uuid
-  alert_type         String   @db.VarChar(50)
-  trigger_condition  Json
-  current_state      Json
-  recommended_action Json
-  severity           String   @db.VarChar(20)
-  message            String
-  is_read            Boolean  @default(false)
-  is_dismissed       Boolean  @default(false)
-  created_at         DateTime @default(now()) @db.Timestamptz(6)
-  users              users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@index([user_id])
-  @@index([alert_type])
-  @@index([severity])
-  @@index([is_read])
-  @@index([created_at])
-  @@schema("public")
-}
-
-/// Pontos da fronteira eficiente para visualização
-model efficient_frontier_points {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id         String   @db.Uuid
-  risk_level      Decimal  @db.Decimal(8, 4)
-  expected_return Decimal  @db.Decimal(8, 4)
-  allocations     Json
-  sharpe_ratio    Decimal  @db.Decimal(8, 4)
-  is_optimal      Boolean  @default(false)
-  calculation_id  String   @db.VarChar(64)
-  created_at      DateTime @default(now()) @db.Timestamptz(6)
-  users           users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@index([user_id])
-  @@index([calculation_id])
-  @@index([is_optimal])
-  @@index([created_at])
-  @@schema("public")
-}
-
 /// Carteiras ativas dos usuários
 model user_portfolio_allocations {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id             String    @db.Uuid
-  portfolio_name      String    @db.VarChar(100)
-  etf_symbols         Json
-  target_allocations  Json
-  current_allocations Json?
-  invested_amounts    Json?
-  total_invested      Decimal?  @db.Decimal(15, 2)
-  last_rebalanced_at  DateTime? @db.Timestamptz(6)
-  rebalance_threshold Decimal   @default(5.0) @db.Decimal(4, 2)
-  auto_rebalance      Boolean   @default(false)
-  is_active           Boolean   @default(true)
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  users               users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                 String                    @db.Uuid
+  portfolio_name          String                    @db.VarChar(100)
+  etf_symbols             Json
+  target_allocations      Json
+  current_allocations     Json?
+  invested_amounts        Json?
+  total_invested          Decimal?                  @db.Decimal(15, 2)
+  last_rebalanced_at      DateTime?                 @db.Timestamptz(6)
+  rebalance_threshold     Decimal                   @default(5.0) @db.Decimal(4, 2)
+  auto_rebalance          Boolean                   @default(false)
+  is_active               Boolean                   @default(true)
+  created_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  auto_deposit_settings   auto_deposit_settings[]
+  auto_rebalance_settings auto_rebalance_settings[]
+  cashflows               cashflows[]
+  planned_contributions   planned_contributions[]
+  portfolio_allocations   portfolio_allocations[]
+  portfolio_tracking      portfolio_tracking[]
+  rebalance_suggestions   rebalance_suggestions[]
+  trades                  trades[]
+  users                   users                     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
   @@index([is_active])
@@ -683,105 +573,73 @@ model user_portfolio_allocations {
   @@schema("public")
 }
 
-model backup_config {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  table_name        String    @unique @db.VarChar(100)
-  backup_enabled    Boolean?  @default(true)
-  backup_frequency  String?   @default("daily") @db.VarChar(20)
-  retention_days    Int?      @default(30)
-  backup_conditions Json?
-  last_backup_at    DateTime? @db.Timestamptz(6)
-  backup_size_mb    Decimal?  @db.Decimal(10, 2)
-  backup_location   String?
-  is_critical       Boolean?  @default(false)
-  created_at        DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime? @default(now()) @db.Timestamptz(6)
-
-  @@schema("public")
-}
-
-model data_quality_metrics {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  table_name       String    @db.VarChar(100)
-  metric_name      String    @db.VarChar(100)
-  metric_value     Decimal?  @db.Decimal
-  metric_threshold Decimal?  @db.Decimal
-  status           String?   @default("OK") @db.VarChar(20)
-  details          Json?
-  checked_at       DateTime? @default(now()) @db.Timestamptz(6)
-
-  @@index([checked_at], map: "idx_data_quality_checked_at")
-  @@index([status], map: "idx_data_quality_status")
-  @@index([table_name, metric_name], map: "idx_data_quality_table_metric")
-  @@schema("public")
-}
-
-model database_audit_log {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  audit_type       String    @db.VarChar(50)
-  table_name       String    @db.VarChar(100)
-  operation        String    @db.VarChar(50)
-  records_affected Int?      @default(0)
-  old_values       Json?
-  new_values       Json?
-  metadata         Json?
-  severity         String?   @default("INFO") @db.VarChar(20)
-  message          String?
-  performed_by     String?   @default("system") @db.VarChar(100)
-  created_at       DateTime? @default(now()) @db.Timestamptz(6)
-
-  @@index([audit_type], map: "idx_audit_log_audit_type")
-  @@index([created_at], map: "idx_audit_log_created_at")
-  @@index([severity], map: "idx_audit_log_severity")
-  @@index([table_name], map: "idx_audit_log_table_name")
-  @@schema("public")
-}
-
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model etfs_ativos_reais {
-  symbol                  String                    @id @db.VarChar(10)
-  name                    String?
-  description             String?
-  isin                    String?                   @db.VarChar(12)
-  assetclass              String?                   @db.VarChar(50)
-  securitycusip           String?                   @db.VarChar(9)
-  domicile                String?                   @db.VarChar(2)
-  website                 String?
-  etfcompany              String?                   @db.VarChar(100)
-  expenseratio            Decimal?                  @db.Decimal(5, 4)
-  totalasset              BigInt?
-  avgvolume               BigInt?
-  inceptiondate           DateTime?                 @db.Date
-  nav                     Decimal?                  @db.Decimal(10, 4)
-  navcurrency             String?                   @db.VarChar(3)
-  holdingscount           Int?
-  updatedat               DateTime?                 @default(now()) @db.Timestamp(6)
-  sectorslist             Json?
-  returns_12m             Decimal?                  @db.Decimal(8, 4)
-  returns_24m             Decimal?                  @db.Decimal(8, 4)
-  returns_36m             Decimal?                  @db.Decimal(8, 4)
-  returns_5y              Decimal?                  @db.Decimal(8, 4)
-  ten_year_return         Decimal?                  @db.Decimal(8, 4)
-  volatility_12m          Decimal?                  @db.Decimal(8, 4)
-  volatility_24m          Decimal?                  @db.Decimal(8, 4)
-  volatility_36m          Decimal?                  @db.Decimal(8, 4)
-  ten_year_volatility     Decimal?                  @db.Decimal(8, 4)
-  sharpe_12m              Decimal?                  @db.Decimal(8, 4)
-  sharpe_24m              Decimal?                  @db.Decimal(8, 4)
-  sharpe_36m              Decimal?                  @db.Decimal(8, 4)
-  ten_year_sharpe         Decimal?                  @db.Decimal(8, 4)
-  max_drawdown            Decimal?                  @db.Decimal(8, 4)
-  dividends_12m           Decimal?                  @db.Decimal(8, 4)
-  dividends_24m           Decimal?                  @db.Decimal(8, 4)
-  dividends_36m           Decimal?                  @db.Decimal(8, 4)
-  dividends_all_time      Decimal?                  @db.Decimal(8, 4)
-  size_category           String?                   @db.VarChar(20)
-  liquidity_category      String?                   @db.VarChar(20)
-  etf_type                String?                   @db.VarChar(50)
-  liquidity_rating        String?                   @db.VarChar(20)
-  size_rating             String?                   @db.VarChar(20)
-  etf_prices              etf_prices[]
-  historic_etfs_dividends historic_etfs_dividends[]
+  symbol                     String       @id @db.VarChar(10)
+  name                       String?
+  description                String?
+  assetclass                 String?      @db.VarChar(50)
+  website                    String?      @db.VarChar(200)
+  etfcompany                 String?      @db.VarChar(100)
+  expenseratio               Decimal?     @db.Decimal(5, 4)
+  totalasset                 BigInt?
+  avgvolume                  BigInt?
+  inceptiondate              DateTime?    @db.Date
+  nav                        Decimal?     @db.Decimal(10, 4)
+  navcurrency                String?      @db.VarChar(3)
+  holdingscount              Int?
+  updatedat                  DateTime?    @default(now()) @db.Timestamp(6)
+  returns_12m                Decimal?     @db.Decimal(8, 4)
+  returns_24m                Decimal?     @db.Decimal(8, 4)
+  returns_36m                Decimal?     @db.Decimal(8, 4)
+  returns_5y                 Decimal?     @db.Decimal(8, 4)
+  ten_year_return            Decimal?     @db.Decimal(8, 4)
+  volatility_12m             Decimal?     @db.Decimal(8, 4)
+  volatility_24m             Decimal?     @db.Decimal(8, 4)
+  volatility_36m             Decimal?     @db.Decimal(8, 4)
+  ten_year_volatility        Decimal?     @db.Decimal(8, 4)
+  sharpe_12m                 Decimal?     @db.Decimal(8, 4)
+  sharpe_24m                 Decimal?     @db.Decimal(8, 4)
+  sharpe_36m                 Decimal?     @db.Decimal(8, 4)
+  ten_year_sharpe            Decimal?     @db.Decimal(8, 4)
+  max_drawdown               Decimal?     @db.Decimal(8, 4)
+  dividends_12m              Decimal?     @db.Decimal(8, 4)
+  dividends_24m              Decimal?     @db.Decimal(8, 4)
+  dividends_36m              Decimal?     @db.Decimal(8, 4)
+  dividends_all_time         Decimal?     @db.Decimal(8, 4)
+  size_category              String?      @db.VarChar(20)
+  liquidity_category         String?      @db.VarChar(20)
+  etf_type                   String?      @db.VarChar(50)
+  liquidity_rating           String?      @db.VarChar(20)
+  size_rating                String?      @db.VarChar(20)
+  data_source_expense_ratio  String?
+  last_updated_expense_ratio DateTime?    @default(now()) @db.Timestamp(6)
+  top_10_holdings            Json?        @default("[]")
+  sector_allocation          Json?        @default("{}")
+  geographic_allocation      Json?        @default("{}")
+  holdings_concentration     Decimal?     @db.Decimal(5, 2)
+  morningstar_rating         Int?
+  sustainability_rating      Int?
+  liquidity_score            Decimal?     @db.Decimal(4, 2)
+  leverage_factor            Decimal?     @default(1.0) @db.Decimal(4, 2)
+  net_flows_30d              BigInt?
+  premium_discount           Decimal?     @db.Decimal(6, 4)
+  recent_news_sentiment      Decimal?     @db.Decimal(3, 2)
+  beta_12m                   Decimal?     @db.Decimal(8, 4)
+  data_sources               Json?        @default("{}")
+  last_enrichment_date       DateTime?    @default(now()) @db.Timestamp(6)
+  enrichment_status          String?      @default("pending") @db.VarChar(20)
+  ai_investment_thesis       String?
+  ai_risk_analysis           String?
+  ai_market_context          String?
+  ai_use_cases               String?
+  ai_analysis_date           DateTime?    @db.Timestamptz(6)
+  ai_analysis_version        String?      @default("1.0") @db.VarChar(10)
+  isin                       String?      @db.VarChar(12)
+  sectorslist                Json?
+  securitycusip              String?      @db.VarChar(9)
+  domicile                   String?      @db.VarChar(2)
+  etf_prices                 etf_prices[]
 
   @@index([assetclass], map: "idx_etfs_assetclass")
   @@index([etfcompany], map: "idx_etfs_etfcompany")
@@ -792,119 +650,536 @@ model etfs_ativos_reais {
   @@index([symbol], map: "idx_etfs_symbol")
   @@index([totalasset], map: "idx_etfs_totalasset")
   @@index([updatedat], map: "idx_etfs_updatedat")
+  @@index([ai_analysis_date], map: "idx_etfs_ai_analysis_date")
+  @@index([ai_analysis_version], map: "idx_etfs_ai_version")
+  @@index([isin], map: "idx_etfs_ativos_reais_isin")
+  @@index([avgvolume], map: "idx_etfs_avgvolume")
+  @@index([dividends_12m], map: "idx_etfs_dividends_12m")
+  @@index([enrichment_status], map: "idx_etfs_enrichment_status")
+  @@index([last_enrichment_date], map: "idx_etfs_last_enrichment")
+  @@index([last_enrichment_date], map: "idx_etfs_last_enrichment_date")
+  @@index([max_drawdown], map: "idx_etfs_max_drawdown")
+  @@index([morningstar_rating], map: "idx_etfs_morningstar_rating")
+  @@index([returns_5y], map: "idx_etfs_returns_5y")
+  @@index([sector_allocation], map: "idx_etfs_sector_allocation", type: Gin)
+  @@index([sharpe_12m], map: "idx_etfs_sharpe_12m")
+  @@index([sustainability_rating], map: "idx_etfs_sustainability_rating")
+  @@index([volatility_12m], map: "idx_etfs_volatility_12m")
   @@schema("public")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model etfs_ativos_reais_backup_sistema_auditoria_inicial {
-  symbol              String?   @db.VarChar(10)
-  name                String?
-  description         String?
-  isin                String?   @db.VarChar(12)
-  assetclass          String?   @db.VarChar(50)
-  securitycusip       String?   @db.VarChar(9)
-  domicile            String?   @db.VarChar(2)
-  website             String?
-  etfcompany          String?   @db.VarChar(100)
-  expenseratio        Decimal?  @db.Decimal(5, 4)
-  totalasset          BigInt?
-  avgvolume           BigInt?
-  inceptiondate       DateTime? @db.Date
-  nav                 Decimal?  @db.Decimal(10, 4)
-  navcurrency         String?   @db.VarChar(3)
-  holdingscount       Int?
-  updatedat           DateTime? @db.Timestamp(6)
-  sectorslist         Json?
-  returns_12m         Decimal?  @db.Decimal(8, 4)
-  returns_24m         Decimal?  @db.Decimal(8, 4)
-  returns_36m         Decimal?  @db.Decimal(8, 4)
-  returns_5y          Decimal?  @db.Decimal(8, 4)
-  ten_year_return     Decimal?  @db.Decimal(8, 4)
-  volatility_12m      Decimal?  @db.Decimal(8, 4)
-  volatility_24m      Decimal?  @db.Decimal(8, 4)
-  volatility_36m      Decimal?  @db.Decimal(8, 4)
-  ten_year_volatility Decimal?  @db.Decimal(8, 4)
-  sharpe_12m          Decimal?  @db.Decimal(8, 4)
-  sharpe_24m          Decimal?  @db.Decimal(8, 4)
-  sharpe_36m          Decimal?  @db.Decimal(8, 4)
-  ten_year_sharpe     Decimal?  @db.Decimal(8, 4)
-  max_drawdown        Decimal?  @db.Decimal(8, 4)
-  dividends_12m       Decimal?  @db.Decimal(8, 4)
-  dividends_24m       Decimal?  @db.Decimal(8, 4)
-  dividends_36m       Decimal?  @db.Decimal(8, 4)
-  dividends_all_time  Decimal?  @db.Decimal(8, 4)
-  size_category       String?   @db.VarChar(20)
-  liquidity_category  String?   @db.VarChar(20)
-  etf_type            String?   @db.VarChar(50)
-  liquidity_rating    String?   @db.VarChar(20)
-  size_rating         String?   @db.VarChar(20)
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model assets_master {
+  id                           BigInt                         @id @default(autoincrement())
+  ticker                       String                         @unique
+  asset_type                   String
+  name                         String?
+  exchange                     String?
+  sector                       String?
+  industry                     String?
+  currency                     String?                        @default("USD")
+  created_at                   DateTime?                      @default(now()) @db.Timestamptz(6)
+  updated_at                   DateTime?                      @default(now()) @db.Timestamptz(6)
+  stock_ai_insights            stock_ai_insights[]
+  stock_fundamentals_quarterly stock_fundamentals_quarterly[]
+  stock_metrics_snapshot       stock_metrics_snapshot[]
+  stock_prices_daily           stock_prices_daily[]
 
-  @@ignore
+  @@index([asset_type], map: "idx_assets_master_asset_type")
+  @@index([exchange], map: "idx_assets_master_exchange")
+  @@index([sector], map: "idx_assets_master_sector")
+  @@index([ticker], map: "idx_assets_master_ticker")
   @@schema("public")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model etfs_removidos_backup {
-  symbol              String?   @db.VarChar(10)
-  name                String?
-  description         String?
-  isin                String?   @db.VarChar(12)
-  assetclass          String?   @db.VarChar(50)
-  securitycusip       String?   @db.VarChar(9)
-  domicile            String?   @db.VarChar(2)
-  website             String?
-  etfcompany          String?   @db.VarChar(100)
-  expenseratio        Decimal?  @db.Decimal(5, 4)
-  totalasset          BigInt?
-  avgvolume           BigInt?
-  inceptiondate       DateTime? @db.Date
-  nav                 Decimal?  @db.Decimal(10, 4)
-  navcurrency         String?   @db.VarChar(3)
-  holdingscount       Int?
-  updatedat           DateTime? @db.Timestamp(6)
-  sectorslist         Json?
-  returns_12m         Decimal?  @db.Decimal(8, 4)
-  returns_24m         Decimal?  @db.Decimal(8, 4)
-  returns_36m         Decimal?  @db.Decimal(8, 4)
-  returns_5y          Decimal?  @db.Decimal(8, 4)
-  ten_year_return     Decimal?  @db.Decimal(8, 4)
-  volatility_12m      Decimal?  @db.Decimal(8, 4)
-  volatility_24m      Decimal?  @db.Decimal(8, 4)
-  volatility_36m      Decimal?  @db.Decimal(8, 4)
-  ten_year_volatility Decimal?  @db.Decimal(8, 4)
-  sharpe_12m          Decimal?  @db.Decimal(8, 4)
-  sharpe_24m          Decimal?  @db.Decimal(8, 4)
-  sharpe_36m          Decimal?  @db.Decimal(8, 4)
-  ten_year_sharpe     Decimal?  @db.Decimal(8, 4)
-  max_drawdown        Decimal?  @db.Decimal(8, 4)
-  dividends_12m       Decimal?  @db.Decimal(8, 4)
-  dividends_24m       Decimal?  @db.Decimal(8, 4)
-  dividends_36m       Decimal?  @db.Decimal(8, 4)
-  dividends_all_time  Decimal?  @db.Decimal(8, 4)
-  size_category       String?   @db.VarChar(20)
-  liquidity_category  String?   @db.VarChar(20)
-  etf_type            String?   @db.VarChar(50)
-  removed_at          DateTime? @db.Timestamptz(6)
-  removal_reason      String?
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model auto_deposit_settings {
+  id                         String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                    String                     @db.Uuid
+  portfolio_id               String                     @db.Uuid
+  monthly_amount             Decimal                    @db.Decimal
+  enabled                    Boolean                    @default(true)
+  day_of_month               Int                        @default(1)
+  created_at                 DateTime                   @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime                   @default(now()) @db.Timestamptz(6)
+  user_portfolio_allocations user_portfolio_allocations @relation(fields: [portfolio_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                      users                      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@ignore
+  @@unique([user_id, portfolio_id])
+  @@index([portfolio_id], map: "idx_auto_deposit_settings_portfolio_id")
+  @@index([user_id], map: "idx_auto_deposit_settings_user_id")
   @@schema("public")
 }
 
-model historic_etfs_dividends {
-  symbol            String            @db.VarChar(10)
-  ex_date           DateTime          @db.Date
-  pay_date          DateTime?         @db.Date
-  amount            Decimal           @db.Decimal(10, 6)
-  frequency         String?           @db.VarChar(20)
-  yield_percentage  Decimal?          @db.Decimal(8, 4)
-  created_at        DateTime?         @default(now()) @db.Timestamp(6)
-  etfs_ativos_reais etfs_ativos_reais @relation(fields: [symbol], references: [symbol], onDelete: Cascade, onUpdate: NoAction)
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model auto_rebalance_settings {
+  id                         String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                    String                     @db.Uuid
+  portfolio_id               String                     @db.Uuid
+  enabled                    Boolean                    @default(true)
+  threshold                  Decimal                    @default(5.0) @db.Decimal
+  frequency                  String                     @default("when_needed") @db.VarChar(20)
+  last_rebalanced_at         DateTime?                  @db.Timestamptz(6)
+  created_at                 DateTime                   @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime                   @default(now()) @db.Timestamptz(6)
+  user_portfolio_allocations user_portfolio_allocations @relation(fields: [portfolio_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                      users                      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@id([symbol, ex_date])
-  @@index([ex_date], map: "idx_historic_dividends_ex_date")
-  @@index([symbol], map: "idx_historic_dividends_symbol")
-  @@index([symbol, ex_date(sort: Desc)], map: "idx_historic_dividends_symbol_date")
+  @@unique([user_id, portfolio_id])
+  @@index([portfolio_id], map: "idx_auto_rebalance_settings_portfolio_id")
+  @@index([user_id], map: "idx_auto_rebalance_settings_user_id")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model cashflows {
+  id                         String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                    String                     @db.Uuid
+  portfolio_id               String                     @db.Uuid
+  flow_date                  DateTime                   @db.Date
+  amount                     Decimal                    @db.Decimal
+  currency                   String                     @default("USD") @db.VarChar(3)
+  flow_type                  String                     @db.VarChar(20)
+  reference_id               String?                    @db.Uuid
+  metadata                   Json?
+  created_at                 DateTime?                  @default(now()) @db.Timestamptz(6)
+  user_portfolio_allocations user_portfolio_allocations @relation(fields: [portfolio_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                      users                      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id, portfolio_id], map: "idx_cashflows_user_portfolio")
+  @@schema("public")
+}
+
+model chat_conversations {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_id    String?         @db.Uuid
+  user_id       String?         @db.Uuid
+  title         String?         @db.VarChar(255)
+  created_at    DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?       @default(now()) @db.Timestamp(6)
+  chat_projects chat_projects?  @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users         users?          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chat_messages chat_messages[]
+
+  @@index([project_id], map: "idx_chat_conversations_project_id")
+  @@index([user_id], map: "idx_chat_conversations_user_id")
+  @@schema("public")
+}
+
+model chat_function_logs {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  message_id        String?        @db.Uuid
+  function_name     String         @db.VarChar(100)
+  parameters        Json?          @default("{}")
+  result            Json?          @default("{}")
+  execution_time_ms Int?           @default(0)
+  success           Boolean?       @default(false)
+  error_message     String?
+  trace_id          String?        @db.VarChar(100)
+  created_at        DateTime?      @default(now()) @db.Timestamp(6)
+  chat_messages     chat_messages? @relation(fields: [message_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([message_id], map: "idx_chat_function_logs_message_id")
+  @@index([trace_id], map: "idx_chat_function_logs_trace_id")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model chat_insights {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_id    String?        @db.Uuid
+  user_id       String?        @db.Uuid
+  type          String         @db.VarChar(50)
+  title         String         @db.VarChar(255)
+  content       String?
+  data          Json?          @default("{}")
+  created_at    DateTime?      @default(now()) @db.Timestamp(6)
+  chat_projects chat_projects? @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users         users?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([project_id], map: "idx_chat_insights_project_id")
+  @@index([user_id], map: "idx_chat_insights_user_id")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model chat_messages {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversation_id    String?              @db.Uuid
+  role               String               @db.VarChar(20)
+  content            String
+  metadata           Json?                @default("{}")
+  function_calls     Json?                @default("[]")
+  trace_id           String?              @db.VarChar(100)
+  created_at         DateTime?            @default(now()) @db.Timestamp(6)
+  chat_function_logs chat_function_logs[]
+  chat_conversations chat_conversations?  @relation(fields: [conversation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([conversation_id], map: "idx_chat_messages_conversation_id")
+  @@index([trace_id], map: "idx_chat_messages_trace_id")
+  @@schema("public")
+}
+
+model chat_projects {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id            String?              @db.Uuid
+  name               String               @db.VarChar(255)
+  description        String?
+  color              String?              @default("#0088FE") @db.VarChar(7)
+  created_at         DateTime?            @default(now()) @db.Timestamp(6)
+  updated_at         DateTime?            @default(now()) @db.Timestamp(6)
+  chat_conversations chat_conversations[]
+  chat_insights      chat_insights[]
+  users              users?               @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_chat_projects_user_id")
+  @@schema("public")
+}
+
+model fx_rates {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  base       String    @db.VarChar(3)
+  quote      String    @db.VarChar(3)
+  rate_date  DateTime  @db.Date
+  rate       Decimal   @db.Decimal
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@unique([base, quote, rate_date])
+  @@schema("public")
+}
+
+model planned_contributions {
+  id                         String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                    String                     @db.Uuid
+  portfolio_id               String                     @db.Uuid
+  amount                     Decimal                    @db.Decimal
+  currency                   String                     @default("USD") @db.VarChar(3)
+  scheduled_date             DateTime?                  @db.Date
+  status                     String                     @default("PLANNED") @db.VarChar(20)
+  recommendation             Json?                      @default("{}")
+  created_at                 DateTime?                  @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime?                  @default(now()) @db.Timestamptz(6)
+  user_portfolio_allocations user_portfolio_allocations @relation(fields: [portfolio_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                      users                      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_planned_contributions_user")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model portfolio_allocations {
+  id                         String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  portfolio_id               String                     @db.Uuid
+  user_id                    String                     @db.Uuid
+  etf_symbol                 String                     @db.VarChar(10)
+  allocation_percentage      Decimal                    @db.Decimal(5, 2)
+  target_amount              Decimal?                   @db.Decimal(15, 2)
+  current_amount             Decimal?                   @default(0) @db.Decimal(15, 2)
+  created_at                 DateTime?                  @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime?                  @default(now()) @db.Timestamptz(6)
+  user_portfolio_allocations user_portfolio_allocations @relation(fields: [portfolio_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_portfolio_allocations_portfolio")
+
+  @@unique([portfolio_id, etf_symbol], map: "unique_portfolio_etf")
+  @@index([etf_symbol], map: "idx_portfolio_allocations_etf_symbol")
+  @@index([portfolio_id], map: "idx_portfolio_allocations_portfolio_id")
+  @@index([user_id], map: "idx_portfolio_allocations_user_id")
+  @@schema("public")
+}
+
+model portfolio_implementation_runs {
+  id                      String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan_id                 String                  @db.Uuid
+  plan_version_id         String                  @db.Uuid
+  user_id                 String                  @db.Uuid
+  status                  String                  @default("PENDING") @db.VarChar(20)
+  priority_json           Json?                   @default("[]")
+  created_at              DateTime?               @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime?               @default(now()) @db.Timestamptz(6)
+  portfolio_plans         portfolio_plans         @relation(fields: [plan_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  portfolio_plan_versions portfolio_plan_versions @relation(fields: [plan_version_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                   users                   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_implementation_runs_user")
+  @@schema("public")
+}
+
+model portfolio_plan_versions {
+  id                            String                          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan_id                       String                          @db.Uuid
+  version                       Int
+  notes                         String?
+  created_at                    DateTime?                       @default(now()) @db.Timestamptz(6)
+  portfolio_implementation_runs portfolio_implementation_runs[]
+  portfolio_plans               portfolio_plans                 @relation(fields: [plan_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  portfolio_target_allocations  portfolio_target_allocations[]
+
+  @@unique([plan_id, version], map: "idx_plan_version_unique")
+  @@schema("public")
+}
+
+model portfolio_plans {
+  id                            String                          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                       String                          @db.Uuid
+  name                          String                          @db.VarChar(120)
+  objective                     String                          @db.VarChar(50)
+  risk_profile                  String                          @db.VarChar(20)
+  base_currency                 String                          @default("USD") @db.VarChar(3)
+  created_at                    DateTime?                       @default(now()) @db.Timestamptz(6)
+  updated_at                    DateTime?                       @default(now()) @db.Timestamptz(6)
+  portfolio_implementation_runs portfolio_implementation_runs[]
+  portfolio_plan_versions       portfolio_plan_versions[]
+  users                         users                           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_portfolio_plans_user")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model portfolio_target_allocations {
+  id                      String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan_version_id         String                  @db.Uuid
+  etf_symbol              String                  @db.VarChar(10)
+  allocation_percentage   Decimal                 @db.Decimal
+  band_lower              Decimal                 @default(5.0) @db.Decimal
+  band_upper              Decimal                 @default(5.0) @db.Decimal
+  created_at              DateTime?               @default(now()) @db.Timestamptz(6)
+  portfolio_plan_versions portfolio_plan_versions @relation(fields: [plan_version_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([plan_version_id], map: "idx_target_allocations_version")
+  @@schema("public")
+}
+
+model portfolio_tracking {
+  id                         String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  portfolio_id               String                     @db.Uuid
+  etf_symbol                 String                     @db.VarChar(10)
+  purchase_date              DateTime                   @db.Date
+  purchase_price             Decimal                    @db.Decimal(10, 2)
+  shares_quantity            Decimal                    @db.Decimal(15, 6)
+  user_id                    String                     @db.Uuid
+  created_at                 DateTime?                  @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime?                  @default(now()) @db.Timestamptz(6)
+  user_portfolio_allocations user_portfolio_allocations @relation(fields: [portfolio_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([etf_symbol], map: "idx_portfolio_tracking_etf_symbol")
+  @@index([portfolio_id], map: "idx_portfolio_tracking_portfolio_id")
+  @@index([user_id], map: "idx_portfolio_tracking_user_id")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model rebalance_suggestions {
+  id                         String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  portfolio_id               String                     @db.Uuid
+  user_id                    String                     @db.Uuid
+  etf_symbol                 String                     @db.VarChar(10)
+  current_allocation         Decimal                    @db.Decimal(5, 2)
+  target_allocation          Decimal                    @db.Decimal(5, 2)
+  deviation                  Decimal                    @db.Decimal(5, 2)
+  deviation_percentage       Decimal                    @db.Decimal(5, 2)
+  suggested_action           String                     @db.VarChar(10)
+  priority                   Int                        @default(1)
+  status                     String                     @default("PENDING") @db.VarChar(20)
+  created_at                 DateTime?                  @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime?                  @default(now()) @db.Timestamptz(6)
+  executed_at                DateTime?                  @db.Timestamptz(6)
+  user_portfolio_allocations user_portfolio_allocations @relation(fields: [portfolio_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_rebalance_suggestions_portfolio")
+
+  @@index([created_at], map: "idx_rebalance_suggestions_created_at")
+  @@index([portfolio_id], map: "idx_rebalance_suggestions_portfolio_id")
+  @@index([priority], map: "idx_rebalance_suggestions_priority")
+  @@index([status], map: "idx_rebalance_suggestions_status")
+  @@index([user_id], map: "idx_rebalance_suggestions_user_id")
+  @@schema("public")
+}
+
+model stock_ai_insights {
+  id                      BigInt        @id @default(autoincrement())
+  asset_id                BigInt
+  insight_date            DateTime      @default(dbgenerated("CURRENT_DATE")) @db.Date
+  ai_investment_thesis    String?
+  ai_risk_analysis        String?
+  ai_market_context       String?
+  ai_competitive_analysis String?
+  ai_growth_prospects     String?
+  ai_management_quality   String?
+  ai_financial_health     String?
+  ai_industry_outlook     String?
+  ai_esg_analysis         String?
+  ai_insights_json        Json?
+  ai_context_json         Json?
+  analyst_consensus       Json?
+  news_sentiment          Json?
+  ai_quality_score        Int?
+  ai_growth_score         Int?
+  ai_value_score          Int?
+  ai_momentum_score       Int?
+  perplexity_sources      Json?
+  firecrawl_data          Json?
+  generated_at            DateTime?     @default(now()) @db.Timestamptz(6)
+  assets_master           assets_master @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([asset_id, insight_date])
+  @@index([ai_context_json], map: "idx_stock_ai_context_json_gin", type: Gin)
+  @@index([asset_id, insight_date(sort: Desc)], map: "idx_stock_ai_insights_asset_date")
+  @@index([generated_at(sort: Desc)], map: "idx_stock_ai_insights_generated_at")
+  @@index([ai_insights_json], map: "idx_stock_ai_insights_json_gin", type: Gin)
+  @@index([ai_quality_score(sort: Desc)], map: "idx_stock_ai_insights_quality_score")
+  @@schema("public")
+}
+
+model stock_fundamentals_quarterly {
+  id                   BigInt        @id @default(autoincrement())
+  asset_id             BigInt
+  quarter_date         DateTime      @db.Date
+  pe_ratio             Decimal?      @db.Decimal(8, 2)
+  peg_ratio            Decimal?      @db.Decimal(8, 2)
+  pb_ratio             Decimal?      @db.Decimal(8, 2)
+  ps_ratio             Decimal?      @db.Decimal(8, 2)
+  ev_ebitda            Decimal?      @db.Decimal(8, 2)
+  roe                  Decimal?      @db.Decimal(8, 4)
+  roa                  Decimal?      @db.Decimal(8, 4)
+  roic                 Decimal?      @db.Decimal(8, 4)
+  gross_margin         Decimal?      @db.Decimal(8, 4)
+  operating_margin     Decimal?      @db.Decimal(8, 4)
+  net_margin           Decimal?      @db.Decimal(8, 4)
+  debt_to_equity       Decimal?      @db.Decimal(8, 4)
+  current_ratio        Decimal?      @db.Decimal(8, 4)
+  quick_ratio          Decimal?      @db.Decimal(8, 4)
+  revenue_growth_yoy   Decimal?      @db.Decimal(8, 4)
+  earnings_growth_yoy  Decimal?      @db.Decimal(8, 4)
+  revenue              BigInt?
+  net_income           BigInt?
+  total_debt           BigInt?
+  cash_and_equivalents BigInt?
+  source_meta          Json?
+  created_at           DateTime?     @default(now()) @db.Timestamptz(6)
+  assets_master        assets_master @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([asset_id, quarter_date])
+  @@index([asset_id, quarter_date(sort: Desc)], map: "idx_stock_fundamentals_asset_quarter")
+  @@index([pe_ratio], map: "idx_stock_fundamentals_pe_ratio")
+  @@index([revenue_growth_yoy(sort: Desc)], map: "idx_stock_fundamentals_revenue_growth")
+  @@index([roe(sort: Desc)], map: "idx_stock_fundamentals_roe")
+  @@schema("public")
+}
+
+model stock_metrics_snapshot {
+  id                  BigInt        @id @default(autoincrement())
+  asset_id            BigInt
+  snapshot_date       DateTime      @default(dbgenerated("CURRENT_DATE")) @db.Date
+  current_price       Decimal?      @db.Decimal(12, 4)
+  market_cap          BigInt?
+  shares_outstanding  BigInt?
+  float_shares        BigInt?
+  volume_avg_30d      BigInt?
+  returns_1d          Decimal?      @db.Decimal(8, 4)
+  returns_1w          Decimal?      @db.Decimal(8, 4)
+  returns_1m          Decimal?      @db.Decimal(8, 4)
+  returns_3m          Decimal?      @db.Decimal(8, 4)
+  returns_6m          Decimal?      @db.Decimal(8, 4)
+  returns_12m         Decimal?      @db.Decimal(8, 4)
+  returns_24m         Decimal?      @db.Decimal(8, 4)
+  returns_36m         Decimal?      @db.Decimal(8, 4)
+  returns_5y          Decimal?      @db.Decimal(8, 4)
+  ten_year_return     Decimal?      @db.Decimal(8, 4)
+  volatility_12m      Decimal?      @db.Decimal(8, 4)
+  volatility_24m      Decimal?      @db.Decimal(8, 4)
+  volatility_36m      Decimal?      @db.Decimal(8, 4)
+  ten_year_volatility Decimal?      @db.Decimal(8, 4)
+  sharpe_12m          Decimal?      @db.Decimal(8, 4)
+  sharpe_24m          Decimal?      @db.Decimal(8, 4)
+  sharpe_36m          Decimal?      @db.Decimal(8, 4)
+  ten_year_sharpe     Decimal?      @db.Decimal(8, 4)
+  max_drawdown        Decimal?      @db.Decimal(8, 4)
+  beta_12m            Decimal?      @db.Decimal(8, 4)
+  dividend_yield_12m  Decimal?      @db.Decimal(8, 4)
+  dividend_yield_ttm  Decimal?      @db.Decimal(8, 4)
+  dividends_12m       Decimal?      @db.Decimal(8, 4)
+  dividend_growth_5y  Decimal?      @db.Decimal(8, 4)
+  rsi_14d             Decimal?      @db.Decimal(5, 2)
+  ma_50d              Decimal?      @db.Decimal(12, 4)
+  ma_200d             Decimal?      @db.Decimal(12, 4)
+  price_to_ma50       Decimal?      @db.Decimal(6, 4)
+  price_to_ma200      Decimal?      @db.Decimal(6, 4)
+  size_category       String?
+  liquidity_category  String?
+  growth_category     String?
+  quality_score       Int?
+  source_meta         Json?
+  validation_meta     Json?
+  calculated_at       DateTime?     @default(now()) @db.Timestamptz(6)
+  assets_master       assets_master @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([asset_id, snapshot_date])
+  @@index([asset_id, snapshot_date(sort: Desc)], map: "idx_stock_metrics_asset_snapshot")
+  @@index([calculated_at(sort: Desc)], map: "idx_stock_metrics_calculated_at")
+  @@index([dividend_yield_12m(sort: Desc)], map: "idx_stock_metrics_dividend_yield")
+  @@index([market_cap(sort: Desc)], map: "idx_stock_metrics_market_cap")
+  @@index([quality_score(sort: Desc)], map: "idx_stock_metrics_quality_score")
+  @@index([returns_12m(sort: Desc)], map: "idx_stock_metrics_returns_12m")
+  @@index([sharpe_12m(sort: Desc)], map: "idx_stock_metrics_sharpe_12m")
+  @@index([size_category], map: "idx_stock_metrics_size_category")
+  @@index([source_meta], map: "idx_stock_metrics_source_meta_gin", type: Gin)
+  @@index([volatility_12m], map: "idx_stock_metrics_volatility_12m")
+  @@schema("public")
+}
+
+model stock_prices_daily {
+  id            BigInt        @id @default(autoincrement())
+  asset_id      BigInt
+  date          DateTime      @db.Date
+  open          Decimal?      @db.Decimal(12, 4)
+  high          Decimal?      @db.Decimal(12, 4)
+  low           Decimal?      @db.Decimal(12, 4)
+  close         Decimal?      @db.Decimal(12, 4)
+  adj_close     Decimal?      @db.Decimal(12, 4)
+  volume        BigInt?
+  created_at    DateTime?     @default(now()) @db.Timestamptz(6)
+  assets_master assets_master @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([asset_id, date])
+  @@index([asset_id, date(sort: Desc)], map: "idx_stock_prices_daily_asset_date")
+  @@index([date(sort: Desc)], map: "idx_stock_prices_daily_date")
+  @@index([volume(sort: Desc)], map: "idx_stock_prices_daily_volume")
+  @@schema("public")
+}
+
+model timeline_events {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String    @db.Uuid
+  portfolio_id String?   @db.Uuid
+  event_type   String    @db.VarChar(40)
+  event_date   DateTime  @default(now()) @db.Timestamptz(6)
+  payload      Json?
+  created_at   DateTime? @default(now()) @db.Timestamptz(6)
+  users        users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id, portfolio_id], map: "idx_timeline_user_portfolio")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model trades {
+  id                         String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                    String                     @db.Uuid
+  portfolio_id               String                     @db.Uuid
+  etf_symbol                 String                     @db.VarChar(10)
+  side                       String                     @db.VarChar(4)
+  trade_date                 DateTime                   @db.Date
+  quantity                   Decimal                    @db.Decimal
+  price                      Decimal                    @db.Decimal
+  gross_amount               Decimal?                   @default(dbgenerated("(quantity * price)")) @db.Decimal
+  currency                   String                     @default("USD") @db.VarChar(3)
+  source                     String                     @default("manual") @db.VarChar(20)
+  raw_payload                Json?
+  created_at                 DateTime?                  @default(now()) @db.Timestamptz(6)
+  user_portfolio_allocations user_portfolio_allocations @relation(fields: [portfolio_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                      users                      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id, portfolio_id], map: "idx_trades_user_portfolio")
   @@schema("public")
 }
 
@@ -995,5 +1270,178 @@ enum payment_method {
   PIX
   BANK_TRANSFER
 
+  @@schema("public")
+}
+
+/// Tabela unificada de ações americanas - consolidação de assets_master, stock_metrics_snapshot e stock_prices_daily
+model stocks_unified {
+  id                          BigInt    @id @default(autoincrement())
+  ticker                      String    @unique
+  name                        String
+  asset_type                  String    @default("STOCK")
+  sector                      String?
+  industry                    String?
+  exchange                    String?   @default("NASDAQ")
+  currency                    String?   @default("USD")
+  business_description        String?
+  current_price               Decimal?  @db.Decimal(12, 4)
+  market_cap                  BigInt?
+  shares_outstanding          BigInt?
+  volume_avg_30d              BigInt?
+  snapshot_date               DateTime  @default(dbgenerated("CURRENT_DATE")) @db.Date
+  returns_12m                 Decimal?  @db.Decimal(8, 4)
+  returns_24m                 Decimal?  @db.Decimal(8, 4)
+  returns_36m                 Decimal?  @db.Decimal(8, 4)
+  returns_5y                  Decimal?  @db.Decimal(8, 4)
+  ten_year_return             Decimal?  @db.Decimal(8, 4)
+  volatility_12m              Decimal?  @db.Decimal(8, 4)
+  volatility_24m              Decimal?  @db.Decimal(8, 4)
+  volatility_36m              Decimal?  @db.Decimal(8, 4)
+  ten_year_volatility         Decimal?  @db.Decimal(8, 4)
+  max_drawdown                Decimal?  @db.Decimal(8, 4)
+  sharpe_12m                  Decimal?  @db.Decimal(8, 4)
+  sharpe_24m                  Decimal?  @db.Decimal(8, 4)
+  sharpe_36m                  Decimal?  @db.Decimal(8, 4)
+  ten_year_sharpe             Decimal?  @db.Decimal(8, 4)
+  beta_coefficient            Decimal?  @db.Decimal(8, 4)
+  dividend_yield_12m          Decimal?  @db.Decimal(8, 4)
+  dividends_12m               Decimal?  @db.Decimal(8, 4)
+  dividends_24m               Decimal?  @db.Decimal(8, 4)
+  dividends_36m               Decimal?  @db.Decimal(8, 4)
+  dividends_all_time          Decimal?  @db.Decimal(8, 4)
+  pe_ratio                    Decimal?  @db.Decimal(8, 2)
+  pb_ratio                    Decimal?  @db.Decimal(8, 4)
+  ps_ratio                    Decimal?  @db.Decimal(8, 4)
+  peg_ratio                   Decimal?  @db.Decimal(8, 4)
+  roe                         Decimal?  @db.Decimal(8, 4)
+  roa                         Decimal?  @db.Decimal(8, 4)
+  roi                         Decimal?  @db.Decimal(8, 4)
+  profit_margin               Decimal?  @db.Decimal(8, 4)
+  debt_to_equity              Decimal?  @db.Decimal(8, 4)
+  current_ratio               Decimal?  @db.Decimal(8, 4)
+  revenue                     BigInt?
+  net_income                  BigInt?
+  total_assets                BigInt?
+  total_debt                  BigInt?
+  free_cash_flow              BigInt?
+  book_value                  Decimal?  @db.Decimal(12, 4)
+  enterprise_value            BigInt?
+  ebitda                      BigInt?
+  ai_investment_thesis        String?
+  ai_risk_analysis            String?
+  ai_market_context           String?
+  ai_use_cases                String?
+  ai_analysis_date            DateTime? @db.Timestamptz(6)
+  ai_analysis_version         String?   @db.VarChar(50)
+  size_category               String?
+  liquidity_category          String?
+  fundamentals_last_updated   DateTime? @db.Timestamptz(6)
+  last_updated                DateTime? @default(now()) @db.Timestamptz(6)
+  data_quality_score          Int?      @default(0)
+  source_meta                 Json?
+  fundamentals_source_meta    Json?
+
+  @@index([ticker], map: "idx_stocks_ticker")
+  @@index([sector], map: "idx_stocks_sector")
+  @@index([market_cap], map: "idx_stocks_market_cap")
+  @@index([returns_12m], map: "idx_stocks_returns_12m")
+  @@index([pe_ratio], map: "idx_stocks_pe_ratio")
+  @@index([dividend_yield_12m], map: "idx_stocks_dividend_yield")
+  @@index([last_updated], map: "idx_stocks_last_updated")
+  @@schema("public")
+}
+
+/// Planos de portfólio de ações dos usuários
+model stock_portfolio_plans {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                 String                    @db.Uuid
+  name                    String                    @db.VarChar(120)
+  objective               String                    @db.VarChar(50)
+  risk_profile            String                    @db.VarChar(20)
+  base_currency           String                    @default("USD") @db.VarChar(3)
+  created_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime                  @updatedAt @db.Timestamptz(6)
+  users                   users                     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  stock_portfolio_versions stock_portfolio_versions[]
+  stock_trades            stock_trades[]
+  stock_timeline_events   stock_timeline_events[]
+
+  @@index([user_id])
+  @@schema("public")
+}
+
+/// Versões dos planos de portfólio de ações
+model stock_portfolio_versions {
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan_id                   String                      @db.Uuid
+  version_number            Int                         @default(1)
+  is_active                 Boolean                     @default(true)
+  notes                     String?
+  created_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  stock_portfolio_plans     stock_portfolio_plans       @relation(fields: [plan_id], references: [id], onDelete: Cascade)
+  stock_portfolio_allocations stock_portfolio_allocations[]
+
+  @@unique([plan_id, version_number])
+  @@index([plan_id])
+  @@schema("public")
+}
+
+/// Alocações alvo para cada ação em uma versão específica do plano
+model stock_portfolio_allocations {
+  id                       String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  version_id               String                   @db.Uuid
+  stock_symbol             String                   @db.VarChar(10)
+  allocation_percentage    Decimal                  @db.Decimal(5, 2)
+  target_amount            Decimal?                 @db.Decimal(15, 2)
+  created_at               DateTime                 @default(now()) @db.Timestamptz(6)
+  stock_portfolio_versions stock_portfolio_versions @relation(fields: [version_id], references: [id], onDelete: Cascade)
+
+  @@index([version_id])
+  @@index([stock_symbol])
+  @@schema("public")
+}
+
+/// Registro de todas as negociações de ações realizadas
+model stock_trades {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan_id               String                @db.Uuid
+  user_id               String                @db.Uuid
+  stock_symbol          String                @db.VarChar(10)
+  trade_type            String                @db.VarChar(4)
+  quantity              Decimal               @db.Decimal(15, 6)
+  price                 Decimal               @db.Decimal(12, 4)
+  total_amount          Decimal               @db.Decimal(15, 2)
+  trade_date            DateTime              @db.Date
+  broker                String?               @db.VarChar(50)
+  notes                 String?
+  created_at            DateTime              @default(now()) @db.Timestamptz(6)
+  stock_portfolio_plans stock_portfolio_plans @relation(fields: [plan_id], references: [id], onDelete: Cascade)
+  users                 users                 @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([plan_id])
+  @@index([user_id])
+  @@index([stock_symbol])
+  @@index([trade_date])
+  @@schema("public")
+}
+
+/// Timeline de eventos do portfólio de ações
+model stock_timeline_events {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan_id               String                @db.Uuid
+  user_id               String                @db.Uuid
+  event_type            String                @db.VarChar(20)
+  event_date            DateTime              @default(now()) @db.Timestamptz(6)
+  stock_symbol          String?               @db.VarChar(10)
+  description           String?
+  metadata              Json?
+  created_at            DateTime              @default(now()) @db.Timestamptz(6)
+  stock_portfolio_plans stock_portfolio_plans @relation(fields: [plan_id], references: [id], onDelete: Cascade)
+  users                 users                 @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([plan_id])
+  @@index([user_id])
+  @@index([event_type])
+  @@index([event_date])
   @@schema("public")
 }

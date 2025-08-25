@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ETF } from '@/types/etf';
 import ETFDetailCard from '@/components/screener/ETFDetailCard';
-import Navbar from '@/components/layout/Navbar';
+import UnifiedNavbar from '@/components/layout/UnifiedNavbar';
 import RequireAuth from '@/components/auth/RequireAuth';
 
 export default function ETFDetailsPage() {
@@ -59,7 +59,7 @@ export default function ETFDetailsPage() {
     return (
       <RequireAuth>
         <div className="min-h-screen bg-gray-50">
-          <Navbar />
+          <UnifiedNavbar />
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -75,7 +75,7 @@ export default function ETFDetailsPage() {
     return (
       <RequireAuth>
         <div className="min-h-screen bg-gray-50">
-          <Navbar />
+          <UnifiedNavbar />
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
               <div className="text-red-600 text-6xl mb-4">⚠️</div>
@@ -98,7 +98,7 @@ export default function ETFDetailsPage() {
     return (
       <RequireAuth>
         <div className="min-h-screen bg-gray-50">
-          <Navbar />
+          <UnifiedNavbar />
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">ETF não encontrado</h1>
@@ -119,7 +119,7 @@ export default function ETFDetailsPage() {
   return (
     <RequireAuth>
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <UnifiedNavbar />
         <div className="relative">
           <ETFDetailCard 
             etf={etf} 

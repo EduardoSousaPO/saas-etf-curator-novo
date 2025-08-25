@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // Cache em memória simples
 let showcaseCache: {
@@ -27,12 +32,18 @@ export async function GET() {
       });
     }
 
-    // Verificar se há dados na view active_etfs
-    const activeETFsCount = await prisma.$queryRaw<[{count: string}]>`SELECT COUNT(*) as count FROM etfs_ativos_reais`;
-    const totalCount = parseInt(activeETFsCount[0].count);
-    console.log(`📊 Total de ETFs ativos na view: ${totalCount}`);
+    // Verificar se há dados na tabela etfs_ativos_reais
+    const { count: totalCount, error: countError } = await supabase
+      .from('etfs_ativos_reais')
+      .select('*', { count: 'exact', head: true });
+    
+    if (countError) {
+      throw new Error(`Erro ao contar ETFs: ${countError.message}`);
+    }
+    
+    console.log(`📊 Total de ETFs ativos na tabela: ${totalCount || 0}`);
 
-    if (totalCount === 0) {
+    if (!totalCount || totalCount === 0) {
       console.error('❌ ERRO CRÍTICO: Nenhum ETF encontrado na tabela etfs_ativos_reais');
       return NextResponse.json({
         success: false,
@@ -42,35 +53,28 @@ export async function GET() {
       }, { status: 500 });
     }
 
-    // OTIMIZAÇÃO: Uma única consulta para buscar todos os ETFs necessários
-    const allETFs = await prisma.$queryRaw<any[]>`
-      WITH ranked_etfs AS (
-        SELECT 
-          symbol, name, assetclass, etfcompany, nav,
-          returns_12m, volatility_12m, sharpe_12m, dividends_12m,
-          ROW_NUMBER() OVER (ORDER BY returns_12m DESC) as return_rank,
-          ROW_NUMBER() OVER (ORDER BY sharpe_12m DESC) as sharpe_rank,
-          ROW_NUMBER() OVER (ORDER BY volatility_12m ASC) as vol_rank,
-          ROW_NUMBER() OVER (ORDER BY dividends_12m DESC) as div_rank
-        FROM etfs_ativos_reais
-        WHERE sharpe_12m IS NOT NULL 
-          AND returns_12m IS NOT NULL
-          AND returns_12m BETWEEN -0.95 AND 5.0
-          AND volatility_12m BETWEEN 0 AND 2.0
-          AND sharpe_12m BETWEEN -10 AND 10
-      )
-      SELECT 
-        symbol, name, assetclass, etfcompany, nav,
-        returns_12m, volatility_12m, sharpe_12m, dividends_12m,
-        return_rank, sharpe_rank, vol_rank, div_rank
-      FROM ranked_etfs
-      WHERE return_rank <= 5 OR sharpe_rank <= 5 OR vol_rank <= 5 OR div_rank <= 5
-      ORDER BY sharpe_rank ASC
-    `;
+    // Buscar ETFs com métricas válidas usando Supabase
+    const { data: allETFs, error: etfsError } = await supabase
+      .from('etfs_ativos_reais')
+      .select('symbol, name, assetclass, etfcompany, nav, returns_12m, volatility_12m, sharpe_12m, dividends_12m')
+      .not('sharpe_12m', 'is', null)
+      .not('returns_12m', 'is', null)
+      .gte('returns_12m', -0.95)
+      .lte('returns_12m', 5.0)
+      .gte('volatility_12m', 0)
+      .lte('volatility_12m', 2.0)
+      .gte('sharpe_12m', -10)
+      .lte('sharpe_12m', 10)
+      .order('sharpe_12m', { ascending: false })
+      .limit(50);
 
-    console.log(`📊 ETFs com métricas válidas encontrados: ${allETFs.length}`);
+    if (etfsError) {
+      throw new Error(`Erro ao buscar ETFs: ${etfsError.message}`);
+    }
 
-    if (allETFs.length === 0) {
+    console.log(`📊 ETFs com métricas válidas encontrados: ${allETFs?.length || 0}`);
+
+    if (!allETFs || allETFs.length === 0) {
       console.error('❌ ERRO: Nenhum ETF com métricas válidas encontrado');
       return NextResponse.json({
         success: false,
@@ -80,11 +84,11 @@ export async function GET() {
       }, { status: 404 });
     }
 
-    // Separar ETFs por categoria usando os rankings
-    const topPerformers = allETFs.filter(etf => etf.return_rank <= 5);
-    const bestSharpe = allETFs.filter(etf => etf.sharpe_rank <= 5);
-    const lowVolatility = allETFs.filter(etf => etf.vol_rank <= 5);
-    const highDividend = allETFs.filter(etf => etf.div_rank <= 5);
+    // Separar ETFs por categoria (já ordenados por Sharpe)
+    const bestSharpe = allETFs.slice(0, 10); // Top 10 por Sharpe
+    const topPerformers = [...allETFs].sort((a, b) => (b.returns_12m || 0) - (a.returns_12m || 0)).slice(0, 10);
+    const lowVolatility = [...allETFs].sort((a, b) => (a.volatility_12m || 999) - (b.volatility_12m || 999)).slice(0, 10);
+    const highDividend = [...allETFs].sort((a, b) => (b.dividends_12m || 0) - (a.dividends_12m || 0)).slice(0, 10);
 
     // Processar ETFs encontrados
     const processETFs = (etfs: any[]) => {

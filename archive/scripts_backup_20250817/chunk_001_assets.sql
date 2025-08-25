@@ -1,0 +1,6 @@
+INSERT INTO assets_master (ticker, asset_type, name, exchange, sector, industry, currency, business_description) VALUES ('TSLA', 'STOCK', 'Tesla, Inc.', 'NASDAQ', 'Consumer Cyclical', 'Auto Manufacturers', 'USD', 'Tesla, Inc. designs, develops, manufactures, leases, and sells electric vehicles, and energy generation and storage systems.'),
+('META', 'STOCK', 'Meta Platforms, Inc.', 'NASDAQ', 'Communication Services', 'Internet Content & Information', 'USD', 'Meta Platforms, Inc. develops products that enable people to connect and share with friends and family.'),
+('NVDA', 'STOCK', 'NVIDIA Corporation', 'NASDAQ', 'Technology', 'Semiconductors', 'USD', 'NVIDIA Corporation operates as a computing company. The company operates in Graphics and Compute & Networking.'),
+('NFLX', 'STOCK', 'Netflix, Inc.', 'NASDAQ', 'Communication Services', 'Entertainment', 'USD', 'Netflix, Inc. provides entertainment services. It offers TV series, documentaries, and feature films.'),
+('CRM', 'STOCK', 'Salesforce, Inc.', 'NYSE', 'Technology', 'Software—Application', 'USD', 'Salesforce, Inc. provides customer relationship management technology.')
+ON CONFLICT (ticker) DO NOTHING;

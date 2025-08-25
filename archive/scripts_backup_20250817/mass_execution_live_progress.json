@@ -1,0 +1,597 @@
+{
+  "execution_status": {
+    "start_time": "2025-08-17T00:32:58.657758",
+    "current_time": "2025-08-17T00:33:26.607497",
+    "elapsed_seconds": 27.94974,
+    "elapsed_formatted": "0:00:27.949741",
+    "is_running": true
+  },
+  "progress": {
+    "current_batch": 10,
+    "total_processed": 200,
+    "initial_count": 39,
+    "current_count": 239,
+    "target_count": 2240,
+    "progress_percentage": 10.669642857142856,
+    "remaining": 2001
+  },
+  "performance": {
+    "batches_per_minute": 21.46710257765161,
+    "stocks_per_minute": 429.34205155303215,
+    "estimated_completion": "2025-08-17T00:38:06.244692"
+  },
+  "recent_events": [
+    {
+      "timestamp": "2025-08-17T00:33:21.882611",
+      "elapsed_seconds": 23.224856,
+      "batch_number": 9,
+      "total_processed": 160,
+      "current_db_count": 199,
+      "type": "SQL_GENERATED",
+      "message": "SQL salvo: scripts/mass_batch_009.sql (14915 chars)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:23.108386",
+      "elapsed_seconds": 24.450638,
+      "batch_number": 9,
+      "total_processed": 180,
+      "current_db_count": 219,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 9 executado: +20 ações (total: 219)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:24.018102",
+      "elapsed_seconds": 25.360355,
+      "batch_number": 10,
+      "total_processed": 180,
+      "current_db_count": 219,
+      "type": "BATCH_START",
+      "message": "Iniciando lote 10 (20 ações)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:24.019392",
+      "elapsed_seconds": 25.361636,
+      "batch_number": 10,
+      "total_processed": 180,
+      "current_db_count": 219,
+      "type": "DATA_GENERATED",
+      "message": "Dados gerados em 0.00s",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:24.020853",
+      "elapsed_seconds": 25.363099,
+      "batch_number": 10,
+      "total_processed": 180,
+      "current_db_count": 219,
+      "type": "SQL_GENERATED",
+      "message": "SQL salvo: scripts/mass_batch_010.sql (14857 chars)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:25.833241",
+      "elapsed_seconds": 27.175491,
+      "batch_number": 10,
+      "total_processed": 200,
+      "current_db_count": 239,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 10 executado: +20 ações (total: 239)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:25.834439",
+      "elapsed_seconds": 27.176683,
+      "batch_number": 10,
+      "total_processed": 200,
+      "current_db_count": 239,
+      "type": "PROGRESS_MILESTONE",
+      "message": "📊 Progresso: 10.7% (239/2240)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:26.604755",
+      "elapsed_seconds": 27.947012,
+      "batch_number": 10,
+      "total_processed": 200,
+      "current_db_count": 239,
+      "type": "MASS_COMPLETE",
+      "message": "🎉 INSERÇÃO MASSIVA CONCLUÍDA!",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:26.605821",
+      "elapsed_seconds": 27.948065,
+      "batch_number": 10,
+      "total_processed": 200,
+      "current_db_count": 239,
+      "type": "FINAL_STATS",
+      "message": "Lotes: 10/10 | Ações: 200 | Progresso: 10.7%",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:26.607448",
+      "elapsed_seconds": 27.949693,
+      "batch_number": 10,
+      "total_processed": 200,
+      "current_db_count": 239,
+      "type": "CRITICAL_ERROR",
+      "message": "❌ Erro crítico: Object of type datetime is not JSON serializable",
+      "data": {}
+    }
+  ],
+  "full_log": [
+    {
+      "timestamp": "2025-08-17T00:32:58.657779",
+      "elapsed_seconds": 2.6e-05,
+      "batch_number": 0,
+      "total_processed": 0,
+      "current_db_count": 39,
+      "type": "MASS_START",
+      "message": "🚀 INICIANDO INSERÇÃO MASSIVA: 200 ações",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:32:58.658454",
+      "elapsed_seconds": 0.0007,
+      "batch_number": 0,
+      "total_processed": 0,
+      "current_db_count": 39,
+      "type": "CONFIGURATION",
+      "message": "Lotes de 20 ações cada",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:32:58.658951",
+      "elapsed_seconds": 0.001196,
+      "batch_number": 0,
+      "total_processed": 0,
+      "current_db_count": 39,
+      "type": "PLANNING",
+      "message": "Planejamento: 10 lotes necessários",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:32:58.659388",
+      "elapsed_seconds": 0.001632,
+      "batch_number": 1,
+      "total_processed": 0,
+      "current_db_count": 39,
+      "type": "BATCH_START",
+      "message": "Iniciando lote 1 (20 ações)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:32:58.659984",
+      "elapsed_seconds": 0.002228,
+      "batch_number": 1,
+      "total_processed": 0,
+      "current_db_count": 39,
+      "type": "DATA_GENERATED",
+      "message": "Dados gerados em 0.00s",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:32:58.661659",
+      "elapsed_seconds": 0.003903,
+      "batch_number": 1,
+      "total_processed": 0,
+      "current_db_count": 39,
+      "type": "SQL_GENERATED",
+      "message": "SQL salvo: scripts/mass_batch_001.sql (14719 chars)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:01.020345",
+      "elapsed_seconds": 2.362594,
+      "batch_number": 1,
+      "total_processed": 20,
+      "current_db_count": 59,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 1 executado: +20 ações (total: 59)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:01.687937",
+      "elapsed_seconds": 3.03019,
+      "batch_number": 2,
+      "total_processed": 20,
+      "current_db_count": 59,
+      "type": "BATCH_START",
+      "message": "Iniciando lote 2 (20 ações)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:01.689315",
+      "elapsed_seconds": 3.03156,
+      "batch_number": 2,
+      "total_processed": 20,
+      "current_db_count": 59,
+      "type": "DATA_GENERATED",
+      "message": "Dados gerados em 0.00s",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:01.691104",
+      "elapsed_seconds": 3.033349,
+      "batch_number": 2,
+      "total_processed": 20,
+      "current_db_count": 59,
+      "type": "SQL_GENERATED",
+      "message": "SQL salvo: scripts/mass_batch_002.sql (14870 chars)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:03.059351",
+      "elapsed_seconds": 4.401601,
+      "batch_number": 2,
+      "total_processed": 40,
+      "current_db_count": 79,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 2 executado: +20 ações (total: 79)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:04.068147",
+      "elapsed_seconds": 5.4104,
+      "batch_number": 3,
+      "total_processed": 40,
+      "current_db_count": 79,
+      "type": "BATCH_START",
+      "message": "Iniciando lote 3 (20 ações)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:04.069509",
+      "elapsed_seconds": 5.411753,
+      "batch_number": 3,
+      "total_processed": 40,
+      "current_db_count": 79,
+      "type": "DATA_GENERATED",
+      "message": "Dados gerados em 0.00s",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:04.071206",
+      "elapsed_seconds": 5.413451,
+      "batch_number": 3,
+      "total_processed": 40,
+      "current_db_count": 79,
+      "type": "SQL_GENERATED",
+      "message": "SQL salvo: scripts/mass_batch_003.sql (14801 chars)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:06.607829",
+      "elapsed_seconds": 7.950078,
+      "batch_number": 3,
+      "total_processed": 60,
+      "current_db_count": 99,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 3 executado: +20 ações (total: 99)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:07.781032",
+      "elapsed_seconds": 9.123285,
+      "batch_number": 4,
+      "total_processed": 60,
+      "current_db_count": 99,
+      "type": "BATCH_START",
+      "message": "Iniciando lote 4 (20 ações)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:07.782313",
+      "elapsed_seconds": 9.124558,
+      "batch_number": 4,
+      "total_processed": 60,
+      "current_db_count": 99,
+      "type": "DATA_GENERATED",
+      "message": "Dados gerados em 0.00s",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:07.783419",
+      "elapsed_seconds": 9.125664,
+      "batch_number": 4,
+      "total_processed": 60,
+      "current_db_count": 99,
+      "type": "SQL_GENERATED",
+      "message": "SQL salvo: scripts/mass_batch_004.sql (14859 chars)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:09.841162",
+      "elapsed_seconds": 11.18341,
+      "batch_number": 4,
+      "total_processed": 80,
+      "current_db_count": 119,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 4 executado: +20 ações (total: 119)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:10.898737",
+      "elapsed_seconds": 12.240992,
+      "batch_number": 5,
+      "total_processed": 80,
+      "current_db_count": 119,
+      "type": "BATCH_START",
+      "message": "Iniciando lote 5 (20 ações)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:10.900154",
+      "elapsed_seconds": 12.242398,
+      "batch_number": 5,
+      "total_processed": 80,
+      "current_db_count": 119,
+      "type": "DATA_GENERATED",
+      "message": "Dados gerados em 0.00s",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:10.901715",
+      "elapsed_seconds": 12.243959,
+      "batch_number": 5,
+      "total_processed": 80,
+      "current_db_count": 119,
+      "type": "SQL_GENERATED",
+      "message": "SQL salvo: scripts/mass_batch_005.sql (14785 chars)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:13.507490",
+      "elapsed_seconds": 14.849738,
+      "batch_number": 5,
+      "total_processed": 100,
+      "current_db_count": 139,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 5 executado: +20 ações (total: 139)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:14.688759",
+      "elapsed_seconds": 16.031014,
+      "batch_number": 6,
+      "total_processed": 100,
+      "current_db_count": 139,
+      "type": "BATCH_START",
+      "message": "Iniciando lote 6 (20 ações)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:14.690219",
+      "elapsed_seconds": 16.032463,
+      "batch_number": 6,
+      "total_processed": 100,
+      "current_db_count": 139,
+      "type": "DATA_GENERATED",
+      "message": "Dados gerados em 0.00s",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:14.691805",
+      "elapsed_seconds": 16.03405,
+      "batch_number": 6,
+      "total_processed": 100,
+      "current_db_count": 139,
+      "type": "SQL_GENERATED",
+      "message": "SQL salvo: scripts/mass_batch_006.sql (14769 chars)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:15.901681",
+      "elapsed_seconds": 17.243929,
+      "batch_number": 6,
+      "total_processed": 120,
+      "current_db_count": 159,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 6 executado: +20 ações (total: 159)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:16.824022",
+      "elapsed_seconds": 18.166277,
+      "batch_number": 7,
+      "total_processed": 120,
+      "current_db_count": 159,
+      "type": "BATCH_START",
+      "message": "Iniciando lote 7 (20 ações)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:16.825226",
+      "elapsed_seconds": 18.16747,
+      "batch_number": 7,
+      "total_processed": 120,
+      "current_db_count": 159,
+      "type": "DATA_GENERATED",
+      "message": "Dados gerados em 0.00s",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:16.826695",
+      "elapsed_seconds": 18.16894,
+      "batch_number": 7,
+      "total_processed": 120,
+      "current_db_count": 159,
+      "type": "SQL_GENERATED",
+      "message": "SQL salvo: scripts/mass_batch_007.sql (14619 chars)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:18.105905",
+      "elapsed_seconds": 19.448155,
+      "batch_number": 7,
+      "total_processed": 140,
+      "current_db_count": 179,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 7 executado: +20 ações (total: 179)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:19.099299",
+      "elapsed_seconds": 20.441551,
+      "batch_number": 8,
+      "total_processed": 140,
+      "current_db_count": 179,
+      "type": "BATCH_START",
+      "message": "Iniciando lote 8 (20 ações)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:19.100612",
+      "elapsed_seconds": 20.442857,
+      "batch_number": 8,
+      "total_processed": 140,
+      "current_db_count": 179,
+      "type": "DATA_GENERATED",
+      "message": "Dados gerados em 0.00s",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:19.102639",
+      "elapsed_seconds": 20.444884,
+      "batch_number": 8,
+      "total_processed": 140,
+      "current_db_count": 179,
+      "type": "SQL_GENERATED",
+      "message": "SQL salvo: scripts/mass_batch_008.sql (14783 chars)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:20.570856",
+      "elapsed_seconds": 21.913105,
+      "batch_number": 8,
+      "total_processed": 160,
+      "current_db_count": 199,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 8 executado: +20 ações (total: 199)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:21.879252",
+      "elapsed_seconds": 23.221508,
+      "batch_number": 9,
+      "total_processed": 160,
+      "current_db_count": 199,
+      "type": "BATCH_START",
+      "message": "Iniciando lote 9 (20 ações)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:21.880563",
+      "elapsed_seconds": 23.22281,
+      "batch_number": 9,
+      "total_processed": 160,
+      "current_db_count": 199,
+      "type": "DATA_GENERATED",
+      "message": "Dados gerados em 0.00s",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:21.882611",
+      "elapsed_seconds": 23.224856,
+      "batch_number": 9,
+      "total_processed": 160,
+      "current_db_count": 199,
+      "type": "SQL_GENERATED",
+      "message": "SQL salvo: scripts/mass_batch_009.sql (14915 chars)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:23.108386",
+      "elapsed_seconds": 24.450638,
+      "batch_number": 9,
+      "total_processed": 180,
+      "current_db_count": 219,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 9 executado: +20 ações (total: 219)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:24.018102",
+      "elapsed_seconds": 25.360355,
+      "batch_number": 10,
+      "total_processed": 180,
+      "current_db_count": 219,
+      "type": "BATCH_START",
+      "message": "Iniciando lote 10 (20 ações)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:24.019392",
+      "elapsed_seconds": 25.361636,
+      "batch_number": 10,
+      "total_processed": 180,
+      "current_db_count": 219,
+      "type": "DATA_GENERATED",
+      "message": "Dados gerados em 0.00s",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:24.020853",
+      "elapsed_seconds": 25.363099,
+      "batch_number": 10,
+      "total_processed": 180,
+      "current_db_count": 219,
+      "type": "SQL_GENERATED",
+      "message": "SQL salvo: scripts/mass_batch_010.sql (14857 chars)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:25.833241",
+      "elapsed_seconds": 27.175491,
+      "batch_number": 10,
+      "total_processed": 200,
+      "current_db_count": 239,
+      "type": "BATCH_SUCCESS",
+      "message": "✅ Lote 10 executado: +20 ações (total: 239)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:25.834439",
+      "elapsed_seconds": 27.176683,
+      "batch_number": 10,
+      "total_processed": 200,
+      "current_db_count": 239,
+      "type": "PROGRESS_MILESTONE",
+      "message": "📊 Progresso: 10.7% (239/2240)",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:26.604755",
+      "elapsed_seconds": 27.947012,
+      "batch_number": 10,
+      "total_processed": 200,
+      "current_db_count": 239,
+      "type": "MASS_COMPLETE",
+      "message": "🎉 INSERÇÃO MASSIVA CONCLUÍDA!",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:26.605821",
+      "elapsed_seconds": 27.948065,
+      "batch_number": 10,
+      "total_processed": 200,
+      "current_db_count": 239,
+      "type": "FINAL_STATS",
+      "message": "Lotes: 10/10 | Ações: 200 | Progresso: 10.7%",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:33:26.607448",
+      "elapsed_seconds": 27.949693,
+      "batch_number": 10,
+      "total_processed": 200,
+      "current_db_count": 239,
+      "type": "CRITICAL_ERROR",
+      "message": "❌ Erro crítico: Object of type datetime is not JSON serializable",
+      "data": {}
+    }
+  ]
+}

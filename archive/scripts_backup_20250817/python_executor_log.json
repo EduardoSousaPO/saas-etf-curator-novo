@@ -1,0 +1,70 @@
+{
+  "start_time": "2025-08-17T00:31:32.096862",
+  "current_time": "2025-08-17T00:31:37.078773",
+  "total_inserted": 0,
+  "execution_log": [
+    {
+      "timestamp": "2025-08-17T00:31:32.096887",
+      "elapsed_seconds": 2.9e-05,
+      "type": "STARTUP",
+      "message": "Iniciando executor Python direto",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:31:32.097503",
+      "elapsed_seconds": 0.000644,
+      "type": "SETUP",
+      "message": "Verificando dependências Python",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:31:32.098567",
+      "elapsed_seconds": 0.001708,
+      "type": "INSTALLING",
+      "message": "📦 Instalando psycopg2-binary...",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:31:36.303772",
+      "elapsed_seconds": 4.206918,
+      "type": "INSTALLED",
+      "message": "✅ psycopg2-binary instalado com sucesso",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:31:36.607913",
+      "elapsed_seconds": 4.511058,
+      "type": "DEPENDENCY",
+      "message": "✅ requests já instalado",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:31:36.608658",
+      "elapsed_seconds": 4.511798,
+      "type": "MASSIVE_START",
+      "message": "Iniciando inserção massiva: 150 ações em lotes de 20",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:31:36.715410",
+      "elapsed_seconds": 4.618552,
+      "type": "CONFIG",
+      "message": "⚠️ Senha não encontrada em variáveis de ambiente",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:31:37.077551",
+      "elapsed_seconds": 4.980698,
+      "type": "CONNECTION_ERROR",
+      "message": "❌ Erro conexão: connection to server at \"aws-0-sa-east-1.pooler.supabase.com\" (54.94.90.106), port 5432 failed: FATAL:  Tenant or user not found\nconnection to server at \"aws-0-sa-east-1.pooler.supabase.com\" (54.94.90.106), port 5432 failed: FATAL:  Tenant or user not found\n",
+      "data": {}
+    },
+    {
+      "timestamp": "2025-08-17T00:31:37.078485",
+      "elapsed_seconds": 4.981626,
+      "type": "CRITICAL_ERROR",
+      "message": "Erro crítico: 'successful_batches'",
+      "data": {}
+    }
+  ]
+}

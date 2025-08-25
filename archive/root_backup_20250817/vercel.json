@@ -1,0 +1,23 @@
+{
+  "buildCommand": "npm ci --legacy-peer-deps && npx prisma generate && npm run build",
+  "installCommand": "npm ci --legacy-peer-deps",
+  "framework": "nextjs",
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+    "SKIP_ENV_VALIDATION": "true",
+    "NODE_OPTIONS": "--max-old-space-size=4096",
+    "PRISMA_GENERATE_SKIP_AUTOINSTALL": "true"
+  },
+  "build": {
+    "env": {
+      "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+      "NODE_OPTIONS": "--max-old-space-size=4096",
+      "PRISMA_GENERATE_SKIP_AUTOINSTALL": "true"
+    }
+  }
+} 

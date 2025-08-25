@@ -14,7 +14,7 @@ import {
   CheckCircle,
   BarChart3
 } from 'lucide-react';
-import Navbar from '@/components/layout/Navbar';
+import UnifiedNavbar from '@/components/layout/UnifiedNavbar';
 
 interface ProfileFormData {
   full_name: string;
@@ -136,7 +136,7 @@ export default function ProfilePage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <UnifiedNavbar />
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -149,7 +149,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <UnifiedNavbar />
       
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
