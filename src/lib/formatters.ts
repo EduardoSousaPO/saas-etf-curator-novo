@@ -1,18 +1,18 @@
 /**
  * Funções utilitárias para formatação consistente de métricas de ETFs
  * 
- * Padrões de dados CONFIRMADOS pela análise do banco:
- * - Percentuais (returns, volatility, dividends): Vêm em formato DECIMAL (0.359224 = 35.92%)
+ * Padrões de dados CONFIRMADOS pela análise do banco (2025-01-25):
+ * - Percentuais (returns, volatility, dividends): Vêm em formato PERCENTUAL (89.32 = 89.32%)
  * - Valores monetários: Em dólares
  * - Sharpe Ratio: Número absoluto (não percentual, não multiplicar por 100)
  * - Expense Ratio: Já vem em formato percentual (4.42 = 4.42%)
  * 
- * CORREÇÃO APLICADA: Dados percentuais do banco precisam ser multiplicados por 100
+ * CORREÇÃO CRÍTICA: Dados percentuais do banco NÃO devem ser multiplicados por 100
  */
 
 /**
- * VERSÃO CORRIGIDA - Formata um valor percentual vindo como decimal do banco
- * @param value - Valor em formato decimal do banco (0.359224 = 35.92%)
+ * VERSÃO INTELIGENTE - Formata um valor percentual detectando automaticamente o formato
+ * @param value - Valor que pode estar em formato decimal (0.3245) ou percentual (89.32)
  * @returns String formatada com símbolo de porcentagem
  */
 export const formatPercentage = (value: number | null | undefined, decimals: number = 2): string => {
@@ -20,10 +20,16 @@ export const formatPercentage = (value: number | null | undefined, decimals: num
   
   const numValue = Number(value);
   
-  // CORREÇÃO BASEADA NA ANÁLISE REAL DO BANCO:
-  // Os dados vêm em formato DECIMAL e precisam ser multiplicados por 100
-  // Ex: 0.359224 = 35.92%, 2.9938 = 299.38%, 0.162 = 16.2%
-  return `${(numValue * 100).toFixed(decimals)}%`;
+  // DETECÇÃO INTELIGENTE DE FORMATO:
+  // Se o valor é <= 10, provavelmente está em formato decimal (0.3245 = 32.45%)
+  // Se o valor é > 10, provavelmente já está em formato percentual (89.32 = 89.32%)
+  if (Math.abs(numValue) <= 10) {
+    // Formato decimal, multiplicar por 100
+    return `${(numValue * 100).toFixed(decimals)}%`;
+  } else {
+    // Formato percentual, apenas adicionar %
+    return `${numValue.toFixed(decimals)}%`;
+  }
 };
 
 /**
