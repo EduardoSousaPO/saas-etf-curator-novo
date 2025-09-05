@@ -108,3 +108,5 @@ description: 'Ações que mais valorizaram nos últimos 12 meses com retornos va
 **Validação**: MCP Perplexity AI  
 **Resultado**: Apenas dados realistas na categoria "Melhor Performance"
 
+
+

@@ -179,7 +179,7 @@ export default function UnifiedPortfolioMaster() {
     assetTypes: {
       etfs: true,
       stocks: false,
-      maxStockAllocation: 30
+      maxStockAllocation: 50
     }
   })
   const [results, setResults] = useState<PortfolioResult | null>(null)
@@ -863,8 +863,8 @@ export default function UnifiedPortfolioMaster() {
     setSearchLoading(true)
     
     try {
-      // Usar a nova API de busca dedicada para ETFs
-      const response = await fetch(`/api/portfolio/search-etfs?q=${encodeURIComponent(query)}&limit=20`)
+      // Usar a API de busca unificada para ETFs e Stocks
+      const response = await fetch(`/api/portfolio/unified-search?search=${encodeURIComponent(query)}&asset_type=all&limit=12`)
       
       if (!response.ok) {
         throw new Error(`Erro HTTP: ${response.status}`)
@@ -872,23 +872,23 @@ export default function UnifiedPortfolioMaster() {
       
       const data = await response.json()
       
-      if (data.success && data.etfs) {
-        // Mapear resultados da busca de ETFs
-        const mappedResults = data.etfs.map((etf: any) => ({
-          symbol: etf.symbol,
-          name: etf.name,
-          type: 'ETF',
+      if (data.success && data.data) {
+        // Mapear resultados da busca unificada (ETFs + Stocks)
+        const mappedResults = data.data.map((asset: any) => ({
+          symbol: asset.symbol,
+          name: asset.name,
+          type: asset.type, // 'ETF' ou 'STOCK'
           allocation_percent: 0,
           allocation_amount: 0,
-          expense_ratio: etf.expense_ratio || 0,
-          market_cap: etf.total_assets || 0,
-          returns_12m: etf.returns_12m || 0,
-          volatility: etf.volatility_12m || 0,
-          sharpe_ratio: etf.sharpe_ratio_12m || 0,
-          dividend_yield: etf.dividend_yield || 0,
-          quality_score: etf.quality_score || 0,
-          asset_class: etf.category || 'Mixed',
-          sector: etf.subcategory || etf.category
+          expense_ratio: asset.expense_ratio || 0,
+          market_cap: asset.market_cap || asset.total_assets || 0,
+          returns_12m: asset.returns_12m || 0,
+          volatility: asset.volatility_12m || 0,
+          sharpe_ratio: asset.sharpe_ratio || 0,
+          dividend_yield: asset.dividend_yield || 0,
+          quality_score: asset.quality_score || 0,
+          asset_class: asset.asset_class || asset.sector || 'Mixed',
+          sector: asset.sector || asset.asset_class
         }))
         
         setSearchResults(mappedResults)
@@ -897,8 +897,8 @@ export default function UnifiedPortfolioMaster() {
         throw new Error(data.error || 'Erro na busca')
       }
     } catch (err) {
-      console.error('❌ Erro ao buscar ETFs:', err)
-      setError(err instanceof Error ? err.message : 'Erro na busca de ETFs')
+      console.error('❌ Erro ao buscar ativos:', err)
+      setError(err instanceof Error ? err.message : 'Erro na busca de ativos')
       setSearchResults([])
     } finally {
       setSearchLoading(false)
@@ -1029,7 +1029,7 @@ export default function UnifiedPortfolioMaster() {
               Personalizar Carteira
             </h3>
             <p className="text-gray-600">
-              Ajuste sua carteira buscando novos ETFs ou recalculando a otimização
+              Ajuste sua carteira buscando novos ativos (ETFs/Stocks) ou recalculando a otimização
             </p>
           </div>
 
@@ -1041,7 +1041,7 @@ export default function UnifiedPortfolioMaster() {
                 className="border-gray-300 px-8 py-3 rounded-xl"
               >
                 <Search className="mr-2 h-4 w-4" />
-                {compositionMode === 'auto' ? 'Buscar ETFs' : 'Modo Automático'}
+                {compositionMode === 'auto' ? 'Buscar Ativos' : 'Modo Automático'}
               </Button>
               <Button 
                 onClick={() => recalculatePortfolio(selectedAssets)}
@@ -1079,12 +1079,12 @@ export default function UnifiedPortfolioMaster() {
               </div>
             )}
 
-            {/* Busca Manual de ETFs */}
+            {/* Busca Manual de Ativos (ETFs + Stocks) */}
             {compositionMode === 'manual' && (
               <div className="mt-8 p-6 border rounded-2xl bg-gray-50">
                 <div className="flex items-center gap-2 mb-6">
-                  <Label className="text-lg font-medium text-gray-900">Buscar ETFs</Label>
-                  <CustomTooltip text="Pesquise ETFs na nossa base de 1.370+ ativos para adicionar à sua carteira">
+                  <Label className="text-lg font-medium text-gray-900">Buscar Ativos</Label>
+                  <CustomTooltip text="Pesquise ETFs e Stocks na nossa base de 2.755+ ativos para adicionar à sua carteira">
                     <Info className="h-4 w-4 text-gray-400" />
                   </CustomTooltip>
                 </div>
@@ -1092,7 +1092,7 @@ export default function UnifiedPortfolioMaster() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
-                      placeholder="Digite o símbolo (ex: SPY) ou nome do ETF..."
+                      placeholder="Digite o símbolo (ex: SPY, AAPL) ou nome do ativo..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
@@ -1105,22 +1105,25 @@ export default function UnifiedPortfolioMaster() {
                   {/* Resultados da Busca */}
                   {searchResults.length > 0 && (
                     <div className="space-y-2 max-h-60 overflow-y-auto">
-                      <p className="text-sm text-gray-600">{searchResults.length} ETFs encontrados:</p>
-                      {searchResults.map((etf) => (
+                      <p className="text-sm text-gray-600">{searchResults.length} ativos encontrados:</p>
+                      {searchResults.map((asset) => (
                         <div 
-                          key={etf.symbol} 
+                          key={asset.symbol} 
                           className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer bg-white"
-                          onClick={() => handleAddETF(etf)}
+                          onClick={() => handleAddETF(asset)}
                         >
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">{etf.symbol}</span>
+                              <span className="font-medium">{asset.symbol}</span>
+                              <Badge variant="outline" className={`text-xs ${asset.type === 'STOCK' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'}`}>
+                                {asset.type}
+                              </Badge>
                               <Badge variant="outline" className="text-xs">
-                                Score: {etf.quality_score}
+                                Score: {asset.quality_score}
                               </Badge>
                             </div>
-                            <p className="text-sm text-gray-600 truncate">{etf.name}</p>
-                            <p className="text-xs text-gray-500">{etf.asset_class}</p>
+                            <p className="text-sm text-gray-600 truncate">{asset.name}</p>
+                            <p className="text-xs text-gray-500">{asset.asset_class}</p>
                           </div>
                           <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
                             <Plus className="h-4 w-4" />
@@ -1132,7 +1135,7 @@ export default function UnifiedPortfolioMaster() {
                   
                   {searchQuery.length >= 2 && searchResults.length === 0 && !searchLoading && (
                     <p className="text-sm text-gray-500 text-center py-4">
-                      Nenhum ETF encontrado para "{searchQuery}"
+                      Nenhum ativo encontrado para "{searchQuery}"
                     </p>
                   )}
                 </div>

@@ -32,12 +32,12 @@ const UnifiedInputSchema = z.object({
 // Novo schema para busca manual de ETFs
 const ETFSearchSchema = z.object({
   query: z.string().min(1).max(50),
-  limit: z.number().min(1).max(20).optional().default(10)
+  limit: z.number().min(1).max(12).optional().default(10)
 });
 
 // Novo schema para recálculo dinâmico
 const DynamicRecalcSchema = z.object({
-  selectedETFs: z.array(z.string()).min(1).max(10),
+  selectedETFs: z.array(z.string()).min(1).max(12),
   investmentAmount: z.number().min(1000).max(50000000),
   riskProfile: z.enum(['conservative', 'moderate', 'aggressive']),
   objective: z.enum(['retirement', 'emergency', 'house', 'growth']),
@@ -2351,7 +2351,7 @@ async function handleETFSearch(searchParams: URLSearchParams) {
       .or(`symbol.ilike.%${query.toUpperCase()}%,name.ilike.%${query}%`)
       .order('totalasset', { ascending: false })
       .order('symbol', { ascending: true })
-      .limit(Math.min(limit, 20));
+      .limit(Math.min(limit, 12));
 
     if (error) {
       console.error('❌ [ETF-SEARCH] Erro na busca:', error);

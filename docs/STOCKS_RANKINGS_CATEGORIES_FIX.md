@@ -146,3 +146,5 @@ curl "http://localhost:3000/api/stocks/rankings"
 **Data**: 25/01/2025  
 **Resultado**: 100% das categorias funcionais com 10 ações cada
 
+
+

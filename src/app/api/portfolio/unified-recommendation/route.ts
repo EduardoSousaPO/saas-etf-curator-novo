@@ -255,8 +255,8 @@ async function getCandidateAssets(params: z.infer<typeof RequestSchema>) {
       candidates.push(...etfCandidates);
     }
 
-    // 2. Buscar Stocks candidatos (temporariamente desabilitado para debug)
-    if (params.assetTypes?.stocks && false) { // Desabilitado temporariamente
+    // 2. Buscar Stocks candidatos - REABILITADO PARA CARTEIRAS MISTAS
+    if (params.assetTypes?.stocks) { // REMOVIDO "&& false" - stocks reabilitados
       console.log('🔍 Buscando Stocks candidatos...');
       const stockCandidates = await getStockCandidates(params);
       console.log(`📈 Stocks encontrados: ${stockCandidates.length}`);
@@ -407,37 +407,66 @@ async function getStockCandidates(params: z.infer<typeof RequestSchema>) {
   }));
 }
 
-// Otimizar portfolio unificado usando Teoria de Markowitz simplificada
+// Otimizar portfolio unificado usando Teoria de Markowitz com distribuição inteligente de 12 ativos
 function optimizeUnifiedPortfolio(candidates: any[], params: z.infer<typeof RequestSchema>): UnifiedAssetData[] {
-  console.log('⚙️ Iniciando otimização Markowitz avançada...');
+  console.log('⚙️ Iniciando otimização Markowitz com distribuição inteligente de 12 ativos...');
   
   // Separar ETFs e Stocks
   const etfs = candidates.filter(c => c.type === 'ETF');
   const stocks = candidates.filter(c => c.type === 'STOCK');
 
-  // Determinar alocação entre ETFs e Stocks
+  // NOVA LÓGICA: Distribuição inteligente de 12 ativos totais
   const maxStockAllocation = params.assetTypes?.maxStockAllocation || 30;
-  const actualStockAllocation = stocks.length > 0 ? Math.min(maxStockAllocation, 30) : 0;
+  const MAX_ASSETS_TOTAL = 12; // Limite total de ativos na carteira
+  const MAX_STOCK_WEIGHT = 4; // Máximo 4% por stock individual
+  
+  console.log(`🎯 Alocação desejada em stocks: ${maxStockAllocation}%`);
+  
+  // Calcular quantos stocks cabem na alocação desejada (máximo 4% cada)
+  const maxPossibleStocks = Math.floor(maxStockAllocation / MAX_STOCK_WEIGHT);
+  const availableStocks = Math.min(maxPossibleStocks, stocks.length, MAX_ASSETS_TOTAL);
+  
+  // Calcular alocação real em stocks (limitada pelo número de stocks disponíveis)
+  const actualStockAllocation = Math.min(maxStockAllocation, availableStocks * MAX_STOCK_WEIGHT);
   const etfAllocation = 100 - actualStockAllocation;
-
+  
+  // Calcular número de ETFs (completar até 12 ativos totais)
+  const targetETFs = Math.max(0, MAX_ASSETS_TOTAL - availableStocks);
+  
+  console.log(`📊 Distribuição calculada: ${availableStocks} stocks (${actualStockAllocation}%) + ${targetETFs} ETFs (${etfAllocation}%)`);
+  
   const portfolio: UnifiedAssetData[] = [];
 
-  // 1. Selecionar e alocar ETFs (8-10 ativos ao invés de 5)
-  if (etfs.length > 0 && etfAllocation > 0) {
-    const targetETFs = Math.min(Math.max(8, Math.floor(etfs.length * 0.1)), 10); // 8-10 ETFs
+  // 1. Selecionar e alocar Stocks primeiro (com limite de 4% cada)
+  if (stocks.length > 0 && actualStockAllocation > 0 && availableStocks > 0) {
+    const selectedStocks = selectOptimalAssets(stocks, availableStocks, params);
+    const stockPortfolio = optimizeMarkowitzWeights(selectedStocks, actualStockAllocation, 'STOCK', params);
+    portfolio.push(...stockPortfolio);
+    console.log(`📈 Stocks selecionados: ${selectedStocks.length} (${actualStockAllocation}% total, máx ${MAX_STOCK_WEIGHT}% cada)`);
+  }
+
+  // 2. Selecionar e alocar ETFs (completar até 12 ativos totais)
+  if (etfs.length > 0 && etfAllocation > 0 && targetETFs > 0) {
     const selectedETFs = selectOptimalAssets(etfs, targetETFs, params);
     const etfPortfolio = optimizeMarkowitzWeights(selectedETFs, etfAllocation, 'ETF', params);
     portfolio.push(...etfPortfolio);
-    console.log(`📊 ETFs selecionados: ${selectedETFs.length} (alvo: ${targetETFs})`);
+    console.log(`📊 ETFs selecionados: ${selectedETFs.length} (${etfAllocation}% total)`);
   }
-
-  // 2. Selecionar e alocar Stocks
-  if (stocks.length > 0 && actualStockAllocation > 0) {
-    const maxStockPositions = Math.min(3, stocks.length); // Máximo 3 stocks individuais
-    const selectedStocks = selectOptimalAssets(stocks, maxStockPositions, params);
-    const stockPortfolio = optimizeMarkowitzWeights(selectedStocks, actualStockAllocation, 'STOCK', params);
-    portfolio.push(...stockPortfolio);
-    console.log(`📈 Stocks selecionados: ${selectedStocks.length}`);
+  
+  // Validar que temos exatamente 12 ativos (ou menos se não houver candidatos suficientes)
+  console.log(`✅ Portfolio final: ${portfolio.length} ativos (alvo: ${MAX_ASSETS_TOTAL})`);
+  
+  // Se não conseguimos 12 ativos, completar com ETFs se disponíveis
+  if (portfolio.length < MAX_ASSETS_TOTAL && etfs.length > targetETFs) {
+    const remainingSlots = MAX_ASSETS_TOTAL - portfolio.length;
+    const additionalETFs = Math.min(remainingSlots, etfs.length - targetETFs);
+    
+    if (additionalETFs > 0) {
+      console.log(`🔄 Completando carteira: adicionando ${additionalETFs} ETFs extras`);
+      const extraETFs = selectOptimalAssets(etfs.slice(targetETFs), additionalETFs, params);
+      const extraETFPortfolio = optimizeMarkowitzWeights(extraETFs, remainingSlots * 2, 'ETF', params); // Pequena alocação extra
+      portfolio.push(...extraETFPortfolio);
+    }
   }
 
   // 3. Validar superação dos benchmarks
@@ -528,8 +557,9 @@ function optimizeMarkowitzWeights(
   console.log(`📊 Otimizando pesos Markowitz para ${assets.length} ${type}s...`);
   
   const riskProfile = params.riskProfile;
-  const maxSinglePosition = type === 'STOCK' ? 10 : (riskProfile === 'aggressive' ? 25 : 15);
-  const minSinglePosition = 5; // Mínimo 5% por ativo
+  // NOVOS LIMITES: Máximo 4% por stock individual, ETFs podem ter mais concentração
+  const maxSinglePosition = type === 'STOCK' ? 4 : (riskProfile === 'aggressive' ? 25 : 15);
+  const minSinglePosition = type === 'STOCK' ? 2 : 3; // Mínimo 2% por stock, 3% por ETF
   
   // Calcular retornos esperados e volatilidades
   const expectedReturns = assets.map(asset => asset.returns_12m || 0);
