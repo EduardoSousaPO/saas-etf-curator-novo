@@ -17,9 +17,9 @@ export default function HomePage() {
       
       <main className="pt-16">
         {/* Hero Section Tesla-style */}
-        <section className="py-20 px-6 bg-gray-50">
+        <section className="py-12 px-6 bg-gray-50">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-20">
+            <div className="text-center mb-12">
               {/* Trust Badge Tesla-style */}
               <div className="inline-flex items-center gap-2 bg-white text-gray-700 px-6 py-3 rounded-full text-sm font-medium mb-8 shadow-sm border border-gray-100">
                 <Star className="w-4 h-4 text-gray-600" />
@@ -35,7 +35,7 @@ export default function HomePage() {
               </p>
 
               {/* Value Props Tesla-style */}
-              <div className="flex flex-wrap justify-center gap-8 mb-16">
+              <div className="flex flex-wrap justify-center gap-8 mb-10">
                 <div className="flex items-center gap-3 text-gray-700">
                   <CheckCircle className="w-5 h-5 text-[#0090d8]" />
                   <span className="font-light">96.5% dos ETFs com métricas completas</span>
@@ -51,7 +51,7 @@ export default function HomePage() {
               </div>
               
               {/* Estatísticas Dinâmicas */}
-              <div className="mb-16">
+              <div className="mb-10">
                 <HeroStats />
               </div>
 
@@ -72,7 +72,7 @@ export default function HomePage() {
               </div>
 
               {/* Social Proof Tesla-style */}
-              <div className="mt-16 flex items-center justify-center gap-12 text-sm text-gray-500">
+              <div className="mt-10 flex items-center justify-center gap-12 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
                   <span className="font-light">Usado por investidores em 12+ países</span>
@@ -89,7 +89,7 @@ export default function HomePage() {
 
 
         {/* Seção de Problema/Solução Tesla-style */}
-        <section className="py-20 px-6 bg-white">
+        <section className="py-12 px-6 bg-white">
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-20 items-center">
               <div>
@@ -138,10 +138,10 @@ export default function HomePage() {
         <ETFShowcase />
 
         {/* Social Proof Section Tesla-style */}
-        <section className="py-20 px-6 bg-gray-50">
+        <section className="py-12 px-6 bg-gray-50">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-light text-[#202636] mb-12">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-light text-[#202636] mb-8">
                 Confiado por Investidores Inteligentes
               </h2>
               <div className="grid md:grid-cols-3 gap-12">
@@ -396,7 +396,7 @@ export default function HomePage() {
         </div>
 
         {/* CTA Final Tesla-style */}
-        <section className="py-20 px-6" style={{ backgroundColor: '#202636' }}>
+        <section className="py-12 px-6" style={{ backgroundColor: '#202636' }}>
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-4xl font-light text-white mb-8">
               Pare de Perder Dinheiro com Achismos
@@ -443,7 +443,7 @@ export default function HomePage() {
 
         {/* Footer */}
         <footer className="bg-white border-t border-gray-200">
-          <div className="max-w-6xl mx-auto px-6 py-16">
+          <div className="max-w-6xl mx-auto px-6 py-10">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               
               {/* Contato */}

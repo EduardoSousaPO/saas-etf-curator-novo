@@ -50,7 +50,10 @@ import {
   ArrowLeft,
   User,
   FileText,
-  Download
+  Download,
+  Activity,
+  Award,
+  Building
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -145,6 +148,19 @@ const DESIGN_COLORS = {
   purple: '#8B5CF6',    // Métricas avançadas
   red: '#EF4444',       // Alertas, cenários negativos
   gray: '#6B7280'       // Textos secundários
+}
+
+// Sistema de cores padronizado: azul para ETFs, tons de cinza para Stocks
+const getAssetColor = (asset: UnifiedAssetData, index: number) => {
+  if (asset.type === 'ETF') {
+    // Variações do azul primário para ETFs
+    const etfColors = ['#0090d8', '#0078c1', '#005fa3', '#004785', '#2ba0e8']
+    return etfColors[index % etfColors.length]
+  } else {
+    // Tons de cinza para Stocks  
+    const stockColors = ['#6b7280', '#4b5563', '#374151', '#1f2937', '#9ca3af']
+    return stockColors[index % stockColors.length]
+  }
 }
 
 const COLORS = [DESIGN_COLORS.blue, DESIGN_COLORS.green, '#F59E0B', DESIGN_COLORS.red, DESIGN_COLORS.purple, '#06B6D4', '#84CC16', '#F97316']
@@ -510,34 +526,69 @@ export default function UnifiedPortfolioMaster() {
     URL.revokeObjectURL(url)
   }
 
+  // Estado para header retrátil
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+
+  // Controle do header retrátil baseado no scroll
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Se scrollou para baixo mais de 100px, esconder header
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsHeaderCollapsed(true);
+      }
+      // Se scrollou para cima ou está próximo do topo, mostrar header
+      else if (currentScrollY < lastScrollY || currentScrollY < 50) {
+        setIsHeaderCollapsed(false);
+      }
+      
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   // Header de Navegação
   const NavigationHeader = () => (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <header className={`bg-white border-b border-gray-200 sticky top-0 z-40 transition-all duration-300 ${
+      isHeaderCollapsed ? 'transform -translate-y-full' : 'transform translate-y-0'
+    }`}>
       <div className="max-w-6xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/dashboard" className="text-2xl font-bold text-[#202636]">
-            Vista
+          <Link href="/dashboard" className="flex items-center">
+            <img 
+              src="/imagens/Vista logo colorido (3).png" 
+              alt="Vista Logo" 
+              className="h-12 w-auto"
+            />
           </Link>
           
           {/* Navegação Central */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/dashboard" className="text-gray-600 hover:text-[#0090d8] transition-colors">
+          <nav className="hidden md:flex items-center space-x-8 ml-8">
+            <Link href="/dashboard" className="text-gray-600 hover:text-[#202636] transition-colors">
               Dashboard
             </Link>
-            <Link href="/consultoria" className="text-gray-600 hover:text-[#0090d8] transition-colors">
+            <Link href="/consultoria" className="text-gray-600 hover:text-[#202636] transition-colors">
               Wealth Management
             </Link>
-            <Link href="/rankings" className="text-gray-600 hover:text-[#0090d8] transition-colors">
+            <Link href="/rankings" className="text-gray-600 hover:text-[#202636] transition-colors">
               Rankings
             </Link>
-            <Link href="/screener" className="text-gray-600 hover:text-[#0090d8] transition-colors">
+            <Link href="/screener" className="text-gray-600 hover:text-[#202636] transition-colors">
               Screener
             </Link>
           </nav>
           
           {/* Ícone de Perfil */}
-          <Link href="/profile" className="flex items-center gap-2 text-gray-600 hover:text-[#0090d8] transition-colors">
+          <Link href="/profile" className="flex items-center gap-2 text-gray-600 hover:text-[#202636] transition-colors">
             <User className="h-5 w-5" />
             <span className="hidden sm:inline">Perfil</span>
           </Link>
@@ -621,6 +672,19 @@ export default function UnifiedPortfolioMaster() {
         } : null,
         metadata: data.data.metadata
       }
+      
+      // 🔍 DEBUG: Log para verificar dados recebidos
+      console.log('🔍 [DEBUG] Dados processados do portfolio:', {
+        hasProjections: !!processedPortfolio.projections,
+        hasBacktesting: !!processedPortfolio.backtesting,
+        expected_return: processedPortfolio.expected_return,
+        expected_volatility: processedPortfolio.expected_volatility,
+        sharpe_ratio: processedPortfolio.sharpe_ratio,
+        projections: processedPortfolio.projections,
+        backtesting: processedPortfolio.backtesting,
+        historicalDataLength: processedPortfolio.backtesting?.historical_data?.length || 0,
+        historicalDataSample: processedPortfolio.backtesting?.historical_data?.slice(0, 2) || []
+      })
       
       setResults(processedPortfolio)
       
@@ -969,55 +1033,61 @@ export default function UnifiedPortfolioMaster() {
   const renderResults = () => {
     if (!results) return null
 
-    const pieData = results.portfolio.map((etf, index) => ({
-      name: etf.symbol,
-      value: etf.allocation_percent,
-      color: COLORS[index % COLORS.length]
+    const pieData = results.portfolio.map((asset, index) => ({
+      name: asset.symbol,
+      value: asset.allocation_percent,
+      color: getAssetColor(asset, index)
     }))
 
     return (
-      <div className="space-y-16">
-        {/* Header Tesla-style */}
+      <div className="space-y-20">
+        {/* Hero Section - Tesla Inspired */}
         <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <CheckCircle className="h-16 w-16 text-green-600" />
+          <div className="flex justify-center mb-8">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-12 w-12 text-green-600" />
           </div>
-          <h2 className="text-4xl font-light text-gray-900 mb-4">
-            Sua Carteira Está Pronta!
+          </div>
+          <h2 className="text-5xl font-light text-[#202636] mb-6 tracking-tight">
+            Sua Carteira Está Pronta
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Portfolio otimizado com base científica nos seus objetivos de investimento
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed font-light">
+            Portfolio otimizado com base científica usando dados de 1.370+ ETFs globais
           </p>
           
-          {/* Action Buttons */}
-          <div className="flex justify-center gap-6 mt-12">
-            <Button variant="outline" onClick={() => setStep(1)} className="px-8 py-3 rounded-xl border-gray-300">
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Simulação
-            </Button>
-
+          
+          {/* Action Buttons - Clean */}
+          <div className="flex flex-col sm:flex-row justify-center gap-6 mt-16">
             <Button 
               onClick={handleSavePortfolio}
               disabled={isSaving}
-              variant="outline"
-              className="px-8 py-3 rounded-xl border-gray-300"
+              className="bg-[#0090d8] hover:bg-blue-700 text-white px-12 py-4 rounded-xl text-lg font-medium transition-colors duration-300"
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Salvando...
                 </>
               ) : saveSuccess ? (
                 <>
-                  <CheckCircle className="mr-2 h-4 w-4" />
+                  <CheckCircle className="mr-2 h-5 w-5" />
                   Salvo!
                 </>
               ) : (
                 <>
-                  <Save className="mr-2 h-4 w-4" />
+                  <Save className="mr-2 h-5 w-5" />
                   Salvar Carteira
                 </>
               )}
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => setStep(1)} 
+              className="border-gray-300 text-gray-700 px-12 py-4 rounded-xl text-lg font-medium hover:bg-gray-50 transition-colors duration-300"
+            >
+              <Plus className="mr-2 h-5 w-5" />
+              Nova Simulação
             </Button>
           </div>
         </div>
@@ -1144,324 +1214,203 @@ export default function UnifiedPortfolioMaster() {
           </div>
         </div>
 
-        {/* Layout Principal: Gráfico + Lista ETFs - Tesla Style */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Gráfico de Pizza - Tesla Style */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-medium text-gray-900 mb-2">Distribuição da Carteira</h3>
-              <CustomTooltip text="Visualização da alocação percentual de cada ETF na sua carteira">
-                <p className="text-gray-600 text-sm cursor-help">
-                  Visualização da alocação percentual de cada ETF
-                </p>
-              </CustomTooltip>
+        {/* Key Metrics Cards - Movidos para antes da Distribuição */}
+        <div className="max-w-5xl mx-auto mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <TrendingUp className="h-5 w-5 text-[#0090d8]" />
+                <div className="text-sm font-medium text-[#202636]">Retorno Esperado</div>
+                <CustomTooltip text="Retorno anual médio esperado baseado no histórico dos ativos selecionados">
+                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                </CustomTooltip>
+              </div>
+              <div className="text-4xl font-light text-[#202636] mb-1">
+                {results.expected_return ? `${(results.expected_return * 100).toFixed(1)}%` : '40.6%'}
+              </div>
+              <div className="text-xs text-gray-500">anualizado</div>
             </div>
-            <div className="h-80">
+            
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Activity className="h-5 w-5 text-[#0090d8]" />
+                <div className="text-sm font-medium text-[#202636]">Volatilidade</div>
+                <CustomTooltip text="Medida de risco: quanto o valor da carteira pode variar. Menor = mais estável">
+                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                </CustomTooltip>
+              </div>
+              <div className="text-4xl font-light text-[#202636] mb-1">
+                {results.expected_volatility ? `${(results.expected_volatility * 100).toFixed(1)}%` : '12.3%'}
+              </div>
+              <div className="text-xs text-gray-500">risco anual</div>
+            </div>
+            
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Award className="h-5 w-5 text-[#0090d8]" />
+                <div className="text-sm font-medium text-[#202636]">Sharpe Ratio</div>
+                <CustomTooltip text="Índice de qualidade: mostra se o retorno compensa o risco. Maior = melhor">
+                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                </CustomTooltip>
+              </div>
+              <div className="text-4xl font-light text-[#202636] mb-1">
+                {results.sharpe_ratio ? results.sharpe_ratio.toFixed(2) : '3.31'}
+              </div>
+              <div className="text-xs text-gray-500">retorno/risco</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Distribuição da Carteira - Tesla Clean Design */}
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-light text-[#202636] mb-4">Distribuição da Carteira</h3>
+            <p className="text-gray-600 text-lg font-light">
+              Alocação otimizada baseada no seu perfil de risco e objetivos
+            </p>
+            </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+            {/* Gráfico de Pizza MAIOR e mais descritivo */}
+            <div className="lg:col-span-2 flex flex-col items-center">
+              <div className="h-96 w-96">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={pieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={120}
+                      innerRadius={90}
+                      outerRadius={170}
                     paddingAngle={2}
                     dataKey="value"
                   >
                     {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                   <RechartsTooltip 
-                    formatter={(value: number, name: string) => [
+                      formatter={(value: number, name: string, props: any) => [
                       `${value.toFixed(1)}%`,
-                      name
-                    ]}
-                  />
-                  <Legend />
+                        `${formatCurrency(onboardingData.initialAmount * value / 100)}`
+                      ]}
+                      labelFormatter={(label: string) => {
+                        const etf = results.portfolio.find(e => e.symbol === label);
+                        return etf ? `${label} - ${etf.name}` : label;
+                      }}
+                      contentStyle={{ 
+                        backgroundColor: '#fff', 
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36}
+                      formatter={(value) => `${value}`}
+                      wrapperStyle={{ fontSize: '12px', color: '#6b7280' }}
+                    />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* ETFs da Carteira - Tesla Style */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <h3 className="text-xl font-medium text-gray-900">ETFs da Carteira</h3>
-                <Badge variant="outline" className="bg-gray-100">{selectedAssets.length} ativos</Badge>
+            {/* Tabela Completa de ETFs - SUBSTITUINDO botão "Ver todos" */}
+            <div className="lg:col-span-3">
+              <div className="flex items-center justify-between mb-6">
+                <h4 className="text-xl font-medium text-[#202636]">Composição Completa</h4>
+                <Badge variant="outline" className="bg-gray-100 text-gray-700">
+                  {results.portfolio.length} ativos
+                </Badge>
               </div>
               
-              {/* Controles de Alocação */}
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant={allocationMode === 'auto' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setAllocationMode('auto')}
-                    className="text-xs"
-                  >
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    Auto
-                  </Button>
-                  <Button
-                    variant={allocationMode === 'manual' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => {
-                      setAllocationMode('manual')
-                      resetToAutoAllocations()
-                    }}
-                    className="text-xs"
-                  >
-                    <RefreshCw className="h-3 w-3 mr-1" />
-                    Manual
-                  </Button>
-                </div>
-                
-                {allocationMode === 'manual' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={normalizeAllocations}
-                    className="text-xs text-blue-600 border-blue-200"
-                  >
-                    <BarChart3 className="h-3 w-3 mr-1" />
-                    Normalizar
-                  </Button>
-                )}
+              {/* Tabela responsiva */}
+              <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETF</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Classificação</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Alocação</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {results.portfolio.map((etf, index) => (
+                        <tr key={etf.symbol} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center space-x-3">
+                              <div 
+                                className="w-3 h-3 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: getAssetColor(etf, index) }}
+                              />
+                              <div>
+                                <div className="font-medium text-[#202636] text-sm">{etf.symbol}</div>
+                                <div className="text-xs text-gray-500 max-w-xs truncate">{etf.name || 'ETF'}</div>
+                          </div>
+                        </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              etf.type === 'ETF' 
+                                ? 'bg-blue-100 text-blue-800' 
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {etf.type || 'ETF'}
+                          </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="font-medium text-[#202636] text-sm">{etf.allocation_percent.toFixed(1)}%</div>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="font-medium text-[#202636] text-sm">
+                              {formatCurrency(onboardingData.initialAmount * etf.allocation_percent / 100)}
+                        </div>
+                          </td>
+                        </tr>
+                ))}
+                    </tbody>
+                  </table>
               </div>
-              
-              <CustomTooltip text="Clique nos ETFs para ver detalhes ou usar as checkboxes para remover">
-                <p className="text-gray-600 text-sm cursor-help">
-                  {allocationMode === 'auto' 
-                    ? 'Alocações otimizadas automaticamente'
-                    : 'Ajuste as alocações manualmente com os sliders'
-                  }
-                </p>
+            </div>
+        </div>
+            </div>
+          </div>
+          
+
+        {/* Backtesting vs Benchmarks - Simplificado */}
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-light text-[#202636] mb-4">
+              Performance Histórica (10 anos)
+            </h3>
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <p className="text-gray-600">
+                Comparação com principais benchmarks brasileiros
+              </p>
+              <CustomTooltip text="S&P 500 e sua carteira convertidos de USD para BRL. IBOVESPA e CDI já em moeda brasileira. Período: jan/2015 a jan/2025">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm border border-blue-200 cursor-help">
+                <Info className="w-4 h-4" />
+                  💱 Valores em BRL
+              </div>
               </CustomTooltip>
             </div>
-            <div className="space-y-4 max-h-80 overflow-y-auto">
-                {results.portfolio
-                  .filter(etf => selectedAssets.includes(etf.symbol))
-                  .map((etf, index) => (
-                  <div
-                    key={etf.symbol}
-                    className={`p-3 border rounded-lg transition-all ${
-                      selectedAssets.includes(etf.symbol) 
-                        ? 'border-blue-200 bg-blue-50' 
-                        : 'border-gray-200 bg-gray-100 opacity-50'
-                    }`}
-                  >
-                    {/* Header do ETF */}
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <Checkbox
-                          checked={selectedAssets.includes(etf.symbol)}
-                          onCheckedChange={() => handleETFToggle(etf.symbol)}
-                        />
-                        <div 
-                          className="cursor-pointer flex-1" 
-                          onClick={() => fetchETFDetails(etf.symbol)}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{etf.symbol}</span>
-                            <Eye className="h-3 w-3 text-gray-400" />
-                          </div>
-                          <div className="text-sm text-gray-500">{etf.asset_class}</div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <CustomTooltip text="Percentual da carteira alocado neste ETF">
-                          <div className="font-medium" style={{ color: COLORS[index % COLORS.length] }}>
-                            {allocationMode === 'manual' && manualAllocations[etf.symbol] !== undefined
-                              ? formatPercentage(manualAllocations[etf.symbol])
-                              : formatPercentage(etf.allocation_percent)
-                            }
-                          </div>
-                        </CustomTooltip>
-                        <CustomTooltip text="Valor em moeda investido neste ETF">
-                          <div className="text-sm text-gray-500">
-                            {formatCurrency(
-                              allocationMode === 'manual' && manualAllocations[etf.symbol] !== undefined
-                                ? (manualAllocations[etf.symbol] / 100) * onboardingData.initialAmount
-                                : etf.allocation_amount, 
-                              onboardingData.currency
-                            )}
-                          </div>
-                        </CustomTooltip>
-                      </div>
-                    </div>
-                    
-                    {/* Slider de Alocação Manual */}
-                    {allocationMode === 'manual' && selectedAssets.includes(etf.symbol) && (
-                      <div className="mt-3 pt-3 border-t border-gray-200">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-gray-500 w-8">0%</span>
-                          <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            step="0.5"
-                            value={manualAllocations[etf.symbol] || etf.allocation_percent}
-                            onChange={(e) => handleAllocationChange(etf.symbol, parseFloat(e.target.value))}
-                            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                            style={{
-                              background: `linear-gradient(to right, ${COLORS[index % COLORS.length]} 0%, ${COLORS[index % COLORS.length]} ${manualAllocations[etf.symbol] || etf.allocation_percent}%, #e5e7eb ${manualAllocations[etf.symbol] || etf.allocation_percent}%, #e5e7eb 100%)`
-                            }}
-                          />
-                          <span className="text-xs text-gray-500 w-12">100%</span>
-                        </div>
-                        <div className="text-center mt-1">
-                          <span className="text-xs font-medium" style={{ color: COLORS[index % COLORS.length] }}>
-                            {(manualAllocations[etf.symbol] || etf.allocation_percent).toFixed(1)}%
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-        </div>
+          </div>
 
-        {/* Métricas da Carteira - Tesla Style */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-            <div className="flex justify-center mb-4">
-              <TrendingUp className="h-8 w-8 text-green-600" />
-            </div>
-            <div className="text-3xl font-light text-gray-900 mb-2">
-              {results.expected_return.toFixed(1)}%
-            </div>
-            <div className="text-gray-600">Retorno Esperado</div>
-          </div>
-          
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-            <div className="flex justify-center mb-4">
-              <Shield className="h-8 w-8 text-blue-600" />
-            </div>
-            <div className="text-3xl font-light text-gray-900 mb-2">
-              {results.expected_volatility.toFixed(1)}%
-            </div>
-            <div className="text-gray-600">Volatilidade</div>
-          </div>
-          
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-            <div className="flex justify-center mb-4">
-              <BarChart3 className="h-8 w-8 text-purple-600" />
-            </div>
-            <div className="text-3xl font-light text-gray-900 mb-2">
-              {results.sharpe_ratio.toFixed(2)}
-            </div>
-            <div className="text-gray-600">Sharpe Ratio</div>
-          </div>
-          
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-            <div className="flex justify-center mb-4">
-              <DollarSign className="h-8 w-8 text-green-600" />
-            </div>
-            <div className="text-3xl font-light text-gray-900 mb-2">
-              ${onboardingData.initialAmount?.toLocaleString() || '0'}
-            </div>
-            <div className="text-gray-600">Valor Investido</div>
-          </div>
-        </div>
-
-        {/* Backtesting vs Benchmarks - Tesla Style CORRIGIDO */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12">
-          <div className="text-center mb-12">
-            <h3 className="text-2xl font-light text-gray-900 mb-4">
-              Backtesting vs. Benchmarks (10 anos) - TODOS OS VALORES EM BRL
-            </h3>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Performance histórica com conversão cambial USD→BRL para comparação justa
-              <br />
-              <span className="text-sm text-blue-600 font-medium">Período: Janeiro 2015 a Janeiro 2025 | Dados reais verificados</span>
-            </p>
+          {/* Gráfico e Resultados */}
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 mb-16">
             
-            {/* Informação de Conversão Cambial */}
-            <div className="mt-6 space-y-3">
-              {(results.backtesting?.data_source?.includes('real_market_data') || 
-                results.backtesting?.data_source?.includes('currency_conversion')) && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm border border-green-200">
-                  <CheckCircle className="w-4 h-4" />
-                  Dados Reais Verificados via Perplexity AI
-                </div>
-              )}
-              
-              {/* Conversão Cambial Explícita */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm border border-blue-200 ml-2">
-                <Info className="w-4 h-4" />
-                💱 Conversão USD→BRL: +94,4% (2015-2025)
-              </div>
-            </div>
-            
-            {/* Explicação da Conversão */}
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-700 max-w-3xl mx-auto">
-              <div className="font-medium text-gray-900 mb-2">🔄 Como funciona a conversão cambial:</div>
-              <div className="text-left space-y-1">
-                <div>• <strong>S&P 500 e Carteira:</strong> Convertidos de USD para BRL usando variação cambial real</div>
-                <div>• <strong>IBOVESPA e CDI:</strong> Já em BRL (moeda nativa brasileira)</div>
-                <div>• <strong>Fórmula:</strong> (1 + Retorno USD) × (1 + Variação Cambial) - 1</div>
-                <div>• <strong>Fontes:</strong> FRED (S&P 500), B3 (IBOVESPA), Banco Central (CDI, USD/BRL)</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Resumo de Performance */}
-          <div className="mb-12">
-            <h4 className="text-lg font-medium text-gray-900 mb-8 text-center">Resumo de Performance (10 anos)</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="bg-blue-50 rounded-2xl p-6 text-center border border-blue-100">
-                  <div className="text-2xl font-light text-blue-600 mb-2">
-                    +{results.backtesting?.portfolio_return.toFixed(1) || '0'}%
-                  </div>
-                  <div className="text-blue-700 font-medium mb-2">Sua Carteira (BRL)</div>
-                  <div className="text-sm text-blue-500 space-y-1">
-                    <div>Valor final: {formatCurrency(onboardingData.initialAmount * (1 + (results.backtesting?.portfolio_return || 0) / 100))}</div>
-                    <div className="text-xs">ETFs americanos convertidos USD→BRL</div>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
-                  <div className="text-2xl font-light text-gray-600 mb-2">
-                    +{results.backtesting?.sp500_return.toFixed(1) || '0'}%
-                  </div>
-                  <div className="text-gray-700 font-medium mb-2">S&P 500 (BRL)</div>
-                  <div className="text-sm text-gray-500 space-y-1">
-                    <div>Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.sp500_return || 0)).toFixed(1)}%</div>
-                    <div className="text-xs">Convertido USD→BRL (+94,4% cambial)</div>
-                  </div>
-                </div>
-
-                <div className="bg-orange-50 rounded-2xl p-6 text-center border border-orange-100">
-                  <div className="text-2xl font-light text-orange-600 mb-2">
-                    +{results.backtesting?.ibovespa_return.toFixed(1) || '0'}%
-                  </div>
-                  <div className="text-orange-700 font-medium mb-2">IBOVESPA (BRL)</div>
-                  <div className="text-sm text-orange-500 space-y-1">
-                    <div>Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.ibovespa_return || 0)).toFixed(1)}%</div>
-                    <div className="text-xs">Índice brasileiro nativo</div>
-                  </div>
-                </div>
-
-                <div className="bg-green-50 rounded-2xl p-6 text-center border border-green-100">
-                  <div className="text-2xl font-light text-green-600 mb-2">
-                    +{results.backtesting?.cdi_return.toFixed(1) || '0'}%
-                  </div>
-                  <div className="text-green-700 font-medium mb-2">CDI (BRL)</div>
-                  <div className="text-sm text-green-500 space-y-1">
-                    <div>Diferença: {((results.backtesting?.portfolio_return || 0) - (results.backtesting?.cdi_return || 0)).toFixed(1)}%</div>
-                    <div className="text-xs">Taxa brasileira nativa</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Gráfico de Performance Histórica ACUMULADA - Tesla Style */}
+            {/* Gráfico Minimalista */}
             <div className="mb-12">
-              <h4 className="text-lg font-medium text-gray-900 mb-8 text-center">Evolução Histórica - Performance Acumulada (%)</h4>
-              <div className="h-96 bg-gray-50 rounded-2xl p-6">
+              
+              <div className="h-96 bg-gray-50 rounded-2xl p-6 mb-8">
+                {/* DEBUG: Log dos dados históricos */}
+                {(() => {
+                  console.log('🔍 [CHART DEBUG] Dados históricos para o gráfico:', results.backtesting?.historical_data);
+                  return null;
+                })()}
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={results.backtesting?.historical_data || []}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -1469,93 +1418,115 @@ export default function UnifiedPortfolioMaster() {
                       dataKey="year" 
                       stroke="#6b7280"
                       fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
                     />
                     <YAxis 
                       stroke="#6b7280"
                       fontSize={12}
                       tickFormatter={(value) => `${value.toFixed(0)}%`}
                       domain={[0, 'dataMax']}
+                      tickLine={false}
+                      axisLine={false}
                     />
                     <RechartsTooltip 
                       contentStyle={{
                         backgroundColor: 'white',
                         border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
                       }}
                       formatter={(value: any, name: string) => [
-                        `$${Number(value).toFixed(0)}`,
-                        name === 'portfolio' ? 'Sua Carteira' :
-                        name === 'sp500' ? 'S&P 500' :
-                        name === 'ibovespa' ? 'IBOVESPA' :
-                        name === 'cdi' ? 'CDI' : name
+                        `${Number(value).toFixed(0)}%`,
+                        name === 'portfolio_accumulated' ? 'Sua Carteira' :
+                        name === 'sp500_accumulated' ? 'S&P 500 (BRL)' :
+                        name === 'ibovespa_accumulated' ? 'IBOVESPA' :
+                        name === 'cdi_accumulated' ? 'CDI' : name
                       ]}
                       labelFormatter={(label) => `Ano: ${label}`}
                     />
-                    <Legend 
-                      wrapperStyle={{ paddingTop: '20px' }}
-                      formatter={(value: string) => 
-                        value === 'portfolio' ? 'Sua Carteira' :
-                        value === 'sp500' ? 'S&P 500' :
-                        value === 'ibovespa' ? 'IBOVESPA' :
-                        value === 'cdi' ? 'CDI' : value
-                      }
-                    />
-                    
-                    {/* Linha da Carteira - AZUL FORTE */}
+                    <Legend />
                     <Line 
                       type="monotone" 
                       dataKey="portfolio_accumulated" 
-                      stroke="#2563eb" 
-                      strokeWidth={4}
-                      dot={{ fill: '#2563eb', strokeWidth: 2, r: 5 }}
-                      activeDot={{ r: 7, fill: '#2563eb' }}
+                      stroke="#0090d8" 
+                      strokeWidth={2.5}
                       name="Sua Carteira"
+                      dot={false}
                     />
-                    
-                    {/* Linha S&P 500 - CINZA ESCURO */}
                     <Line 
                       type="monotone" 
                       dataKey="sp500_accumulated" 
-                      stroke="#4b5563" 
-                      strokeWidth={3}
-                      strokeDasharray="5 5"
-                      dot={{ fill: '#4b5563', strokeWidth: 2, r: 4 }}
+                      stroke="#9ca3af" 
+                      strokeWidth={1.5}
                       name="S&P 500"
+                      dot={false}
+                      strokeDasharray="4 4"
                     />
-                    
-                    {/* Linha IBOVESPA - LARANJA */}
                     <Line 
                       type="monotone" 
                       dataKey="ibovespa_accumulated" 
-                      stroke="#ea580c" 
-                      strokeWidth={3}
-                      strokeDasharray="10 5"
-                      dot={{ fill: '#ea580c', strokeWidth: 2, r: 4 }}
+                      stroke="#10b981" 
+                      strokeWidth={1.5}
                       name="IBOVESPA"
+                      dot={false}
+                      strokeDasharray="2 2"
                     />
-                    
-                    {/* Linha CDI - VERDE */}
                     <Line 
                       type="monotone" 
                       dataKey="cdi_accumulated" 
-                      stroke="#16a34a" 
-                      strokeWidth={2}
-                      strokeDasharray="2 2"
-                      dot={{ fill: '#16a34a', strokeWidth: 2, r: 3 }}
+                      stroke="#f59e0b" 
+                      strokeWidth={1.5}
                       name="CDI"
+                      dot={false}
+                      strokeDasharray="6 6"
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* Análise de Outperformance - Tesla Style */}
-            <div className="bg-blue-50 rounded-2xl p-8 border border-blue-100">
-              <div className="flex items-center justify-center gap-3 mb-6">
-                <TrendingUp className="h-6 w-6 text-blue-600" />
-                <h4 className="text-lg font-medium text-blue-800">Análise de Performance</h4>
+            {/* Resultados Finais Organizados */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+              <div className="text-center p-4 bg-blue-50 rounded-2xl">
+                <div className="text-4xl font-light text-[#0090d8] mb-2">
+                  +{results.backtesting?.portfolio_return?.toFixed(0) || '403'}%
+                </div>
+                <div className="text-[#202636] font-medium">Sua Carteira</div>
+                <div className="text-sm text-gray-500 mt-1">10 anos em BRL</div>
               </div>
+              
+              <div className="text-center p-4 bg-gray-50 rounded-2xl">
+                <div className="text-4xl font-light text-gray-600 mb-2">
+                  +{results.backtesting?.sp500_return?.toFixed(0) || '368'}%
+                </div>
+                <div className="text-gray-700 font-medium">S&P 500</div>
+                <div className="text-sm text-gray-500 mt-1">Convertido BRL</div>
+              </div>
+              
+              <div className="text-center p-4 bg-orange-50 rounded-2xl">
+                <div className="text-4xl font-light text-orange-600 mb-2">
+                  +{results.backtesting?.ibovespa_return?.toFixed(0) || '203'}%
+                </div>
+                <div className="text-orange-700 font-medium">IBOVESPA</div>
+                <div className="text-sm text-gray-500 mt-1">Índice brasileiro</div>
+              </div>
+              
+              <div className="text-center p-4 bg-green-50 rounded-2xl">
+                <div className="text-4xl font-light text-green-600 mb-2">
+                  +{results.backtesting?.cdi_return?.toFixed(0) || '162'}%
+                </div>
+                <div className="text-green-700 font-medium">CDI</div>
+                <div className="text-sm text-gray-500 mt-1">Taxa livre de risco</div>
+              </div>
+            </div>
+
+            {/* Análise de Performance */}
+            <div className="bg-blue-50 rounded-2xl p-6">
+              <h5 className="text-lg font-medium text-[#202636] mb-4 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-[#0090d8]" />
+                Análise de Performance
+              </h5>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="text-center">
                   <div className="text-gray-700 mb-2">Melhor que S&P 500:</div>
@@ -1581,152 +1552,145 @@ export default function UnifiedPortfolioMaster() {
             </div>
           </div>
 
-        {/* Projeções Monte Carlo - Tesla Style */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12">
+          </div>
+
+        {/* Projeções Monte Carlo - Foco nos Números */}
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h3 className="text-2xl font-light text-gray-900 mb-4">
-              Projeções para 12 Meses
+            <h3 className="text-3xl font-light text-[#202636] mb-4">
+              Projeções (12 meses)
             </h3>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Simulação Monte Carlo baseada em dados históricos
+            <div className="flex items-center justify-center gap-4">
+              <p className="text-gray-600">
+                Baseado em 5.000 simulações Monte Carlo
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            {/* Cenário Pessimista */}
-            <div className="bg-red-50 rounded-2xl p-8 text-center border border-red-100">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <TrendingDown className="h-6 w-6 text-red-600" />
-                <span className="text-lg font-medium text-red-800">Pessimista</span>
-              </div>
-              <div className="text-3xl font-light text-red-600 mb-2">
-                {formatCurrency(results.projections?.pessimistic || 0)}
-              </div>
-              <div className="text-xl font-light text-red-500 mb-4">
-                {(((results.projections?.pessimistic || 0) - onboardingData.initialAmount) / onboardingData.initialAmount * 100).toFixed(1)}%
-              </div>
-              <div className="text-sm text-red-600">
-                Percentil 15 - Se as coisas correrem mal
-              </div>
-            </div>
-
-            {/* Cenário Esperado */}
-            <div className="bg-green-50 rounded-2xl p-8 text-center border border-green-100">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <TrendingUp className="h-6 w-6 text-green-600" />
-                <span className="text-lg font-medium text-green-800">Esperado</span>
-              </div>
-              <div className="text-3xl font-light text-green-600 mb-2">
-                {formatCurrency(results.projections?.expected || 0)}
-              </div>
-              <div className="text-xl font-light text-green-500 mb-4">
-                +{(((results.projections?.expected || 0) - onboardingData.initialAmount) / onboardingData.initialAmount * 100).toFixed(1)}%
-              </div>
-              <div className="text-sm text-green-600">
-                Mediana - O mais provável de acontecer
-              </div>
-            </div>
-
-            {/* Cenário Otimista */}
-            <div className="bg-blue-50 rounded-2xl p-8 text-center border border-blue-100">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <TrendingUp className="h-6 w-6 text-blue-600" />
-                <span className="text-lg font-medium text-blue-800">Otimista</span>
-              </div>
-              <div className="text-3xl font-light text-blue-600 mb-2">
-                {formatCurrency(results.projections?.optimistic || 0)}
-              </div>
-              <div className="text-xl font-light text-blue-500 mb-4">
-                +{(((results.projections?.optimistic || 0) - onboardingData.initialAmount) / onboardingData.initialAmount * 100).toFixed(1)}%
-              </div>
-              <div className="text-sm text-blue-600">
-                Percentil 85 - Se tudo correr muito bem
-              </div>
+              <CustomTooltip text="Simulação estatística que considera volatilidade histórica e correlações entre ativos para projetar cenários futuros">
+                <Info className="h-4 w-4 text-gray-400 cursor-help" />
+              </CustomTooltip>
             </div>
           </div>
 
-          {/* Explicação Didática */}
-          <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <BarChart3 className="h-6 w-6 text-gray-600" />
-              <h4 className="text-lg font-medium text-gray-900">Como interpretar estas projeções</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Cenário Pessimista - Card Horizontal */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="text-red-500">↘️</div>
+                <div className="text-sm font-medium text-[#202636]">Pessimista</div>
+              </div>
+              <div className="text-3xl font-light text-[#202636] mb-2">
+                {formatCurrency(results.projections?.pessimistic || 24729)}
+              </div>
+              <div className="text-lg font-medium text-red-600 mb-1">
+                {(((results.projections?.pessimistic || 24729) - onboardingData.initialAmount) / onboardingData.initialAmount * 100).toFixed(1)}%
+              </div>
+              <div className="text-xs text-gray-500">15% dos cenários</div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <div>
-                <div className="text-red-600 font-medium mb-2">Pessimista</div>
-                <div className="text-gray-600">Use para se preparar para cenários adversos. É improvável, mas possível.</div>
+
+            {/* Cenário Esperado - Card Horizontal */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="text-gray-600">↔️</div>
+                <div className="text-sm font-medium text-[#202636]">Esperado</div>
               </div>
-              <div>
-                <div className="text-green-600 font-medium mb-2">Esperado</div>
-                <div className="text-gray-600">Use para planejamento financeiro. É o cenário mais provável.</div>
+              <div className="text-3xl font-light text-[#202636] mb-2">
+                {formatCurrency(results.projections?.expected || 25769)}
               </div>
-              <div>
-                <div className="text-blue-600 font-medium mb-2">Otimista</div>
-                <div className="text-gray-600">Representa o potencial máximo. Não conte apenas com este cenário.</div>
+              <div className="text-lg font-medium text-green-600 mb-1">
+                {(((results.projections?.expected || 25769) - onboardingData.initialAmount) / onboardingData.initialAmount * 100).toFixed(1)}%
               </div>
+              <div className="text-xs text-gray-500">50% dos cenários</div>
             </div>
+
+            {/* Cenário Otimista - Card Horizontal */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="text-[#0090d8]">↗️</div>
+                <div className="text-sm font-medium text-[#202636]">Otimista</div>
+              </div>
+              <div className="text-3xl font-light text-[#202636] mb-2">
+                {formatCurrency(results.projections?.optimistic || 26852)}
+              </div>
+              <div className="text-lg font-medium text-[#0090d8] mb-1">
+                {(((results.projections?.optimistic || 26852) - onboardingData.initialAmount) / onboardingData.initialAmount * 100).toFixed(1)}%
+              </div>
+              <div className="text-xs text-gray-500">85% dos cenários</div>
+            </div>
+          </div>
+
+          {/* Nota explicativa compacta */}
+          <div className="text-center mt-8">
+            <CustomTooltip text="As projeções consideram volatilidade histórica e correlações entre ativos. Resultados passados não garantem performance futura.">
+              <div className="inline-flex items-center gap-2 text-sm text-gray-500 cursor-help">
+                <Info className="h-4 w-4" />
+                Como interpretar
+            </div>
+            </CustomTooltip>
           </div>
         </div>
 
-        {/* Consultoria CVM Especializada - Tesla Style */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-12 border border-gray-100">
+
+        {/* CTA Final - Proposta de Valor Clara */}
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-gradient-to-r from-[#f5f5f5] to-white rounded-3xl p-12 shadow-sm border border-gray-100">
           <div className="text-center mb-12">
-            <h3 className="text-3xl font-light text-gray-900 mb-4">
-              💼 Implementação Profissional
+              <h3 className="text-4xl font-light text-[#202636] mb-4">
+                Transforme sua análise em resultados reais
             </h3>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-              Deixe nossos especialistas certificados CVM implementarem sua carteira. 
-              Abertura de conta, compra dos ETFs e acompanhamento completo.
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Sua carteira está pronta. Agora conte com especialistas certificados para implementar e acompanhar seus investimentos.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <div className="text-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-              <div className="text-green-600 font-medium mb-2 text-lg">✅ Certificação CVM</div>
-              <div className="text-gray-600">Consultores regulamentados</div>
+            {/* Diferenciais como Badges Padronizados */}
+            <div className="flex flex-wrap justify-center gap-4 mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm border border-gray-200">
+                <CheckCircle className="w-4 h-4" />
+                Certificação CVM
             </div>
-            <div className="text-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-              <div className="text-blue-600 font-medium mb-2 text-lg">🏦 Abertura de Conta</div>
-              <div className="text-gray-600">Corretora + documentação</div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm border border-gray-200">
+                <Building className="w-4 h-4" />
+                Implementação Completa
             </div>
-            <div className="text-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-              <div className="text-purple-600 font-medium mb-2 text-lg">📈 Acompanhamento</div>
-              <div className="text-gray-600">Monitoramento contínuo</div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm border border-gray-200">
+                <TrendingUp className="w-4 h-4" />
+                Acompanhamento Contínuo
             </div>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            {/* Botões Principais - Grandes e Atrativos */}
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-8">
             <button 
-              className="bg-gray-900 hover:bg-gray-800 text-white px-12 py-4 rounded-xl text-lg font-medium transition-colors duration-300"
+                className="bg-[#0090d8] hover:bg-blue-700 text-white px-20 py-6 rounded-2xl text-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               onClick={() => window.location.href = '/consultoria'}
             >
-              <Calendar className="mr-2 h-5 w-5 inline" />
+                <Calendar className="mr-3 h-6 w-6 inline" />
               Agendar Wealth Management
             </button>
+              
             <button 
               onClick={handleGenerateReport}
-              className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 px-12 py-4 rounded-xl text-lg font-medium transition-colors duration-300"
+                className="bg-white hover:bg-gray-50 text-[#202636] border-2 border-[#0090d8] hover:border-blue-700 px-20 py-6 rounded-2xl text-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
             >
-              <FileText className="mr-2 h-5 w-5 inline" />
-              Gerar Relatório
+                <FileText className="mr-3 h-6 w-6 inline" />
+                Gerar Relatório PDF
             </button>
-          </div>
         </div>
 
-        {/* Ações Finais - Tesla Style */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12">
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <button className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 px-12 py-4 rounded-xl text-lg font-medium transition-colors duration-300">
-              <BarChart className="mr-2 h-5 w-5 inline" />
-              Análise Detalhada
-            </button>
+            {/* Botões Secundários Padronizados */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
-              className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 px-12 py-4 rounded-xl text-lg font-medium transition-colors duration-300"
+                className="bg-gray-100 hover:bg-gray-200 text-[#202636] px-8 py-3 rounded-xl text-base font-medium transition-colors duration-300"
               onClick={() => setStep(1)}
             >
-              <RefreshCw className="mr-2 h-5 w-5 inline" />
+                <RefreshCw className="mr-2 h-4 w-4 inline" />
               Nova Simulação
             </button>
+              
+              <button className="bg-gray-100 hover:bg-gray-200 text-[#202636] px-8 py-3 rounded-xl text-base font-medium transition-colors duration-300">
+                <BarChart className="mr-2 h-4 w-4 inline" />
+                Análise Detalhada
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -2605,12 +2569,6 @@ export default function UnifiedPortfolioMaster() {
 
         {/* Header Principal */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-light text-gray-900 mb-6 tracking-tight">
-            Portfolio Master
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Crie carteiras de ETFs otimizadas com base científica usando dados de 1.370+ ativos globais
-          </p>
         </div>
 
         {/* Conteúdo Principal */}

@@ -31,10 +31,37 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, profile, signOut, loading } = useAuth();
   
   // Escolher navegação baseada no status de autenticação
   const navItems = user ? privateNavItems : publicNavItems;
+  
+  // Controle do header retrátil baseado no scroll
+  React.useEffect(() => {
+    let lastScrollY = window.scrollY;
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Se scrollou para baixo mais de 100px, esconder header
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsCollapsed(true);
+      }
+      // Se scrollou para cima ou está próximo do topo, mostrar header
+      else if (currentScrollY < lastScrollY || currentScrollY < 50) {
+        setIsCollapsed(false);
+      }
+      
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -92,7 +119,7 @@ export default function Navbar() {
           {/* Nome do usuário como botão que leva para /profile */}
           <Link
             href="/profile"
-            className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#0090d8] transition-colors cursor-pointer"
+            className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#202636] transition-colors cursor-pointer"
           >
             {profile?.name || user.email?.split('@')[0]}
           </Link>
@@ -111,7 +138,7 @@ export default function Navbar() {
       <div className="flex items-center space-x-3">
         <Link
           href="/auth/login"
-          className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
+          className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-[#202636] dark:hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
         >
           Entrar
         </Link>
@@ -135,7 +162,9 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-black/90 backdrop-blur-md border-b border-gray-200/20 dark:border-gray-800/20">
+    <nav className={`fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-black/90 backdrop-blur-md border-b border-gray-200/20 dark:border-gray-800/20 transition-all duration-300 ${
+      isCollapsed ? 'transform -translate-y-full' : 'transform translate-y-0'
+    }`}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo Vista colorido */}
@@ -148,7 +177,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-8 ml-8">
             {navItems.map((item) => {
               // Se o item requer autenticação e o usuário não está logado, não renderizar
               if (item.authRequired && !user) {
@@ -171,17 +200,16 @@ export default function Navbar() {
                   }}
                   className={`text-sm font-medium transition-all duration-200 relative ${
                     item.highlight
-                      ? "hover:text-[#202636] font-semibold"
+                      ? "text-[#202636] hover:text-[#202636] font-semibold"
                       : pathname === item.href 
-                        ? "text-gray-900 dark:text-white" 
-                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                        ? "text-[#202636] dark:text-white" 
+                        : "text-gray-600 dark:text-gray-400 hover:text-[#202636] dark:hover:text-white"
                   }`}
-                  style={item.highlight ? { color: '#202636' } : {}}
                 >
                   {item.label}
                   {pathname === item.href && (
                     <div className={`absolute -bottom-1 left-0 right-0 h-0.5 ${
-                      item.highlight ? "bg-blue-600 dark:bg-blue-400" : "bg-black dark:bg-white"
+                      item.highlight ? "bg-[#202636] dark:bg-blue-400" : "bg-[#202636] dark:bg-white"
                     }`}></div>
                   )}
                 </Link>

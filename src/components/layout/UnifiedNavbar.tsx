@@ -74,6 +74,7 @@ export default function UnifiedNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, profile, signOut, loading } = useAuth();
   
   // Refs para controle de delay nos dropdowns
@@ -107,6 +108,32 @@ export default function UnifiedNavbar() {
       leaveTimeoutRef.current = null;
     }, 300); // 300ms de delay
   };
+
+  // Controle do header retrátil baseado no scroll
+  React.useEffect(() => {
+    let lastScrollY = window.scrollY;
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Se scrollou para baixo mais de 100px, esconder header
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsCollapsed(true);
+      }
+      // Se scrollou para cima ou está próximo do topo, mostrar header
+      else if (currentScrollY < lastScrollY || currentScrollY < 50) {
+        setIsCollapsed(false);
+      }
+      
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   // Limpar timeouts ao desmontar componente
   React.useEffect(() => {
@@ -145,18 +172,24 @@ export default function UnifiedNavbar() {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <nav className={`bg-white border-b border-gray-200 sticky top-0 z-50 transition-all duration-300 ${
+      isCollapsed ? 'transform -translate-y-full' : 'transform translate-y-0'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-bold text-[#202636]">Vista</span>
+              <img 
+                src="/imagens/Vista logo colorido (3).png" 
+                alt="Vista Logo" 
+                className="h-12 w-auto"
+              />
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-8 ml-8">
             {user ? (
               <>
                 {/* Seções ETFs e Stocks */}
@@ -170,8 +203,8 @@ export default function UnifiedNavbar() {
                     <button
                       className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                         getCurrentSection() === section.title
-                          ? 'text-[#0090d8] bg-blue-50'
-                          : 'text-gray-600 hover:text-[#0090d8] hover:bg-gray-50'
+                          ? 'text-[#202636] bg-gray-50'
+                          : 'text-gray-600 hover:text-[#202636] hover:bg-gray-50'
                       }`}
                     >
                       {section.icon}
@@ -190,8 +223,8 @@ export default function UnifiedNavbar() {
                             href={item.href}
                             className={`flex items-center gap-3 px-4 py-2 text-sm transition-colors ${
                               isActivePath(item.href)
-                                ? 'text-[#0090d8] bg-blue-50'
-                                : 'text-gray-700 hover:text-[#0090d8] hover:bg-gray-50'
+                                ? 'text-[#202636] bg-gray-50'
+                                : 'text-gray-700 hover:text-[#202636] hover:bg-gray-50'
                             }`}
                             onClick={() => setActiveSection(null)}
                           >
@@ -211,10 +244,10 @@ export default function UnifiedNavbar() {
                     href={item.href}
                     className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-300 ${
                       item.highlight 
-                        ? 'bg-black text-white hover:bg-gray-800 rounded-lg border border-black hover:border-gray-700' 
+                        ? 'bg-[#202636] text-white hover:bg-gray-800 rounded-lg border border-[#202636] hover:border-gray-700' 
                         : isActivePath(item.href)
-                        ? 'text-[#0090d8] bg-blue-50 rounded-lg'
-                        : 'text-gray-600 hover:text-[#0090d8] hover:bg-gray-50 rounded-lg'
+                        ? 'text-[#202636] bg-gray-50 rounded-lg'
+                        : 'text-gray-600 hover:text-[#202636] hover:bg-gray-50 rounded-lg'
                     }`}
                   >
                     {item.icon}
@@ -230,10 +263,10 @@ export default function UnifiedNavbar() {
                   href={item.href}
                   className={`px-4 py-2 text-sm font-medium transition-all duration-300 ${
                     item.highlight 
-                      ? 'bg-black text-white hover:bg-gray-800 rounded-lg border border-black hover:border-gray-700' 
+                      ? 'bg-[#202636] text-white hover:bg-gray-800 rounded-lg border border-[#202636] hover:border-gray-700' 
                       : isActivePath(item.href)
-                      ? 'text-[#0090d8] bg-blue-50 rounded-lg'
-                      : 'text-gray-600 hover:text-[#0090d8] hover:bg-gray-50 rounded-lg'
+                      ? 'text-[#202636] bg-gray-50 rounded-lg'
+                      : 'text-gray-600 hover:text-[#202636] hover:bg-gray-50 rounded-lg'
                   }`}
                 >
                   {item.label}
@@ -246,9 +279,9 @@ export default function UnifiedNavbar() {
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-[#0090d8] hover:bg-gray-50"
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-[#202636] hover:bg-gray-50"
                 >
-                  <div className="w-8 h-8 bg-[#0090d8] rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-[#202636] rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
                       {user.email?.charAt(0).toUpperCase()}
                     </span>
@@ -260,7 +293,7 @@ export default function UnifiedNavbar() {
                   <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
                     <Link
                       href="/profile"
-                      className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:text-[#0090d8] hover:bg-gray-50"
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:text-[#202636] hover:bg-gray-50"
                     >
                       <Settings className="w-4 h-4" />
                       Perfil
@@ -282,13 +315,13 @@ export default function UnifiedNavbar() {
               <div className="flex items-center gap-4">
                 <Link
                   href="/auth/login"
-                  className="text-gray-600 hover:text-[#0090d8] px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-600 hover:text-[#202636] px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Entrar
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="bg-[#0090d8] text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="bg-[#202636] text-white hover:bg-gray-800 px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Cadastrar
                 </Link>
@@ -300,7 +333,7 @@ export default function UnifiedNavbar() {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-600 hover:text-[#0090d8] p-2"
+              className="text-gray-600 hover:text-[#202636] p-2"
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>

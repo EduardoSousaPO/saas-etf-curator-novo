@@ -453,7 +453,11 @@ export default function ChatPage() {
             </div>
 
             <div className="space-y-2">
-              {conversations.map(conversation => (
+              {conversations.filter(conversation => 
+                conversation.message_count > 0 && 
+                conversation.title && 
+                conversation.title.trim() !== ''
+              ).map(conversation => (
                 <button
                   key={conversation.id}
                   onClick={() => selectConversation(conversation)}
@@ -477,6 +481,17 @@ export default function ChatPage() {
                   </div>
                 </button>
               ))}
+              {conversations.filter(conversation => 
+                conversation.message_count > 0 && 
+                conversation.title && 
+                conversation.title.trim() !== ''
+              ).length === 0 && (
+                <div className="text-center py-8">
+                  <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-sm text-gray-500">Nenhuma conversa ainda</p>
+                  <p className="text-xs text-gray-400">Inicie uma nova conversa acima</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -558,9 +573,9 @@ export default function ChatPage() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
-              {/* VISTA AI com Logo - Centralizado e Maior */}
+              {/* Logo Vista Centralizado */}
               <div className="text-center">
-                <div className="flex items-center justify-center gap-6 mb-8">
+                <div className="flex items-center justify-center mb-8">
                   <Image 
                     src="/imagens/Vista logo colorido (3).png" 
                     alt="Vista Logo" 
@@ -568,9 +583,6 @@ export default function ChatPage() {
                     height={120}
                     className="object-contain"
                   />
-                  <h1 className="text-6xl font-bold text-gray-900">
-                    VISTA AI
-                  </h1>
                 </div>
                 <p className="text-xl text-gray-600 max-w-md mx-auto">
                   Seu assistente inteligente para investimentos em ETFs

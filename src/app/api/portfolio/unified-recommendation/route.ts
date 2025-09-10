@@ -712,13 +712,14 @@ function allocateWeights(
 function calculatePortfolioMetrics(portfolio: UnifiedAssetData[]) {
   const totalWeight = portfolio.reduce((sum, asset) => sum + asset.allocation_percent, 0);
   
+  // 🔥 CORREÇÃO CRÍTICA: Converter percentuais para decimais antes dos cálculos
   const weightedReturn = portfolio.reduce((sum, asset) => 
-    sum + (asset.returns_12m * asset.allocation_percent / totalWeight), 0
+    sum + ((asset.returns_12m / 100) * asset.allocation_percent / totalWeight), 0
   );
   
   const weightedVolatility = Math.sqrt(
     portfolio.reduce((sum, asset) => 
-      sum + Math.pow(asset.volatility * asset.allocation_percent / totalWeight, 2), 0
+      sum + Math.pow((asset.volatility / 100) * asset.allocation_percent / totalWeight, 2), 0
     )
   );
   

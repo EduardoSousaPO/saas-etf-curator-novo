@@ -127,7 +127,7 @@ export default function HeroStats() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 max-w-5xl mx-auto">
       <div className="text-center animate-slideUp">
-        <div className="text-4xl font-bold text-blue-600 mb-2">
+        <div className="text-4xl font-bold mb-2" style={{ color: '#0090d8' }}>
           <AnimatedCounter end={stats.totalETFs} />
         </div>
         <div className="text-sm text-gray-600 font-medium">ETFs Analisados</div>
@@ -135,7 +135,7 @@ export default function HeroStats() {
       </div>
       
       <div className="text-center animate-slideUp" style={{ animationDelay: '0.1s' }}>
-        <div className="text-4xl font-bold text-green-600 mb-2">
+        <div className="text-4xl font-bold mb-2" style={{ color: '#0090d8' }}>
           <AnimatedCounter end={stats.metricsPercentage} decimals={1} suffix="%" />
         </div>
         <div className="text-sm text-gray-600 font-medium">Dados Completos</div>
@@ -143,7 +143,7 @@ export default function HeroStats() {
       </div>
       
       <div className="text-center animate-slideUp" style={{ animationDelay: '0.2s' }}>
-        <div className="text-4xl font-bold text-purple-600 mb-2">
+        <div className="text-4xl font-bold mb-2" style={{ color: '#0090d8' }}>
           <AnimatedCounter end={stats.avgReturn} decimals={1} suffix="%" />
         </div>
         <div className="text-sm text-gray-600 font-medium">Retorno Médio</div>
@@ -151,7 +151,7 @@ export default function HeroStats() {
       </div>
       
       <div className="text-center animate-slideUp" style={{ animationDelay: '0.3s' }}>
-        <div className="text-4xl font-bold text-orange-600 mb-2">
+        <div className="text-4xl font-bold mb-2" style={{ color: '#0090d8' }}>
           <AnimatedCounter end={stats.uniqueAssetClasses} />
         </div>
         <div className="text-sm text-gray-600 font-medium">Categorias</div>

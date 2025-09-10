@@ -125,7 +125,7 @@ const humanizeText = {
   'allocation': 'Distribuição do seu dinheiro'
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D']
+const COLORS = ['#0090d8', '#202636', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
 
 export default function UniversalWealthDashboard() {
   const { user } = useAuth()
@@ -465,11 +465,26 @@ export default function UniversalWealthDashboard() {
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-6xl mx-auto">
+        {/* Welcome Message */}
+        <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+          <div className="flex items-center gap-3">
+            <Sparkles className="h-6 w-6 text-[#0090d8]" />
+            <div>
+              <h2 className="text-xl font-semibold text-[#202636]">
+                Bem-vindo de volta! 👋
+              </h2>
+              <p className="text-gray-600 text-sm">
+                Aqui está um resumo dos seus investimentos e próximos passos para otimizar seu portfólio.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-[#202636]">
                 {humanizeText[selectedPlan.objective as keyof typeof humanizeText] || selectedPlan.objective}
               </h1>
               <p className="text-gray-600">
@@ -487,9 +502,9 @@ export default function UniversalWealthDashboard() {
               <Button
                 variant="outline"
                 onClick={handleRebalance}
-                className="bg-purple-50 hover:bg-purple-100 border-purple-200"
+                className="bg-blue-50 hover:bg-blue-100 border-blue-200"
               >
-                <Target className="mr-2 h-4 w-4" />
+                <Target className="mr-2 h-4 w-4 text-[#0090d8]" />
                 Rebalancear
               </Button>
               <Button
@@ -517,7 +532,7 @@ export default function UniversalWealthDashboard() {
                     key={plan.id}
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                       selectedPlan?.id === plan.id
-                        ? 'border-blue-500 bg-blue-50'
+                        ? 'border-[#0090d8] bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                     onClick={() => setSelectedPlan(plan)}
@@ -704,14 +719,14 @@ export default function UniversalWealthDashboard() {
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <AlertCircle className="mr-2 h-5 w-5 text-orange-600" />
-                O que você precisa fazer
+                <AlertCircle className="mr-2 h-5 w-5 text-[#202636]" />
+                <span className="text-[#202636]">O que você precisa fazer</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {dashboardData.next_actions.slice(0, 3).map((action, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-lg">
                     <div>
                       <p className="font-medium text-gray-900">
                         {action.description}
@@ -722,7 +737,7 @@ export default function UniversalWealthDashboard() {
                         </p>
                       )}
                     </div>
-                    <Badge variant="outline" className="text-orange-600 border-orange-600">
+                    <Badge variant="outline" className="text-[#202636] border-[#202636]">
                       Prioridade {action.priority}
                     </Badge>
                   </div>
@@ -736,7 +751,7 @@ export default function UniversalWealthDashboard() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Plus className="mr-2 h-5 w-5 text-blue-600" />
+              <Plus className="mr-2 h-5 w-5 text-[#0090d8]" />
               Adicionar dinheiro
             </CardTitle>
           </CardHeader>

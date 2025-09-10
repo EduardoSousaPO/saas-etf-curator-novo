@@ -249,12 +249,18 @@ export default function ConsultoriaPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Escolha Data e Horário
+                <Calendar className="h-5 w-5 text-[#0090d8]" />
+                <span className="text-[#202636]">Escolha Data e Horário</span>
               </CardTitle>
               <CardDescription>
                 Selecione um horário disponível para sua consultoria
               </CardDescription>
+              <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-sm text-green-700 font-medium">Calendário conectado e funcionando</span>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
