@@ -146,11 +146,17 @@ const RISK_PROFILE_FILTERS: RiskProfileFilters = {
 };
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
   try {
-    console.log('🎯 Iniciando geração de recomendação unificada...');
+    console.log(`🚀 [${requestId}] Iniciando geração de recomendação unificada...`);
     
     const body = await request.json();
-    console.log('📝 Body recebido:', JSON.stringify(body, null, 2));
+    console.log(`📝 [${requestId}] Body recebido:`, JSON.stringify(body, null, 2));
+    
+    // MONITORAMENTO: Log de entrada
+    logPortfolioRequest(requestId, body);
 
     // Validação simplificada primeiro
     let validatedData;
@@ -225,11 +231,21 @@ export async function POST(request: NextRequest) {
       }
     };
 
-    console.log('✅ Recomendação unificada gerada com sucesso');
+    const executionTime = Date.now() - startTime;
+    
+    // MONITORAMENTO: Log de sucesso
+    logPortfolioResult(requestId, optimizedPortfolio, portfolioMetrics, executionTime);
+    
+    console.log(`✅ [${requestId}] Recomendação unificada gerada com sucesso em ${executionTime}ms`);
     return NextResponse.json(response);
 
   } catch (error) {
-    console.error('❌ Erro na geração de recomendação unificada:', error);
+    const executionTime = Date.now() - startTime;
+    
+    // MONITORAMENTO: Log de erro
+    logPortfolioError(requestId, error, executionTime);
+    
+    console.error(`❌ [${requestId}] Erro na geração de recomendação unificada:`, error);
     console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json(
       { 
@@ -278,7 +294,7 @@ async function getETFCandidates(params: z.infer<typeof RequestSchema>) {
     
     console.log(`🎯 Objetivo: ${params.objective} | Perfil: ${params.riskProfile}`);
     
-    // Usar query simplificada primeiro para garantir que funcione
+    // Query expandida para acessar TODOS os ETFs disponíveis (1.370 ETFs)
     let query = supabase
       .from('etfs_ativos_reais')
       .select(`
@@ -295,12 +311,13 @@ async function getETFCandidates(params: z.infer<typeof RequestSchema>) {
         totalasset,
         assetclass
       `)
-      .not('returns_12m', 'is', null)
-      .not('volatility_12m', 'is', null)
-      .gte('totalasset', 50000000) // Reduzir para $50M AUM
-      .lte('expenseratio', 2.0) // Aumentar para 2%
+      // Remover filtros restritivos para acessar TODA a base
+      // .not('returns_12m', 'is', null) - REMOVIDO: permite ETFs sem dados de performance
+      // .not('volatility_12m', 'is', null) - REMOVIDO: permite ETFs sem volatilidade
+      // .gte('totalasset', 50000000) - REMOVIDO: permite ETFs menores
+      // .lte('expenseratio', 2.0) - REMOVIDO: permite ETFs com expense ratio maior
       .order('totalasset', { ascending: false })
-      .limit(100); // Pool de 100 ETFs
+      .limit(500); // Aumentado para 500 ETFs (de 100)
 
     console.log('📊 Usando filtros simplificados para garantir resultados...');
 
@@ -353,58 +370,157 @@ async function getETFCandidates(params: z.infer<typeof RequestSchema>) {
   }
 }
 
-// Buscar Stocks candidatos
+// Buscar Stocks candidatos da tabela stocks_unified
 async function getStockCandidates(params: z.infer<typeof RequestSchema>) {
-  let query = supabase
-    .from('stocks_unified')
-    .select(`
-      ticker,
-      name,
-      returns_12m,
-      volatility_12m,
-      sharpe_12m,
-      dividend_yield_12m,
-      market_cap,
-      sector,
-      current_price
-    `)
-    .not('returns_12m', 'is', null)
-    .not('volatility_12m', 'is', null)
-    .gte('market_cap', 5000000000) // Mínimo $5B market cap para reduzir risco
-    .order('market_cap', { ascending: false })
-    .limit(30);
+  console.log('🔍 Buscando stocks candidatos da tabela stocks_unified...');
+  
+  try {
+    // Query otimizada para acessar stocks com dados válidos
+    let query = supabase
+      .from('stocks_unified')
+      .select(`
+        ticker,
+        name,
+        returns_12m,
+        volatility_12m,
+        sharpe_12m,
+        dividend_yield_12m,
+        market_cap,
+        sector,
+        industry,
+        current_price,
+        pe_ratio,
+        pb_ratio,
+        roe,
+        debt_to_equity,
+        size_category,
+        liquidity_category
+      `)
+      // Filtros básicos para qualidade de dados
+      .not('returns_12m', 'is', null)
+      .not('volatility_12m', 'is', null)
+      .not('market_cap', 'is', null)
+      .gte('market_cap', 1000000000) // Mínimo $1B market cap
+      .order('market_cap', { ascending: false })
+      .limit(200);
 
-  // Aplicar filtros por setor se especificado
-  if (params.preferences?.sectors?.length) {
-    query = query.in('sector', params.preferences.sectors);
-  }
+    // Aplicar filtros por setor se especificado
+    if (params.preferences?.sectors?.length) {
+      query = query.in('sector', params.preferences.sectors);
+    }
 
-  // Excluir símbolos se especificado
-  if (params.preferences?.excludeSymbols?.length) {
-    query = query.not('ticker', 'in', `(${params.preferences.excludeSymbols.join(',')})`);
-  }
+    // Excluir símbolos se especificado
+    if (params.preferences?.excludeSymbols?.length) {
+      query = query.not('ticker', 'in', `(${params.preferences.excludeSymbols.join(',')})`);
+    }
 
-  const { data: stocks, error } = await query;
+    const { data: stocks, error } = await query;
   
   if (error) {
     console.error('Erro ao buscar Stocks candidatos:', error);
     return [];
   }
 
-  return (stocks || []).map(stock => ({
-    symbol: stock.ticker,
-    name: stock.name,
-    type: 'STOCK' as const,
-    returns_12m: stock.returns_12m || 0,
-    volatility: stock.volatility_12m || 25,
-          sharpe_ratio: stock.sharpe_12m || 0,
-    dividend_yield: stock.dividend_yield_12m || 0,
-    market_cap: stock.market_cap || 0,
-    current_price: stock.current_price || 0,
-    asset_class: stock.sector || 'Stock',
-    sector: stock.sector,
-    quality_score: calculateStockQuality(stock)
-  }));
+    if (!stocks || stocks.length === 0) {
+      console.log('⚠️ Nenhum stock encontrado');
+      return [];
+    }
+
+    console.log(`📊 Processando ${stocks.length} stocks candidatos...`);
+
+    // Processar stocks com validação e cálculo de qualidade
+    const processedStocks = stocks.map(stock => {
+      try {
+        return {
+          symbol: stock.ticker,
+          name: stock.name,
+          type: 'STOCK' as const,
+          returns_12m: parseFloat(stock.returns_12m) || 0,
+          volatility: parseFloat(stock.volatility_12m) || 25,
+          sharpe_ratio: parseFloat(stock.sharpe_12m) || 0,
+          dividend_yield: parseFloat(stock.dividend_yield_12m) || 0,
+          market_cap: parseInt(stock.market_cap) || 0,
+          current_price: parseFloat(stock.current_price) || 0,
+          asset_class: stock.sector || 'Stock',
+          sector: stock.sector,
+          industry: stock.industry,
+          pe_ratio: parseFloat(stock.pe_ratio) || 0,
+          pb_ratio: parseFloat(stock.pb_ratio) || 0,
+          roe: parseFloat(stock.roe) || 0,
+          debt_to_equity: parseFloat(stock.debt_to_equity) || 0,
+          size_category: stock.size_category || 'Large',
+          liquidity_category: stock.liquidity_category || 'High',
+          quality_score: calculateStockQuality(stock)
+        };
+      } catch (processingError) {
+        console.error('❌ Erro ao processar Stock:', stock.ticker, processingError);
+        return null;
+      }
+    }).filter(Boolean);
+
+    console.log(`✅ Stocks processados: ${processedStocks.length}`);
+    return processedStocks;
+    
+  } catch (error) {
+    console.error('❌ Erro geral na busca de Stocks:', error);
+    return [];
+  }
+}
+
+// Calcular score de qualidade para stocks
+function calculateStockQuality(stock: any): number {
+  let score = 50; // Score base
+  
+  try {
+    // Fator 1: Market Cap (estabilidade)
+    const marketCap = parseInt(stock.market_cap) || 0;
+    if (marketCap > 100000000000) score += 15; // > $100B
+    else if (marketCap > 10000000000) score += 10; // > $10B
+    else if (marketCap > 1000000000) score += 5; // > $1B
+    
+    // Fator 2: P/E Ratio (valorização)
+    const peRatio = parseFloat(stock.pe_ratio) || 0;
+    if (peRatio > 0 && peRatio < 15) score += 10; // P/E baixo
+    else if (peRatio >= 15 && peRatio <= 25) score += 5; // P/E moderado
+    else if (peRatio > 40) score -= 5; // P/E muito alto
+    
+    // Fator 3: ROE (rentabilidade)
+    const roe = parseFloat(stock.roe) || 0;
+    if (roe > 20) score += 10; // ROE excelente
+    else if (roe > 15) score += 5; // ROE bom
+    else if (roe < 5) score -= 5; // ROE baixo
+    
+    // Fator 4: Debt to Equity (alavancagem)
+    const debtToEquity = parseFloat(stock.debt_to_equity) || 0;
+    if (debtToEquity < 0.3) score += 10; // Baixa alavancagem
+    else if (debtToEquity < 0.6) score += 5; // Alavancagem moderada
+    else if (debtToEquity > 1.5) score -= 10; // Alta alavancagem
+    
+    // Fator 5: Setor (estabilidade)
+    const sector = stock.sector?.toLowerCase() || '';
+    if (sector.includes('technology')) score += 5;
+    else if (sector.includes('healthcare')) score += 8;
+    else if (sector.includes('consumer defensive')) score += 10;
+    else if (sector.includes('utilities')) score += 7;
+    else if (sector.includes('financial')) score += 3;
+    
+    // Fator 6: Dividend Yield (renda)
+    const dividendYield = parseFloat(stock.dividend_yield_12m) || 0;
+    if (dividendYield > 0.03) score += 5; // > 3% dividend yield
+    else if (dividendYield > 0.01) score += 3; // > 1% dividend yield
+    
+    // Fator 7: Volatilidade (risco)
+    const volatility = parseFloat(stock.volatility_12m) || 0;
+    if (volatility < 20) score += 10; // Baixa volatilidade
+    else if (volatility < 30) score += 5; // Volatilidade moderada
+    else if (volatility > 50) score -= 10; // Alta volatilidade
+    
+  } catch (error) {
+    console.error('Erro no cálculo de qualidade do stock:', error);
+  }
+  
+  // Garantir score entre 0 e 100
+  return Math.max(0, Math.min(100, score));
 }
 
 // Otimizar portfolio unificado usando Teoria de Markowitz com distribuição inteligente de 12 ativos
@@ -484,10 +600,7 @@ function optimizeUnifiedPortfolio(candidates: any[], params: z.infer<typeof Requ
     return reoptimizeForPerformance(portfolio, params);
   }
 
-  // 4. Calcular valores em dólar
-  portfolio.forEach(asset => {
-    asset.allocation_amount = (asset.allocation_percent / 100) * params.investmentAmount;
-  });
+  // 4. Valores em dólar já calculados durante a criação do portfolio
 
   console.log(`✅ Portfolio otimizado: ${portfolio.length} ativos, Sharpe: ${portfolioMetrics.sharpe_ratio.toFixed(2)}`);
   return portfolio.sort((a, b) => b.allocation_percent - a.allocation_percent);
@@ -495,17 +608,29 @@ function optimizeUnifiedPortfolio(candidates: any[], params: z.infer<typeof Requ
 
 // Selecionar ativos otimizados usando critérios avançados
 function selectOptimalAssets(assets: any[], count: number, params: z.infer<typeof RequestSchema>) {
-  console.log(`🔍 Selecionando ${count} melhores ativos de ${assets.length} candidatos...`);
+  console.log(`🔍 Selecionando ${count} melhores ativos de ${assets.length} candidatos para perfil ${params.riskProfile}...`);
   
-  // Calcular score composto avançado
-  const scoredAssets = assets.map(asset => {
-    const returnScore = Math.max(0, asset.returns_12m || 0) * 0.3;
-    const sharpeScore = Math.max(0, asset.sharpe_ratio || 0) * 0.25;
-    const volatilityScore = Math.max(0, 20 - (asset.volatility || 20)) * 0.15; // Penalizar alta volatilidade
-    const qualityScore = (asset.quality_score || 0) * 0.2;
-    const sizeScore = Math.min(10, Math.log10((asset.total_assets || asset.market_cap || 1000000000) / 1000000000)) * 0.1;
+  // NOVO: Filtros rigorosos por perfil de risco
+  const filteredAssets = filterAssetsByRiskProfile(assets, params.riskProfile);
+  console.log(`📊 Após filtros de risco: ${filteredAssets.length} ativos válidos`);
+  
+  if (filteredAssets.length === 0) {
+    console.log('⚠️ Nenhum ativo passou nos filtros, usando fallback seguro');
+    return getSafeFallbackETFs(params.riskProfile, count);
+  }
+  
+  // Calcular score composto com pesos ajustados por perfil
+  const riskWeights = getRiskProfileWeights(params.riskProfile);
+  
+  const scoredAssets = filteredAssets.map(asset => {
+    const returnScore = Math.max(0, asset.returns_12m || 0) * riskWeights.return;
+    const sharpeScore = Math.max(0, asset.sharpe_ratio || 0) * riskWeights.sharpe;
+    const volatilityScore = Math.max(0, 30 - (asset.volatility || 20)) * riskWeights.volatility;
+    const qualityScore = (asset.quality_score || 50) * riskWeights.quality;
+    const sizeScore = Math.min(10, Math.log10((asset.total_assets || asset.market_cap || 1000000000) / 1000000000)) * riskWeights.size;
+    const expenseScore = Math.max(0, 1 - (asset.expense_ratio || 0.5)) * riskWeights.expense;
     
-    const compositeScore = returnScore + sharpeScore + volatilityScore + qualityScore + sizeScore;
+    const compositeScore = returnScore + sharpeScore + volatilityScore + qualityScore + sizeScore + expenseScore;
     
     return {
       ...asset,
@@ -513,24 +638,25 @@ function selectOptimalAssets(assets: any[], count: number, params: z.infer<typeo
     };
   });
   
-  // Ordenar por score composto e diversificar por categoria
+  // Ordenar por score composto
   const sortedAssets = scoredAssets.sort((a, b) => b.composite_score - a.composite_score);
   
-  // Selecionar com diversificação por asset class
+  // Selecionar com diversificação inteligente por asset class
   const selectedAssets = [];
-  const usedCategories = new Set();
-  const maxPerCategory = Math.ceil(count / 3); // Máximo por categoria
+  const categoryLimits = getCategoryLimits(params.riskProfile, count);
+  const categoryCounts = {};
   
-  // Primeira passada: selecionar os melhores de cada categoria
+  // Primeira passada: respeitar limites por categoria
   for (const asset of sortedAssets) {
     if (selectedAssets.length >= count) break;
     
-    const category = asset.asset_class || 'Unknown';
-    const categoryCount = selectedAssets.filter(a => a.asset_class === category).length;
+    const category = normalizeAssetClass(asset.asset_class || asset.assetclass || 'Unknown');
+    const currentCount = categoryCounts[category] || 0;
+    const maxForCategory = categoryLimits[category] || Math.ceil(count / 4);
     
-    if (categoryCount < maxPerCategory) {
+    if (currentCount < maxForCategory) {
       selectedAssets.push(asset);
-      usedCategories.add(category);
+      categoryCounts[category] = currentCount + 1;
     }
   }
   
@@ -543,8 +669,262 @@ function selectOptimalAssets(assets: any[], count: number, params: z.infer<typeo
     }
   }
   
-  console.log(`✅ Ativos selecionados: ${selectedAssets.map(a => `${a.symbol} (${a.composite_score.toFixed(2)})`).join(', ')}`);
+  console.log(`✅ Ativos selecionados: ${selectedAssets.map(a => `${a.symbol} (${a.composite_score.toFixed(2)}, ${normalizeAssetClass(a.asset_class)})`).join(', ')}`);
   return selectedAssets.slice(0, count);
+}
+
+// NOVA FUNÇÃO: Filtros rigorosos por perfil de risco
+function filterAssetsByRiskProfile(assets: any[], riskProfile: string) {
+  const filters = {
+    conservative: {
+      maxExpenseRatio: 0.75,
+      maxVolatility: 25,
+      minTotalAssets: 1000000000, // $1B mínimo
+      excludeKeywords: ['bitcoin', 'crypto', 'btc', '3x', '2x', 'leveraged', 'inverse', 'bear', 'short', 'ultra'],
+      excludeAssetClasses: ['Digital Assets', 'Cryptocurrency', 'Leveraged', 'Inverse', 'Derivative Income'],
+      maxSingleSectorExposure: 30
+    },
+    moderate: {
+      maxExpenseRatio: 1.25,
+      maxVolatility: 35,
+      minTotalAssets: 500000000, // $500M mínimo
+      excludeKeywords: ['bitcoin', 'crypto', 'btc', '3x', '2x', 'ultra'],
+      excludeAssetClasses: ['Digital Assets', 'Cryptocurrency', 'Leveraged', 'Inverse'],
+      maxSingleSectorExposure: 40
+    },
+    aggressive: {
+      maxExpenseRatio: 2.0,
+      maxVolatility: 50,
+      minTotalAssets: 100000000, // $100M mínimo
+      excludeKeywords: ['3x', '2x', 'ultra'],
+      excludeAssetClasses: ['Leveraged', 'Inverse'],
+      maxSingleSectorExposure: 50
+    }
+  };
+  
+  const filter = filters[riskProfile] || filters.moderate;
+  
+  return assets.filter(asset => {
+    // Filtros específicos por tipo de ativo
+    if (asset.type === 'ETF') {
+      // Filtro de expense ratio para ETFs
+      const expenseRatio = parseFloat(asset.expenseratio || asset.expense_ratio || '0');
+      if (expenseRatio > filter.maxExpenseRatio) return false;
+      
+      // Filtro de asset classes proibidas para ETFs
+      const assetClass = asset.asset_class || asset.assetclass || '';
+      if (filter.excludeAssetClasses.some(excluded => assetClass.includes(excluded))) return false;
+    } else if (asset.type === 'STOCK') {
+      // Filtros específicos para stocks
+      
+      // Filtro de P/E ratio para stocks (evitar ações muito caras)
+      const peRatio = parseFloat(asset.pe_ratio || '0');
+      if (peRatio > 100) return false; // P/E muito alto
+      
+      // Filtro de debt-to-equity para stocks (evitar empresas muito alavancadas)
+      const debtToEquity = parseFloat(asset.debt_to_equity || '0');
+      if (debtToEquity > 3.0) return false; // Alavancagem muito alta
+      
+      // Filtros por perfil de risco para stocks
+      if (riskProfile === 'conservative') {
+        // Conservador: apenas large caps estáveis
+        if (asset.market_cap < 10000000000) return false; // Mínimo $10B para conservador
+        if (peRatio > 30) return false; // P/E máximo 30
+        if (debtToEquity > 1.0) return false; // Baixa alavancagem
+      } else if (riskProfile === 'moderate') {
+        // Moderado: large e mid caps
+        if (asset.market_cap < 2000000000) return false; // Mínimo $2B para moderado
+        if (peRatio > 50) return false; // P/E máximo 50
+        if (debtToEquity > 2.0) return false; // Alavancagem moderada
+      }
+      // Agressivo: permite mais flexibilidade (apenas filtros básicos acima)
+    }
+    
+    // Filtros comuns para ETFs e Stocks
+    
+    // Filtro de volatilidade
+    const volatility = parseFloat(asset.volatility_12m || asset.volatility || '0');
+    if (volatility > filter.maxVolatility) return false;
+    
+    // Filtro de tamanho mínimo (market cap ou total assets)
+    const totalAssets = parseFloat(asset.totalasset || asset.total_assets || asset.market_cap || '0');
+    if (totalAssets < filter.minTotalAssets) return false;
+    
+    // Filtro de palavras-chave proibidas
+    const name = (asset.name || '').toLowerCase();
+    const symbol = (asset.symbol || '').toLowerCase();
+    if (filter.excludeKeywords.some(keyword => name.includes(keyword) || symbol.includes(keyword))) return false;
+    
+    return true;
+  });
+}
+
+// NOVA FUNÇÃO: Pesos por perfil de risco
+function getRiskProfileWeights(riskProfile: string) {
+  const weights = {
+    conservative: {
+      return: 0.20,    // Menor peso no retorno
+      sharpe: 0.25,    // Maior peso no Sharpe (risco-ajustado)
+      volatility: 0.25, // Maior peso na baixa volatilidade
+      quality: 0.15,   // Peso moderado na qualidade
+      size: 0.10,      // Peso no tamanho (estabilidade)
+      expense: 0.05    // Peso no custo baixo
+    },
+    moderate: {
+      return: 0.30,    // Peso equilibrado no retorno
+      sharpe: 0.25,    // Peso equilibrado no Sharpe
+      volatility: 0.20, // Peso moderado na volatilidade
+      quality: 0.15,   // Peso na qualidade
+      size: 0.05,      // Menor peso no tamanho
+      expense: 0.05    // Peso no custo
+    },
+    aggressive: {
+      return: 0.40,    // Maior peso no retorno
+      sharpe: 0.20,    // Peso moderado no Sharpe
+      volatility: 0.10, // Menor peso na volatilidade (aceita mais risco)
+      quality: 0.15,   // Peso na qualidade
+      size: 0.05,      // Menor peso no tamanho
+      expense: 0.10    // Peso no custo (aceita pagar mais por performance)
+    }
+  };
+  
+  return weights[riskProfile] || weights.moderate;
+}
+
+// NOVA FUNÇÃO: Limites por categoria
+function getCategoryLimits(riskProfile: string, totalCount: number) {
+  const limits = {
+    conservative: {
+      'Fixed Income': Math.ceil(totalCount * 0.4),      // 40% bonds
+      'Large Blend': Math.ceil(totalCount * 0.3),       // 30% large cap
+      'Foreign Large Blend': Math.ceil(totalCount * 0.2), // 20% international
+      'Real Estate': Math.ceil(totalCount * 0.1)        // 10% REITs
+    },
+    moderate: {
+      'Large Blend': Math.ceil(totalCount * 0.4),       // 40% large cap
+      'Fixed Income': Math.ceil(totalCount * 0.25),     // 25% bonds
+      'Foreign Large Blend': Math.ceil(totalCount * 0.2), // 20% international
+      'Mid-Cap Blend': Math.ceil(totalCount * 0.1),     // 10% mid cap
+      'Real Estate': Math.ceil(totalCount * 0.05)       // 5% REITs
+    },
+    aggressive: {
+      'Large Growth': Math.ceil(totalCount * 0.3),      // 30% growth
+      'Large Blend': Math.ceil(totalCount * 0.25),      // 25% large cap
+      'Mid-Cap Growth': Math.ceil(totalCount * 0.15),   // 15% mid cap growth
+      'Foreign Large Blend': Math.ceil(totalCount * 0.15), // 15% international
+      'Small Growth': Math.ceil(totalCount * 0.1),      // 10% small cap
+      'Technology': Math.ceil(totalCount * 0.05)        // 5% tech
+    }
+  };
+  
+  return limits[riskProfile] || limits.moderate;
+}
+
+// NOVA FUNÇÃO: Normalizar asset classes
+function normalizeAssetClass(assetClass: string): string {
+  if (!assetClass) return 'Unknown';
+  
+  const normalized = assetClass.toLowerCase();
+  
+  if (normalized.includes('bond') || normalized.includes('fixed income')) return 'Fixed Income';
+  if (normalized.includes('large') && normalized.includes('blend')) return 'Large Blend';
+  if (normalized.includes('large') && normalized.includes('growth')) return 'Large Growth';
+  if (normalized.includes('large') && normalized.includes('value')) return 'Large Value';
+  if (normalized.includes('mid') && normalized.includes('cap')) return 'Mid-Cap Blend';
+  if (normalized.includes('small') && normalized.includes('cap')) return 'Small Blend';
+  if (normalized.includes('foreign') || normalized.includes('international')) return 'Foreign Large Blend';
+  if (normalized.includes('real estate') || normalized.includes('reit')) return 'Real Estate';
+  if (normalized.includes('technology') || normalized.includes('tech')) return 'Technology';
+  
+  return assetClass;
+}
+
+// NOVA FUNÇÃO: ETFs seguros como fallback
+function getSafeFallbackETFs(riskProfile: string, count: number) {
+  const safeETFs = {
+    conservative: [
+      { symbol: 'BND', name: 'Vanguard Total Bond Market ETF', asset_class: 'Fixed Income', composite_score: 85 },
+      { symbol: 'VOO', name: 'Vanguard 500 Index Fund', asset_class: 'Large Blend', composite_score: 80 },
+      { symbol: 'VXUS', name: 'Vanguard Total International Stock', asset_class: 'Foreign Large Blend', composite_score: 75 },
+      { symbol: 'VNQ', name: 'Vanguard Real Estate Index Fund', asset_class: 'Real Estate', composite_score: 70 }
+    ],
+    moderate: [
+      { symbol: 'VTI', name: 'Vanguard Total Stock Market ETF', asset_class: 'Large Blend', composite_score: 85 },
+      { symbol: 'BND', name: 'Vanguard Total Bond Market ETF', asset_class: 'Fixed Income', composite_score: 80 },
+      { symbol: 'VXUS', name: 'Vanguard Total International Stock', asset_class: 'Foreign Large Blend', composite_score: 75 },
+      { symbol: 'VO', name: 'Vanguard Mid-Cap Index Fund', asset_class: 'Mid-Cap Blend', composite_score: 70 }
+    ],
+    aggressive: [
+      { symbol: 'VUG', name: 'Vanguard Growth Index Fund', asset_class: 'Large Growth', composite_score: 85 },
+      { symbol: 'VTI', name: 'Vanguard Total Stock Market ETF', asset_class: 'Large Blend', composite_score: 80 },
+      { symbol: 'VO', name: 'Vanguard Mid-Cap Index Fund', asset_class: 'Mid-Cap Blend', composite_score: 75 },
+      { symbol: 'VB', name: 'Vanguard Small-Cap Index Fund', asset_class: 'Small Blend', composite_score: 70 }
+    ]
+  };
+  
+  const etfs = safeETFs[riskProfile] || safeETFs.moderate;
+  return etfs.slice(0, count);
+}
+
+// NOVA FUNÇÃO: Validação robusta de dados de ativos
+function validateAssetData(asset: any): boolean {
+  if (!asset || !asset.symbol) return false;
+  
+  // Validar returns (deve estar entre -50% e 200%)
+  const returns = parseFloat(asset.returns_12m || '0');
+  if (isNaN(returns) || returns < -50 || returns > 200) return false;
+  
+  // Validar volatilidade (deve estar entre 0% e 100%)
+  const volatility = parseFloat(asset.volatility_12m || asset.volatility || '0');
+  if (isNaN(volatility) || volatility < 0 || volatility > 100) return false;
+  
+  // Validar expense ratio (deve estar entre 0% e 5%)
+  const expenseRatio = parseFloat(asset.expenseratio || asset.expense_ratio || '0');
+  if (isNaN(expenseRatio) || expenseRatio < 0 || expenseRatio > 5) return false;
+  
+  // Validar total assets (deve ser positivo)
+  const totalAssets = parseFloat(asset.totalasset || asset.total_assets || asset.market_cap || '0');
+  if (isNaN(totalAssets) || totalAssets <= 0) return false;
+  
+  return true;
+}
+
+// NOVA FUNÇÃO: Validação de portfolio de saída
+function validatePortfolioOutput(portfolio: UnifiedAssetData[]): boolean {
+  if (!portfolio || portfolio.length === 0) {
+    console.log('❌ Portfolio vazio');
+    return false;
+  }
+  
+  const totalAllocation = portfolio.reduce((sum, asset) => sum + (asset.allocation_percent || 0), 0);
+  
+  if (Math.abs(totalAllocation - 100) > 5) {
+    console.log(`❌ Alocação total inválida: ${totalAllocation}% (deve ser ~100%)`);
+    return false;
+  }
+  
+  // Verificar se há alocações 0.0%
+  const zeroAllocations = portfolio.filter(asset => (asset.allocation_percent || 0) <= 0);
+  if (zeroAllocations.length > 0) {
+    console.log(`❌ ${zeroAllocations.length} ativos com alocação 0.0%: ${zeroAllocations.map(a => a.symbol).join(', ')}`);
+    return false;
+  }
+  
+  // Verificar se há ETFs de alto risco para perfil conservador
+  const highRiskAssets = portfolio.filter(asset => {
+    const name = (asset.name || '').toLowerCase();
+    const symbol = (asset.symbol || '').toLowerCase();
+    return name.includes('bitcoin') || name.includes('crypto') || name.includes('3x') || name.includes('2x') ||
+           symbol.includes('btc') || symbol.includes('3x') || symbol.includes('2x');
+  });
+  
+  if (highRiskAssets.length > 0) {
+    console.log(`❌ ETFs de alto risco detectados: ${highRiskAssets.map(a => a.symbol).join(', ')}`);
+    return false;
+  }
+  
+  console.log(`✅ Portfolio validado: ${portfolio.length} ativos, ${totalAllocation.toFixed(2)}% total`);
+  return true;
 }
 
 // Otimizar pesos usando Teoria de Markowitz simplificada
@@ -554,7 +934,31 @@ function optimizeMarkowitzWeights(
   type: 'ETF' | 'STOCK',
   params: z.infer<typeof RequestSchema>
 ): UnifiedAssetData[] {
-  console.log(`📊 Otimizando pesos Markowitz para ${assets.length} ${type}s...`);
+  
+  // VALIDAÇÃO DE ENTRADA ROBUSTA
+  if (!assets || assets.length === 0) {
+    console.log('⚠️ Nenhum ativo fornecido para otimização');
+    return [];
+  }
+  
+  if (totalAllocation <= 0 || totalAllocation > 100) {
+    console.log(`⚠️ Alocação total inválida: ${totalAllocation}%`);
+    return [];
+  }
+  
+  // Validar dados dos ativos
+  const validAssets = assets.filter(asset => validateAssetData(asset));
+  if (validAssets.length === 0) {
+    console.log('⚠️ Nenhum ativo com dados válidos, usando fallback');
+    return getSafeFallbackETFs(params.riskProfile, Math.min(4, assets.length))
+      .map(etf => ({ 
+        ...etf, 
+        allocation_percent: totalAllocation / Math.min(4, assets.length), 
+        allocation_amount: ((totalAllocation / Math.min(4, assets.length)) / 100) * params.investmentAmount 
+      }));
+  }
+  
+  console.log(`📊 Otimizando pesos Markowitz para ${validAssets.length} ${type}s válidos (${totalAllocation}% total)...`);
   
   const riskProfile = params.riskProfile;
   // NOVOS LIMITES: Máximo 4% por stock individual, ETFs podem ter mais concentração
@@ -588,37 +992,121 @@ function optimizeMarkowitzWeights(
     return score;
   });
   
-  // Calcular pesos baseados nos scores ajustados
-  for (let i = 0; i < assets.length; i++) {
-    const baseWeight = (riskAdjustedScores[i] / totalScore) * totalAllocation;
+  // CORREÇÃO CRÍTICA: Calcular pesos baseados nos scores ajustados
+  for (let i = 0; i < validAssets.length; i++) {
+    const baseWeight = totalScore > 0 ? (riskAdjustedScores[i] / totalScore) * totalAllocation : totalAllocation / validAssets.length;
     const cappedWeight = Math.min(Math.max(baseWeight, minSinglePosition), maxSinglePosition);
     weights.push(cappedWeight);
   }
   
-  // Normalizar pesos para somar totalAllocation
-  const weightSum = weights.reduce((sum, w) => sum + w, 0);
-  const normalizedWeights = weights.map(w => (w / weightSum) * totalAllocation);
+  console.log(`🔍 Pesos antes da normalização: ${weights.map(w => w.toFixed(2)).join(', ')}`);
   
-  // Criar portfolio com pesos otimizados
-  const optimizedPortfolio = assets.map((asset, i) => ({
+  // CORREÇÃO CRÍTICA: Normalizar pesos para somar totalAllocation
+  const weightSum = weights.reduce((sum, w) => sum + w, 0);
+  console.log(`🔍 Soma dos pesos: ${weightSum.toFixed(2)}, Target: ${totalAllocation}`);
+  
+  // GARANTIR DISTRIBUIÇÃO VÁLIDA
+  let normalizedWeights;
+  if (weightSum > 0) {
+    normalizedWeights = weights.map(w => (w / weightSum) * totalAllocation);
+  } else {
+    // Fallback: distribuição igual
+    console.log('⚠️ Soma de pesos zero, usando distribuição igual');
+    normalizedWeights = validAssets.map(() => totalAllocation / validAssets.length);
+  }
+  
+  // VALIDAÇÃO FINAL: Garantir que nenhum peso seja 0
+  const minAllocation = totalAllocation / (validAssets.length * 2); // Mínimo 50% da distribuição igual
+  normalizedWeights = normalizedWeights.map(w => Math.max(w, minAllocation));
+  
+  // Re-normalizar após ajuste mínimo
+  const finalWeightSum = normalizedWeights.reduce((sum, w) => sum + w, 0);
+  if (finalWeightSum > 0) {
+    normalizedWeights = normalizedWeights.map(w => (w / finalWeightSum) * totalAllocation);
+  }
+    
+  console.log(`🔍 Pesos normalizados finais: ${normalizedWeights.map(w => w.toFixed(2)).join(', ')}`);
+  console.log(`🔍 Soma final: ${normalizedWeights.reduce((sum, w) => sum + w, 0).toFixed(2)}%`);
+  
+  // Criar portfolio com pesos otimizados usando validAssets
+  const optimizedPortfolio = validAssets.map((asset, i) => ({
     symbol: asset.symbol,
     name: asset.name,
     type: asset.type,
     allocation_percent: Number(normalizedWeights[i].toFixed(2)),
-    allocation_amount: 0, // Será calculado depois
+    allocation_amount: (Number(normalizedWeights[i].toFixed(2)) / 100) * params.investmentAmount,
     returns_12m: asset.returns_12m || 0,
-    volatility: asset.volatility || 15,
-    sharpe_ratio: asset.sharpe_ratio || 0,
+    volatility: asset.volatility_12m || asset.volatility || 15,
+    sharpe_ratio: asset.sharpe_12m || asset.sharpe_ratio || 0,
     dividend_yield: asset.dividend_yield || 0,
-    expense_ratio: asset.expense_ratio || 0,
-    market_cap: asset.market_cap || asset.total_assets || 0,
-    quality_score: asset.quality_score || 0,
-    asset_class: asset.asset_class || 'Unknown',
-    sector: asset.sector || asset.asset_class
+    expense_ratio: asset.expenseratio || asset.expense_ratio || 0,
+    market_cap: asset.totalasset || asset.total_assets || asset.market_cap || 0,
+    quality_score: asset.quality_score || 50,
+    asset_class: asset.asset_class || asset.assetclass || 'Unknown',
+    sector: asset.sector || asset.asset_class || 'Unknown'
   }));
   
-  console.log(`✅ Pesos otimizados: ${optimizedPortfolio.map(a => `${a.symbol}: ${a.allocation_percent}%`).join(', ')}`);
+  // VALIDAÇÃO FINAL DO PORTFOLIO
+  if (!validatePortfolioOutput(optimizedPortfolio)) {
+    console.log('❌ Portfolio falhou na validação, usando fallback seguro');
+    return getSafeFallbackETFs(params.riskProfile, Math.min(4, validAssets.length))
+      .map(etf => ({ 
+        ...etf, 
+        allocation_percent: totalAllocation / Math.min(4, validAssets.length), 
+        allocation_amount: ((totalAllocation / Math.min(4, validAssets.length)) / 100) * params.investmentAmount 
+      }));
+  }
+  
+  console.log(`✅ Pesos otimizados validados: ${optimizedPortfolio.map(a => `${a.symbol}: ${a.allocation_percent}%`).join(', ')}`);
   return optimizedPortfolio;
+}
+
+// NOVA FUNÇÃO: Logging de requisições para monitoramento
+function logPortfolioRequest(requestId: string, body: any) {
+  const logData = {
+    requestId,
+    timestamp: new Date().toISOString(),
+    objective: body.objective,
+    riskProfile: body.riskProfile,
+    investmentAmount: body.investmentAmount,
+    currency: body.currency,
+    assetTypes: body.assetTypes,
+    userAgent: 'portfolio-api'
+  };
+  
+  console.log(`📊 [${requestId}] REQUEST_LOG:`, JSON.stringify(logData));
+}
+
+// NOVA FUNÇÃO: Logging de resultados para monitoramento
+function logPortfolioResult(requestId: string, portfolio: any[], metrics: any, executionTime: number) {
+  const logData = {
+    requestId,
+    timestamp: new Date().toISOString(),
+    portfolioSize: portfolio.length,
+    totalAllocation: portfolio.reduce((sum, asset) => sum + (asset.allocation_percent || 0), 0),
+    topETFs: portfolio.slice(0, 3).map(etf => ({ symbol: etf.symbol, allocation: etf.allocation_percent })),
+    expectedReturn: metrics.expected_return,
+    expectedVolatility: metrics.expected_volatility,
+    sharpeRatio: metrics.sharpe_ratio,
+    executionTimeMs: executionTime,
+    status: 'success'
+  };
+  
+  console.log(`📈 [${requestId}] RESULT_LOG:`, JSON.stringify(logData));
+}
+
+// NOVA FUNÇÃO: Logging de erros para monitoramento
+function logPortfolioError(requestId: string, error: any, executionTime: number) {
+  const logData = {
+    requestId,
+    timestamp: new Date().toISOString(),
+    error: error.message || 'Unknown error',
+    stack: error.stack,
+    executionTimeMs: executionTime,
+    status: 'error'
+  };
+  
+  console.log(`❌ [${requestId}] ERROR_LOG:`, JSON.stringify(logData));
 }
 
 // Validar se portfolio supera benchmarks
@@ -1249,16 +1737,7 @@ function calculateETFQuality(etf: any): number {
   return Math.min(100, score);
 }
 
-// Calcular score de qualidade para Stock
-function calculateStockQuality(stock: any): number {
-  let score = 50;
-  
-  if (stock.market_cap >= 50000000000) score += 15;
-  if (stock.sharpe_12m > 0.5) score += 15;
-  if (stock.dividend_yield_12m > 0 && stock.dividend_yield_12m <= 6) score += 10;
-  
-  return Math.min(100, score);
-}
+// Função calculateStockQuality já definida anteriormente (linha 471)
 
 // Calcular score de diversificação
 function calculateDiversificationScore(portfolio: UnifiedAssetData[]): number {

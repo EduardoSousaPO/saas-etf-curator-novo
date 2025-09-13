@@ -1,35 +1,38 @@
 {
   "mcpServers": {
-    "mercadopago-mcp-server": {
-      "command": "npx",
+    "logfire": {
+      "command": "C:\\Users\\edusp\\AppData\\Local\\Microsoft\\WinGet\\Packages\\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe\\uv.exe",
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://mcp.mercadopago.com/mcp",
-        "--header",
-        "Authorization:${AUTH_HEADER}"
+        "tool",
+        "run",
+        "logfire-mcp@latest",
+        "--read-token=pylf_v1_us_c3ygFWmlL9DpZS4jJRCpj7P4Plz2LtKY1FYJhRhb6qJf"
       ],
+      "cwd": "C:\\Users\\edusp\\Projetos_App_Desktop\\agente_ldc",
       "env": {
-        "AUTH_HEADER": "Bearer APP_USR-8537527381073054-061610-1a9b50f7d484cfd5b6a9a779d9b9a567-208600078"
+        "PATH": "C:\\Users\\edusp\\AppData\\Local\\Microsoft\\WinGet\\Packages\\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe;%PATH%"
       }
     },
-    "excel": {
-      "command": "npx",
-      "args": ["-y", "excel-mcp-server"]
-    },
-    "raygun-mcp-server": {
-      "command": "node",
-      "args": ["raygun-mcp-server.js"],
+    "safe-local-python-executor": {
+      "command": "C:\\Users\\edusp\\AppData\\Local\\Microsoft\\WinGet\\Packages\\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe\\uv.exe",
+      "args": [
+        "--directory",
+        "C:\\Users\\edusp\\Projetos_App_Desktop\\agente_ldc\\mcp_safe_local_python_executor",
+        "run",
+        "mcp_server.py"
+      ],
+      "cwd": "C:\\Users\\edusp\\Projetos_App_Desktop\\agente_ldc",
       "env": {
-        "NODE_ENV": "development"
+        "PATH": "C:\\Users\\edusp\\AppData\\Local\\Microsoft\\WinGet\\Packages\\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe;%PATH%"
       }
     },
-    "vector-search-mcp-server": {
-      "command": "node", 
-      "args": ["vector-search-mcp-server.js"],
+    "custom-math-server": {
+      "command": "C:\\Users\\edusp\\Projetos_App_Desktop\\agente_ldc\\start_custom_math_server.bat",
+      "args": [],
+      "cwd": "C:\\Users\\edusp\\Projetos_App_Desktop\\agente_ldc",
       "env": {
-        "NODE_ENV": "development"
+        "PATH": "C:\\Users\\edusp\\AppData\\Local\\Microsoft\\WinGet\\Packages\\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe;%PATH%"
       }
     }
   }
-} 
+}

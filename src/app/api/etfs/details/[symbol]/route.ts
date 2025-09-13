@@ -65,8 +65,13 @@ export async function GET(
         size_rating,
         beta_12m,
         morningstar_rating,
+        sustainability_rating,
+        liquidity_score,
+        premium_discount,
+        holdings_concentration,
         top_10_holdings,
         sector_allocation,
+        geographic_allocation,
         ai_investment_thesis,
         ai_risk_analysis,
         ai_market_context,
@@ -120,8 +125,13 @@ export async function GET(
       // Novos campos enriquecidos
       beta_12m: etfDetails.beta_12m,
       morningstar_rating: etfDetails.morningstar_rating,
+      sustainability_rating: etfDetails.sustainability_rating,
+      liquidity_score: etfDetails.liquidity_score,
+      premium_discount: etfDetails.premium_discount,
+      holdings_concentration: etfDetails.holdings_concentration,
       top_10_holdings: etfDetails.top_10_holdings,
       sector_allocation: etfDetails.sector_allocation,
+      geographic_allocation: etfDetails.geographic_allocation,
       
       // AI Insights
       ai_investment_thesis: etfDetails.ai_investment_thesis,

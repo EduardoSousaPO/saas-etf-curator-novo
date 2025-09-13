@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { handleUserMessage, MessageInput } from '../../../../ai/orchestrator';
-import { handleSmartMessage, SmartMessageInput } from '../../../../ai/smart-orchestrator';
+import { handleUniversalMessage, UniversalMessageInput } from '../../../../ai/universal-orchestrator';
 import { createClient } from '@supabase/supabase-js';
 import { withRateLimit, chatRateLimiter } from '../../../../ai/middleware/rate-limiter';
 
@@ -58,20 +57,21 @@ export async function POST(request: NextRequest) {
       }
     };
     
-    // Aplicar rate limiting e processar mensagem COM INTELIGÊNCIA
+    // Aplicar rate limiting e processar mensagem COM ORQUESTRADOR UNIVERSAL
     const rateLimitedResult = await withRateLimit(
       chatRateLimiter,
       userId,
       async () => {
-        // Usar o novo orquestrador inteligente
-        const smartInput: SmartMessageInput = {
+        // Usar o novo orquestrador universal bilíngue
+        const universalInput: UniversalMessageInput = {
           userId,
           projectId,
           conversationId,
-          message
+          message,
+          preferredLanguage: userContext?.preferredLanguage
         };
         
-        return await handleSmartMessage(smartInput);
+        return await handleUniversalMessage(universalInput);
       }
     );
     
@@ -90,13 +90,16 @@ export async function POST(request: NextRequest) {
       execution_time_ms: result.execution_time_ms,
       trace_id: result.trace_id,
       warnings: result.warnings,
-      // Dados do sistema inteligente
+      // Dados do sistema universal bilíngue
       metadata: {
+        detected_language: result.detectedLanguage,
         executed_actions: result.executedActions || [],
         extracted_data: result.extractedData,
         needs_more_info: result.needsMoreInfo,
         next_questions: result.nextQuestions,
-        mode: 'intelligent_agent'
+        web_search_results: result.webSearchResults || [],
+        vista_redirection: result.vistaRedirection,
+        mode: 'universal_bilingual_agent'
       }
     });
     
